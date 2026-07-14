@@ -1,0 +1,990 @@
+:root {
+  color: #151716;
+  background: #f6f4ed;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+.appShell {
+  display: grid;
+  grid-template-columns: 252px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100vh;
+  padding: 22px 16px;
+  color: #f8f6ee;
+  background: #17201d;
+}
+
+.brandLockup,
+.profilePanel,
+.topbar,
+.topbarActions,
+.heartGroup,
+.sectionHeader,
+.lessonHeader,
+.skillTitleLine,
+.skillRow,
+.labCard,
+.careerCard footer,
+.feedbackBox,
+.importPanel {
+  display: flex;
+  align-items: center;
+}
+
+.brandLockup {
+  gap: 12px;
+  min-height: 44px;
+}
+
+.brandLockup strong,
+.brandLockup span,
+.profilePanel strong,
+.profilePanel span {
+  display: block;
+}
+
+.brandLockup strong {
+  font-size: 1.02rem;
+}
+
+.brandLockup span,
+.profilePanel span {
+  margin-top: 2px;
+  color: #b9c6bf;
+  font-size: 0.78rem;
+}
+
+.brandMark,
+.statIcon,
+.skillIcon,
+.matchDial,
+.databaseIcon {
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+}
+
+.brandMark {
+  width: 40px;
+  height: 40px;
+  color: #17201d;
+  background: #c7f24f;
+}
+
+.navList {
+  display: grid;
+  gap: 6px;
+}
+
+.navButton,
+.iconButton,
+.primaryButton,
+.answerButton {
+  border: 0;
+}
+
+.navButton,
+.iconButton,
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navButton {
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: #dce7df;
+  background: transparent;
+}
+
+.navButton:hover,
+.navButton.active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.profilePanel {
+  gap: 10px;
+  margin-top: auto;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  color: #17201d;
+  background: #7ee0d3;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.sidebarFooter {
+  display: flex;
+  gap: 8px;
+}
+
+.workspace {
+  min-width: 0;
+  padding: 18px;
+}
+
+.topbar {
+  gap: 12px;
+  min-height: 52px;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 10px;
+  min-width: 0;
+  max-width: 560px;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #d6d1c4;
+  border-radius: 8px;
+  color: #647069;
+  background: #fffdf8;
+}
+
+.searchBox input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: #151716;
+  background: transparent;
+}
+
+.topbarActions {
+  gap: 8px;
+  margin-left: auto;
+}
+
+.heartGroup {
+  gap: 4px;
+  height: 42px;
+  padding: 0 11px;
+  border: 1px solid #e2d7cf;
+  border-radius: 8px;
+  color: #eb5e55;
+  background: #fffdf8;
+}
+
+.iconButton {
+  width: 42px;
+  height: 42px;
+  border: 1px solid #d6d1c4;
+  border-radius: 8px;
+  color: #29342f;
+  background: #fffdf8;
+}
+
+.iconButton:hover {
+  border-color: #99a89b;
+}
+
+.iconButton.ghost {
+  color: #dce7df;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.primaryButton {
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 8px;
+  color: #121410;
+  background: #c7f24f;
+  font-weight: 850;
+}
+
+.primaryButton:hover {
+  background: #b9e642;
+}
+
+.primaryButton.fullWidth {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.heroBand {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 186px;
+  gap: 18px;
+  align-items: end;
+  margin-top: 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid #dbd5c9;
+}
+
+.heroBand h1 {
+  max-width: 780px;
+  margin: 4px 0 0;
+  font-size: clamp(2rem, 4vw, 3.85rem);
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+
+.heroBand p {
+  max-width: 680px;
+  margin: 10px 0 0;
+  color: #5c6861;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #667269;
+  font-size: 0.73rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.streakCard,
+.statCard,
+.lessonPanel,
+.skillRow,
+.labPanel,
+.labCard,
+.careerCard,
+.bankPanel,
+.bankSignal,
+.importPanel {
+  border: 1px solid #ddd7ca;
+  border-radius: 8px;
+  background: #fffdf8;
+}
+
+.streakCard {
+  display: grid;
+  gap: 7px;
+  padding: 15px;
+}
+
+.streakCard span,
+.streakCard small,
+.statCard span,
+.statCard small,
+.skillBody p,
+.skillMeta span,
+.questionBlock span,
+.labCard span,
+.labCard p,
+.careerCard p,
+.careerCard footer,
+.bankSignal span,
+.bankSignal p,
+.importPanel p {
+  color: #657169;
+}
+
+.streakCard strong {
+  font-size: 1.8rem;
+}
+
+.miniProgress,
+.progressLine {
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: #e8e3d7;
+}
+
+.miniProgress span,
+.progressLine span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #26a69a;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.sectionTabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 0 2px;
+  scrollbar-width: none;
+}
+
+.sectionTabs::-webkit-scrollbar {
+  display: none;
+}
+
+.sectionTabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #d6d1c4;
+  border-radius: 8px;
+  color: #3e4943;
+  background: #fffdf8;
+  font-weight: 850;
+}
+
+.sectionTabs button.active {
+  color: #10211f;
+  border-color: #26a69a;
+  background: #d7f5f1;
+}
+
+.statCard {
+  display: grid;
+  gap: 7px;
+  min-height: 144px;
+  padding: 16px;
+}
+
+.statCard strong {
+  color: #151716;
+  font-size: 1.74rem;
+  line-height: 1;
+}
+
+.statCard span {
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.statIcon {
+  width: 38px;
+  height: 38px;
+}
+
+.statCard.lime .statIcon {
+  background: #e7f8bf;
+}
+
+.statCard.cyan .statIcon {
+  background: #d7f5f1;
+}
+
+.statCard.amber .statIcon {
+  background: #fde8b6;
+}
+
+.statCard.coral .statIcon {
+  background: #ffd8d2;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(338px, 410px);
+  gap: 18px;
+  align-items: start;
+}
+
+.mainColumn {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.sectionHeader {
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.sectionHeader h2,
+.lessonHeader h2,
+.careerCard h3,
+.importPanel h3 {
+  margin: 4px 0 0;
+}
+
+.sectionHeader h2,
+.lessonHeader h2 {
+  font-size: 1.2rem;
+}
+
+.bankBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: #275350;
+  background: #d7f5f1;
+  font-size: 0.76rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.pathList {
+  display: grid;
+  gap: 10px;
+}
+
+.skillRow {
+  gap: 14px;
+  width: 100%;
+  min-height: 104px;
+  padding: 14px;
+  color: inherit;
+  text-align: left;
+}
+
+.skillRow:hover,
+.skillRow.selected {
+  border-color: #26a69a;
+  box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.13);
+}
+
+.skillIcon {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  color: #143b37;
+  background: #d7f5f1;
+}
+
+.skillBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.skillTitleLine {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.skillTitleLine span {
+  color: #7f6130;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.skillTitleLine strong {
+  font-size: 1rem;
+}
+
+.skillTitleLine em {
+  margin-left: auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.statusCurrent {
+  color: #1c5b33;
+  background: #dbf1d1;
+}
+
+.statusUnlocked {
+  color: #194e5b;
+  background: #d7f5f1;
+}
+
+.statusLocked {
+  color: #6d6873;
+  background: #e8e5e0;
+}
+
+.skillBody p {
+  margin: 7px 0 10px;
+  line-height: 1.35;
+}
+
+.skillMeta {
+  display: grid;
+  gap: 3px;
+  min-width: 74px;
+  text-align: right;
+}
+
+.skillMeta strong {
+  font-size: 1.05rem;
+}
+
+.labPanel,
+.bankPanel {
+  padding: 16px;
+}
+
+.labGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 16px;
+}
+
+.labGrid img,
+.lessonDiagram,
+.labCard img {
+  border: 1px solid #dbe3e2;
+  border-radius: 8px;
+  background: #f8fbfb;
+}
+
+.labGrid img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+}
+
+.labControls {
+  display: grid;
+  gap: 12px;
+}
+
+.labControls label,
+.resultBox {
+  display: grid;
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid #e2ddd2;
+  border-radius: 8px;
+  background: #fbf8ef;
+}
+
+.labControls label span,
+.resultBox span {
+  color: #667269;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.labControls input {
+  accent-color: #26a69a;
+}
+
+.resultBox strong {
+  font-size: 1.6rem;
+}
+
+.resultBox small {
+  color: #7f6130;
+  font-weight: 850;
+}
+
+.labCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.labCard {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+
+.labCard img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.labCard h3 {
+  margin: 3px 0 5px;
+  font-size: 1rem;
+}
+
+.labCard em {
+  width: fit-content;
+  margin-top: auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  color: #243a33;
+  background: #e7f8bf;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.careerGrid,
+.bankGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.careerCard {
+  display: grid;
+  gap: 14px;
+  align-items: start;
+  padding: 16px;
+}
+
+.matchDial {
+  grid-template-columns: 24px 1fr;
+  gap: 8px;
+  width: fit-content;
+  min-height: 38px;
+  padding: 0 10px;
+  color: #143b37;
+  background: #d7f5f1;
+  font-weight: 900;
+}
+
+.careerCard h3 {
+  font-size: 1.06rem;
+}
+
+.careerCard p,
+.importPanel p {
+  line-height: 1.45;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.chipRow span {
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: #f0ece1;
+  color: #3f4742;
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.careerCard footer {
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #e5dfd4;
+  font-weight: 800;
+}
+
+.bankGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.bankSignal {
+  display: grid;
+  gap: 7px;
+  padding: 15px;
+}
+
+.bankSignal strong {
+  font-size: 1.8rem;
+}
+
+.bankSignal p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.importPanel {
+  gap: 14px;
+  margin-top: 14px;
+  padding: 14px;
+  background: #f8fbfb;
+}
+
+.databaseIcon {
+  flex: 0 0 auto;
+  width: 54px;
+  height: 54px;
+  color: #173f3b;
+  background: #d7f5f1;
+}
+
+.databaseIcon span {
+  display: block;
+  width: 28px;
+  height: 5px;
+  border-radius: 999px;
+  background: #26a69a;
+}
+
+.lessonPanel {
+  position: sticky;
+  top: 18px;
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.lessonHeader {
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.lessonHeader span {
+  padding: 7px 9px;
+  border-radius: 999px;
+  color: #583f06;
+  background: #fde8b6;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.lessonDiagram {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.questionBlock {
+  display: grid;
+  gap: 6px;
+}
+
+.questionBlock h3 {
+  margin: 0;
+  font-size: 1.08rem;
+  line-height: 1.38;
+}
+
+.optionGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.answerButton {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-height: 43px;
+  padding: 8px 10px;
+  border: 1px solid #ded8ca;
+  border-radius: 8px;
+  color: #1a1d1b;
+  background: #fffdf8;
+  text-align: left;
+}
+
+.answerButton:hover {
+  border-color: #26a69a;
+}
+
+.answerButton span {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  color: #49554e;
+  background: #efebe1;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.answerButton.correct {
+  border-color: #2f9c58;
+  background: #eef9ec;
+}
+
+.answerButton.wrong {
+  border-color: #df675e;
+  background: #fff0ed;
+}
+
+.feedbackBox {
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.feedbackBox.success {
+  color: #19542d;
+  background: #eef9ec;
+}
+
+.feedbackBox.error {
+  color: #88322d;
+  background: #fff0ed;
+}
+
+.feedbackBox p {
+  margin: 3px 0 7px;
+  color: inherit;
+  line-height: 1.42;
+}
+
+.feedbackBox small {
+  color: #4f5b54;
+  line-height: 1.35;
+}
+
+.mobileOnly {
+  display: none;
+}
+
+@media (max-width: 1160px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .lessonPanel {
+    position: static;
+  }
+
+  .careerGrid,
+  .bankGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .appShell {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    align-items: center;
+    padding-inline: 12px;
+  }
+
+  .brandLockup div:last-child,
+  .navButton span,
+  .profilePanel div:last-child {
+    display: none;
+  }
+
+  .navButton {
+    justify-content: center;
+    width: 48px;
+    padding: 0;
+  }
+
+  .profilePanel {
+    padding: 8px;
+  }
+
+  .statGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .labGrid,
+  .labCards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .appShell {
+    display: block;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .workspace {
+    padding: 14px;
+  }
+
+  .mobileOnly {
+    display: inline-flex;
+  }
+
+  .topbar {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .searchBox {
+    order: 3;
+    width: 100%;
+    max-width: none;
+  }
+
+  .heartGroup {
+    display: none;
+  }
+
+  .primaryButton {
+    padding: 0 11px;
+  }
+
+  .heroBand {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .heroBand h1 {
+    font-size: 2.25rem;
+  }
+
+  .statGrid,
+  .careerGrid,
+  .bankGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionHeader,
+  .skillRow {
+    align-items: flex-start;
+  }
+
+  .sectionHeader,
+  .skillRow,
+  .skillTitleLine {
+    flex-direction: column;
+  }
+
+  .skillMeta {
+    min-width: 0;
+    text-align: left;
+  }
+}

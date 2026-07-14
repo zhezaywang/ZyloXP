@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+<!-- LaTeX/TikZ source: latex_sources/IMG-7333.tex -->
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+</marker>
+<style>
+.wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke:#44606B;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accentFill{fill:#FDECC8;stroke:#D97706;stroke-width:3}
+.box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3}
+.panel{fill:#FFFFFF;stroke:#D9E2E7;stroke-width:1.5}
+.soft{fill:#F1F7F8;stroke:#7AA8B2;stroke-width:2}
+.label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+.small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+.tiny{font-family:Inter,Arial,sans-serif;font-size:11px;fill:#52616B}
+.math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
+</style>
+</defs>
+<title id="title">Binary state count reference diagram</title>
+<desc id="desc">How many unique states can 8 binary bits represent?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Binary state count reference diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-7333 | Digital Logic | EE-146641</text>
+<rect class="soft" x="150" y="205" width="90" height="52" rx="8"/>
+<rect class="soft" x="150" y="274" width="90" height="52" rx="8"/>
+<rect class="soft" x="150" y="343" width="90" height="52" rx="8"/>
+<text class="small" x="180" y="237" text-anchor="start">bit 0</text>
+<text class="small" x="180" y="306" text-anchor="start">bit 1</text>
+<text class="small" x="180" y="375" text-anchor="start">bit n</text>
+<line class="wire" x1="240" y1="231" x2="405" y2="292"/>
+<line class="wire" x1="240" y1="300" x2="405" y2="300"/>
+<line class="wire" x1="240" y1="369" x2="405" y2="308"/>
+<rect class="box" x="405" y="235" width="190" height="130" rx="8"/>
+<text class="label" x="452" y="294" text-anchor="start">logic / FSM</text>
+<text class="small" x="454" y="320" text-anchor="start">truth table</text>
+<line class="wire" x1="595" y1="300" x2="760" y2="300" marker-end="url(#arrow)"/>
+<text class="label" x="770" y="305" text-anchor="start">Y</text>
+<text class="small" x="360" y="432" text-anchor="start">Boolean algebra and timing</text>
+<rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">How many unique states can 8 binary bits represent?</text>
+</svg>

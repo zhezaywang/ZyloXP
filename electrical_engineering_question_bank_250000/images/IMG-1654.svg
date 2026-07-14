@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+<!-- LaTeX/TikZ source: latex_sources/IMG-1654.tex -->
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+</marker>
+<style>
+.wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke:#44606B;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accentFill{fill:#FDECC8;stroke:#D97706;stroke-width:3}
+.box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3}
+.panel{fill:#FFFFFF;stroke:#D9E2E7;stroke-width:1.5}
+.soft{fill:#F1F7F8;stroke:#7AA8B2;stroke-width:2}
+.label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+.small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+.tiny{font-family:Inter,Arial,sans-serif;font-size:11px;fill:#52616B}
+.math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
+</style>
+</defs>
+<title id="title">Thevenin to Norton reference diagram</title>
+<desc id="desc">A Thevenin equivalent has Vth = 18 V and Rth = 14 ohm. What is the Norton current?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Thevenin to Norton reference diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-1654 | Network Theorems and Two-Port Networks | EE-33061</text>
+<rect class="box" x="150" y="235" width="210" height="120" rx="8"/>
+<text class="label" x="194" y="292" text-anchor="start">Thevenin / Norton</text>
+<text class="small" x="186" y="318" text-anchor="start">equivalent network</text>
+<path class="wire" d="M360,295 H485" fill="none"/>
+<polyline class="wire" points="485,295 507,295 507,295 514.583,281 522.167,309 529.75,281 537.333,309 544.917,281 552.5,309 560.083,281 567.667,309 575.25,281 582.833,309 590.417,281 598,295 620,295" fill="none"/>
+<path class="wire" d="M620,295 H720" fill="none"/>
+<rect class="soft" x="720" y="246" width="105" height="98" rx="8"/>
+<text class="label" x="752" y="300" text-anchor="start">Load</text>
+<text class="small" x="432" y="252" text-anchor="start">Rth</text>
+<text class="small" x="392" y="344" text-anchor="start">Vth source with equivalent resistance</text>
+<rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A Thevenin equivalent has Vth = 18 V and Rth = 14 ohm. What is the Norton current?</text>
+</svg>

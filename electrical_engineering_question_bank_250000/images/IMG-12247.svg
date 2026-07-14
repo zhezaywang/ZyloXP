@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+<!-- LaTeX/TikZ source: latex_sources/IMG-12247.tex -->
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+</marker>
+<style>
+.wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke:#44606B;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accentFill{fill:#FDECC8;stroke:#D97706;stroke-width:3}
+.box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3}
+.panel{fill:#FFFFFF;stroke:#D9E2E7;stroke-width:1.5}
+.soft{fill:#F1F7F8;stroke:#7AA8B2;stroke-width:2}
+.label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+.small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+.tiny{font-family:Inter,Arial,sans-serif;font-size:11px;fill:#52616B}
+.math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
+</style>
+</defs>
+<title id="title">CT secondary current reference diagram</title>
+<desc id="desc">A 100:5 current transformer carries 250 A primary current. What secondary current flows ideally?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">CT secondary current reference diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-12247 | Electrical Safety and Protection | EE-244921</text>
+<line class="wire" x1="150" y1="300" x2="285" y2="300"/>
+<circle class="thin" cx="285" cy="300" r="28" fill="none"/>
+<text class="small" x="276" y="306" text-anchor="start">CT</text>
+<line class="wire" x1="313" y1="300" x2="430" y2="300"/>
+<rect class="box" x="430" y="252" width="115" height="96" rx="8"/>
+<text class="label" x="465" y="306" text-anchor="start">Relay</text>
+<line class="wire" x1="545" y1="300" x2="660" y2="300"/>
+<rect class="soft" x="660" y="252" width="120" height="96" rx="8"/>
+<text class="label" x="696" y="306" text-anchor="start">Breaker</text>
+<line class="wire" x1="780" y1="300" x2="850" y2="300" marker-end="url(#arrow)"/>
+<path class="thin" d="M510,348 V410 H470 M490,410 H530 M478,426 H522 M488,442 H512" fill="none"/>
+<text class="small" x="280" y="454" text-anchor="start">Protection detects faults and interrupts unsafe current</text>
+<rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A 100:5 current transformer carries 250 A primary current. What secondary current flows ideally?</text>
+</svg>

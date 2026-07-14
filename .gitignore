@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.DS_Store
+*.local
+
+# Exceeds GitHub's 100 MB per-file limit; the full dataset remains in the XLSX workbook.
+electrical_engineering_question_bank_250000/question_database.csv

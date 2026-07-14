@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+<!-- LaTeX/TikZ source: latex_sources/IMG-7846.tex -->
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+</marker>
+<style>
+.wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke:#44606B;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accentFill{fill:#FDECC8;stroke:#D97706;stroke-width:3}
+.box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3}
+.panel{fill:#FFFFFF;stroke:#D9E2E7;stroke-width:1.5}
+.soft{fill:#F1F7F8;stroke:#7AA8B2;stroke-width:2}
+.label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+.small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+.tiny{font-family:Inter,Arial,sans-serif;font-size:11px;fill:#52616B}
+.math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
+</style>
+</defs>
+<title id="title">Nyquist sampling reference diagram</title>
+<desc id="desc">A signal is band-limited to 1.5 kHz. What minimum sampling rate avoids aliasing?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Nyquist sampling reference diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-7846 | Signals and Systems | EE-156901</text>
+<line class="thin" x1="145" y1="300" x2="655" y2="300"/>
+<line class="thin" x1="170" y1="210" x2="170" y2="390"/>
+<polyline class="accent" points="170,300 174.583,291.231 179.167,282.628 183.75,274.352 188.333,266.56 192.917,259.399 197.5,253.003 202.083,247.494 206.667,242.976 211.25,239.532 215.833,237.23 220.417,236.111 225,236.197 229.583,237.487 234.167,239.956 238.75,243.557 243.333,248.223 247.917,253.865 252.5,260.378 257.083,267.638 261.667,275.508 266.25,283.841 270.833,292.478 275.417,301.257 280,310.012 284.583,318.578 289.167,326.794 293.75,334.505 298.333,341.565 302.917,347.841 307.5,353.214 312.083,357.584 316.667,360.868 321.25,363.003 325.833,363.951 330.417,363.692 335,362.232 339.583,359.598 344.167,355.84 348.75,351.029 353.333,345.255 357.917,338.628 362.5,331.272 367.083,323.326 371.667,314.941 376.25,306.273 380.833,297.487 385.417,288.749 390,280.223 394.583,272.07 399.167,264.444 403.75,257.488 408.333,251.334 412.917,246.098 417.5,241.879 422.083,238.756 426.667,236.788 431.25,236.012 435.833,236.444 440.417,238.074 445,240.872 449.583,244.785 454.167,249.74 458.75,255.642 463.333,262.382 467.917,269.831 472.5,277.849 477.083,286.284 481.667,294.979 486.25,303.768 490.833,312.486 495.417,320.968 500,329.055 504.583,336.594 509.167,343.443 513.75,349.473 518.333,354.569 522.917,358.636 527.5,361.597 532.083,363.396 536.667,364 541.25,363.396 545.833,361.597 550.417,358.636 555,354.569 559.583,349.473 564.167,343.443 568.75,336.594 573.333,329.055 577.917,320.968 582.5,312.486 587.083,303.768 591.667,294.979 596.25,286.284 600.833,277.849 605.417,269.831 610,262.382" fill="none"/>
+<line class="thin" x1="170" y1="300" x2="170" y2="300"/>
+<circle class="accentFill" cx="170" cy="300" r="5" fill="#FDECC8"/>
+<line class="thin" x1="214" y1="300" x2="214" y2="238.011"/>
+<circle class="accentFill" cx="214" cy="238.011" r="5" fill="#FDECC8"/>
+<line class="thin" x1="258" y1="300" x2="258" y2="269.168"/>
+<circle class="accentFill" cx="258" cy="269.168" r="5" fill="#FDECC8"/>
+<line class="thin" x1="302" y1="300" x2="302" y2="346.654"/>
+<circle class="accentFill" cx="302" cy="346.654" r="5" fill="#FDECC8"/>
+<line class="thin" x1="346" y1="300" x2="346" y2="354.037"/>
+<circle class="accentFill" cx="346" cy="354.037" r="5" fill="#FDECC8"/>
+<line class="thin" x1="390" y1="300" x2="390" y2="280.223"/>
+<circle class="accentFill" cx="390" cy="280.223" r="5" fill="#FDECC8"/>
+<line class="thin" x1="434" y1="300" x2="434" y2="236.126"/>
+<circle class="accentFill" cx="434" cy="236.126" r="5" fill="#FDECC8"/>
+<line class="thin" x1="478" y1="300" x2="478" y2="288.008"/>
+<circle class="accentFill" cx="478" cy="288.008" r="5" fill="#FDECC8"/>
+<line class="thin" x1="522" y1="300" x2="522" y2="357.909"/>
+<circle class="accentFill" cx="522" cy="357.909" r="5" fill="#FDECC8"/>
+<line class="thin" x1="566" y1="300" x2="566" y2="340.795"/>
+<circle class="accentFill" cx="566" cy="340.795" r="5" fill="#FDECC8"/>
+<line class="thin" x1="610" y1="300" x2="610" y2="262.382"/>
+<circle class="accentFill" cx="610" cy="262.382" r="5" fill="#FDECC8"/>
+<text class="small" x="664" y="305" text-anchor="start">t</text>
+<text class="small" x="140" y="205" text-anchor="start">x(t)</text>
+<text class="small" x="310" y="440" text-anchor="start">Sampling, spectra, and system response</text>
+<rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A signal is band-limited to 1.5 kHz. What minimum sampling rate avoids aliasing?</text>
+</svg>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+<!-- LaTeX/TikZ source: latex_sources/IMG-6613.tex -->
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+</marker>
+<style>
+.wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke:#44606B;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accentFill{fill:#FDECC8;stroke:#D97706;stroke-width:3}
+.box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3}
+.panel{fill:#FFFFFF;stroke:#D9E2E7;stroke-width:1.5}
+.soft{fill:#F1F7F8;stroke:#7AA8B2;stroke-width:2}
+.label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+.small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+.tiny{font-family:Inter,Arial,sans-serif;font-size:11px;fill:#52616B}
+.math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
+</style>
+</defs>
+<title id="title">BJT collector current reference diagram</title>
+<desc id="desc">A BJT has beta = 90 and base current 20 uA in active region. What is collector current?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">BJT collector current reference diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-6613 | Semiconductor Devices | EE-132241</text>
+<line class="wire" x1="155" y1="300" x2="320" y2="300"/>
+<path class="wire" d="M320,245 L320,355 L410,300 Z" fill="none"/>
+<line class="wire" x1="425" y1="245" x2="425" y2="355"/>
+<line class="wire" x1="425" y1="300" x2="595" y2="300"/>
+<text class="small" x="280" y="284" text-anchor="start">p</text>
+<text class="small" x="450" y="284" text-anchor="start">n</text>
+<line class="thin" x1="500" y1="405" x2="735" y2="405" marker-end="url(#arrow)"/>
+<line class="thin" x1="500" y1="405" x2="500" y2="185" marker-end="url(#arrow)"/>
+<polyline class="accent" points="520,405 560,400 600,385 630,340 650,260 665,205" fill="none" marker-end="url(#arrow)"/>
+<text class="small" x="740" y="428" text-anchor="start">V</text>
+<text class="small" x="472" y="192" text-anchor="start">I</text>
+<text class="small" x="328" y="455" text-anchor="start">Nonlinear I-V characteristic</text>
+<rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A BJT has beta = 90 and base current 20 uA in active region. What is collector current?</text>
+</svg>

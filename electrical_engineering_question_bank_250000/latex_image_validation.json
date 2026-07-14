@@ -1,0 +1,83 @@
+{
+  "generated_at": "2026-07-11T17:53:53.933719+00:00",
+  "generator": "tools/generate_latex_diagrams.py",
+  "status": "PASS",
+  "failures": 0,
+  "image_assets": 12500,
+  "latex_sources": 12500,
+  "svg_images": 12500,
+  "topics": {
+    "DC Circuit Analysis": 625,
+    "AC Phasors and Impedance": 625,
+    "Network Theorems and Two-Port Networks": 625,
+    "Transient Circuit Analysis": 625,
+    "Electromagnetics": 625,
+    "Transmission Lines": 625,
+    "Power Systems": 625,
+    "Transformers and Electrical Machines": 625,
+    "Power Electronics": 625,
+    "Analog Electronics and Op-Amps": 625,
+    "Semiconductor Devices": 625,
+    "Digital Logic": 625,
+    "Signals and Systems": 625,
+    "Control Systems": 625,
+    "Communications": 625,
+    "Measurement and Instrumentation": 625,
+    "PCB Design and Signal Integrity": 625,
+    "Embedded Systems": 625,
+    "RF and Antennas": 625,
+    "Electrical Safety and Protection": 625
+  },
+  "checks": [
+    {
+      "name": "Image metadata rows",
+      "result": "PASS",
+      "details": "Found 12500 image metadata rows."
+    },
+    {
+      "name": "LaTeX source count",
+      "result": "PASS",
+      "details": "Found 12500 LaTeX source files."
+    },
+    {
+      "name": "SVG image count",
+      "result": "PASS",
+      "details": "Found 12500 SVG image files."
+    },
+    {
+      "name": "Source cross-reference",
+      "result": "PASS",
+      "details": "Missing source count: 0."
+    },
+    {
+      "name": "SVG cross-reference",
+      "result": "PASS",
+      "details": "Missing SVG count: 0."
+    },
+    {
+      "name": "Topic template coverage",
+      "result": "PASS",
+      "details": "Missing templates: []."
+    },
+    {
+      "name": "Linked question coverage",
+      "result": "PASS",
+      "details": "Every image row has a linked question row."
+    },
+    {
+      "name": "SVG/TeX provenance markers",
+      "result": "PASS",
+      "details": "Bad sampled assets: []."
+    },
+    {
+      "name": "Fixed layout bounds",
+      "result": "PASS",
+      "details": "Header, drawing zone, and prompt panel use fixed non-overlapping y-ranges."
+    }
+  ],
+  "notes": [
+    "Each app-facing SVG has a matching editable LaTeX/TikZ source file in latex_sources/.",
+    "The package machine did not include pdflatex/lualatex; SVGs are rendered deterministically from the same LaTeX/TikZ geometry by this generator.",
+    "Question prompts are placed in a separate bottom panel to prevent text from overlapping the circuit or concept diagram."
+  ]
+}

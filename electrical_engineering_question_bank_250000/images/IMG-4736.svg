@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+<!-- LaTeX/TikZ source: latex_sources/IMG-4736.tex -->
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+</marker>
+<style>
+.wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke:#44606B;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accentFill{fill:#FDECC8;stroke:#D97706;stroke-width:3}
+.box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3}
+.panel{fill:#FFFFFF;stroke:#D9E2E7;stroke-width:1.5}
+.soft{fill:#F1F7F8;stroke:#7AA8B2;stroke-width:2}
+.label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+.small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+.tiny{font-family:Inter,Arial,sans-serif;font-size:11px;fill:#52616B}
+.math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
+</style>
+</defs>
+<title id="title">Transformer voltage ratio reference diagram</title>
+<desc id="desc">An ideal transformer has Np = 180, Ns = 110, and primary voltage 120 V. What is the secondary voltage?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Transformer voltage ratio reference diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-4736 | Transformers and Electrical Machines | EE-94701</text>
+<line class="wire" x1="220" y1="300" x2="300" y2="300"/>
+<path class="thin" d="M320,230 C280,240 280,360 320,370" fill="none"/>
+<path class="thin" d="M340,230 C300,240 300,360 340,370" fill="none"/>
+<path class="thin" d="M360,230 C320,240 320,360 360,370" fill="none"/>
+<line class="thin" x1="430" y1="225" x2="430" y2="375"/>
+<line class="thin" x1="452" y1="225" x2="452" y2="375"/>
+<path class="thin" d="M522,230 C562,240 562,360 522,370" fill="none"/>
+<path class="thin" d="M542,230 C582,240 582,360 542,370" fill="none"/>
+<path class="thin" d="M562,230 C602,240 602,360 562,370" fill="none"/>
+<line class="wire" x1="585" y1="300" x2="730" y2="300"/>
+<text class="small" x="302" y="205" text-anchor="start">Np</text>
+<text class="small" x="560" y="205" text-anchor="start">Ns</text>
+<text class="math" x="393" y="422" text-anchor="start">V1/V2 = Np/Ns</text>
+<text class="small" x="337" y="462" text-anchor="start">Ideal transformer ratios and magnetic flux</text>
+<rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">An ideal transformer has Np = 180, Ns = 110, and primary voltage 120 V. What is the secondary voltage?</text>
+</svg>

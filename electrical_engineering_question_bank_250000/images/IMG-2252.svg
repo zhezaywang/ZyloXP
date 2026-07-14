@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+<!-- LaTeX/TikZ source: latex_sources/IMG-2252.tex -->
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+</marker>
+<style>
+.wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke:#44606B;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accentFill{fill:#FDECC8;stroke:#D97706;stroke-width:3}
+.box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3}
+.panel{fill:#FFFFFF;stroke:#D9E2E7;stroke-width:1.5}
+.soft{fill:#F1F7F8;stroke:#7AA8B2;stroke-width:2}
+.label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+.small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+.tiny{font-family:Inter,Arial,sans-serif;font-size:11px;fill:#52616B}
+.math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
+</style>
+</defs>
+<title id="title">RC time constant reference diagram</title>
+<desc id="desc">An RC circuit has R = 12 kohm and C = 20 uF. What is the time constant?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">RC time constant reference diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-2252 | Transient Circuit Analysis | EE-45021</text>
+<path class="wire" d="M145,330 H225 L272,295" fill="none"/>
+<line class="wire" x1="292" y1="330" x2="330" y2="330"/>
+<polyline class="wire" points="330,330 352,330 352,330 358.333,316 364.667,344 371,316 377.333,344 383.667,316 390,344 396.333,316 402.667,344 409,316 415.333,344 421.667,316 428,330 450,330" fill="none"/>
+<line class="wire" x1="450" y1="330" x2="470" y2="330"/>
+<line class="wire" x1="470" y1="295" x2="470" y2="365"/>
+<line class="wire" x1="490" y1="295" x2="490" y2="365"/>
+<path class="wire" d="M490,330 H535 V430 H145 V330" fill="none"/>
+<text class="small" x="250" y="286" text-anchor="start">switch</text>
+<text class="label" x="386" y="303" text-anchor="start">R</text>
+<text class="label" x="500" y="335" text-anchor="start">C</text>
+<line class="thin" x1="610" y1="405" x2="850" y2="405" marker-end="url(#arrow)"/>
+<line class="thin" x1="610" y1="405" x2="610" y2="215" marker-end="url(#arrow)"/>
+<polyline class="accent" points="610,405 612.75,397.328 615.5,390.049 618.25,383.142 621,376.588 623.75,370.369 626.5,364.468 629.25,358.869 632,353.557 634.75,348.516 637.5,343.733 640.25,339.195 643,334.889 645.75,330.803 648.5,326.926 651.25,323.247 654,319.757 656.75,316.445 659.5,313.302 662.25,310.32 665,307.491 667.75,304.806 670.5,302.259 673.25,299.842 676,297.548 678.75,295.372 681.5,293.307 684.25,291.348 687,289.489 689.75,287.725 692.5,286.051 695.25,284.463 698,282.956 700.75,281.526 703.5,280.17 706.25,278.882 709,277.661 711.75,276.502 714.5,275.402 717.25,274.359 720,273.368 722.75,272.429 725.5,271.538 728.25,270.692 731,269.889 733.75,269.128 736.5,268.405 739.25,267.719 742,267.069 744.75,266.452 747.5,265.866 750.25,265.31 753,264.783 755.75,264.283 758.5,263.808 761.25,263.357 764,262.93 766.75,262.524 769.5,262.139 772.25,261.774 775,261.428 777.75,261.099 780.5,260.787 783.25,260.491 786,260.21 788.75,259.944 791.5,259.691 794.25,259.451 797,259.223 799.75,259.007 802.5,258.802 805.25,258.608 808,258.423 810.75,258.248 813.5,258.082 816.25,257.925 819,257.775 821.75,257.633 824.5,257.498 827.25,257.371 830,257.249" fill="none"/>
+<text class="small" x="850" y="428" text-anchor="start">t</text>
+<text class="small" x="582" y="222" text-anchor="start">vC</text>
+<rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">An RC circuit has R = 12 kohm and C = 20 uF. What is the time constant?</text>
+</svg>

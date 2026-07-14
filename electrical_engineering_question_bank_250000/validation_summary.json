@@ -1,0 +1,89 @@
+{
+  "checks": [
+    {
+      "name": "Total question count",
+      "result": "PASS",
+      "details": "Generated exactly 250000 questions."
+    },
+    {
+      "name": "Unique question IDs",
+      "result": "PASS",
+      "details": "All question_id values are unique."
+    },
+    {
+      "name": "Unique question stems",
+      "result": "PASS",
+      "details": "All question stems are unique."
+    },
+    {
+      "name": "Topic distribution",
+      "result": "PASS",
+      "details": "Each of 20 topics has exactly 12500 questions."
+    },
+    {
+      "name": "Topic-level tree distribution",
+      "result": "PASS",
+      "details": "Every topic has 500 questions at each level from 1 to 25."
+    },
+    {
+      "name": "Tree ordering",
+      "result": "PASS",
+      "details": "Rows are ordered by section, then level, then node number."
+    },
+    {
+      "name": "Difficulty rank range",
+      "result": "PASS",
+      "details": "Every row has a difficulty_rank from 1 to 25."
+    },
+    {
+      "name": "Difficulty rank distribution",
+      "result": "PASS",
+      "details": "Each level has exactly 10000 questions."
+    },
+    {
+      "name": "Six distinct options",
+      "result": "PASS",
+      "details": "Every row has six distinct answer choices."
+    },
+    {
+      "name": "Correct answer placement",
+      "result": "PASS",
+      "details": "Correct option letter matches the correct answer text in every row."
+    },
+    {
+      "name": "Verification status",
+      "result": "PASS",
+      "details": "Every row is marked Verified."
+    },
+    {
+      "name": "Answer position balance",
+      "result": "PASS",
+      "details": "Correct letters are balanced: {'A': 41667, 'B': 41667, 'C': 41667, 'D': 41667, 'E': 41666, 'F': 41666}."
+    },
+    {
+      "name": "Required fields populated",
+      "result": "PASS",
+      "details": "No required fields are blank."
+    },
+    {
+      "name": "Image asset count",
+      "result": "PASS",
+      "details": "Generated 12500 SVG diagram assets."
+    },
+    {
+      "name": "Image cross-reference integrity",
+      "result": "PASS",
+      "details": "Every image-backed question points to a matching image database record and SVG file."
+    }
+  ],
+  "rows": 250000,
+  "expected_rows": 250000,
+  "levels": 25,
+  "questions_per_topic": 12500,
+  "questions_per_level": 500,
+  "tree_shape": "20 sections x 25 levels x 500 questions",
+  "image_assets": 12500,
+  "image_frequency": "Every 20th question",
+  "workbook": "/Users/zhewang/Documents/ZyloXP/outputs/ee_question_bank/electrical_engineering_question_bank_250000.xlsx",
+  "question_csv": "/Users/zhewang/Documents/ZyloXP/outputs/ee_question_bank/question_database.csv"
+}
