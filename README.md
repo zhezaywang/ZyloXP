@@ -50,7 +50,7 @@ electrical_engineering_question_bank_250000/
 
 ## Run locally
 
-Requirements: Node.js 20+ and pnpm.
+Requirements: Node.js 22.13+ and pnpm 11.
 
 ```bash
 git clone https://github.com/zhezaywang/ZyloXP.git
