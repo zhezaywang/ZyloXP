@@ -220,7 +220,7 @@ function App() {
                     <p className="eyebrow">Skill Path</p>
                     <h2>From circuit intuition to career fluency</h2>
                   </div>
-                  <span className="bankBadge">5,000 verified prompts</span>
+                  <span className="bankBadge">250,000 verified prompts</span>
                 </div>
 
                 <div className="pathList">
@@ -271,7 +271,7 @@ function App() {
                 </div>
 
                 <div className="labGrid">
-                  <img src="/diagrams/ohms-law.svg" alt="Ohm's law circuit diagram" />
+                  <img src={lessonQuestion.diagram} alt="Ohm's law circuit diagram" />
                   <div className="labControls">
                     <label>
                       <span>Voltage</span>
