@@ -12,17 +12,25 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Ohm's law reference diagram};
-\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-0228 | DC Circuit Analysis | EE-04541};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Parallel resistance problem diagram};
+\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-0228 | DC Circuit Analysis | EE-04543};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\draw[wire] (205,320) -- (205,388); \draw[wire] (230,334) -- (230,374);
-\node[font=\small,text=zyloLine] at (190,312) {$+$}; \node[font=\small,text=zyloLine] at (242,392) {$-$};
-\draw[wire] (230,354) -- (315,354);
-\draw[wire] (315,354) -- (337,354) -- (337,354) -- (351.667,336) -- (366.333,372) -- (381,336) -- (395.667,372) -- (410.333,336) -- (425,372) -- (439.667,336) -- (454.333,372) -- (469,336) -- (483.667,372) -- (498.333,336) -- (513,354) -- (535,354);
-\draw[wire] (535,354) -- (700,354) -- (700,430) -- (205,430) -- (205,388);
-\node[text=zyloInk] at (405,328) {$R$}; \node[text=zyloInk] at (166,364) {$V_s$};
-\node[font=\small,text=zyloLine] at (480,466) {Ohm and Kirchhoff relationships};
+\path[draw=zyloLine,fill=white!80!zyloSoft,rounded corners=8pt] (86,188) rectangle (326,398);
+\node[font=\small\bfseries,text=zyloLine] at (206,224) {QUESTION GIVENS};
+\node[text=zyloInk] at (206,268) {DC-03};
+\node[font=\small,text=zyloLine,text width=205pt,align=center] at (206,307) {Parallel resistance};
+\node[font=\small,text=zyloLine] at (206,352) {values in the prompt};
+\draw[wire,->] (326,293) -- (390,293);
+\node[box,minimum width=350pt,minimum height=174pt] at (565,293) {};
+\node[font=\small\bfseries,text=zyloLine] at (565,240) {GOVERNING RELATION};
+\node[font=\ttfamily,text=zyloInk,text width=310pt,align=center] at (565,300) {Req = R1 R2/(R1 + R2)};
+\draw[wire,->] (740,293) -- (796,293);
+\path[draw=zyloOrange,fill=orange!18,rounded corners=8pt,line width=1.5pt] (796,232) rectangle (901,354);
+\node[font=\small\bfseries,text=zyloLine] at (848,276) {FIND};
+\node[font=\Large,text=zyloInk] at (848,312) {?};
+\node[font=\scriptsize,text=zyloLine] at (848,336) {ohm};
+\node[font=\small,text=zyloLine,text width=820pt,align=center] at (480,440) {Two ideal resistors in parallel.};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
-\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A 17.25 V source is applied across a 23 ohm resistor. What current flows?};
+\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A 9 ohm resistor is in parallel with a 32 ohm resistor. What is the equivalent resistance?};
 \end{tikzpicture}
 \end{document}

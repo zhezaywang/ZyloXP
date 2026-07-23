@@ -12,7 +12,7 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Nyquist sampling reference diagram};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Nyquist sampling problem diagram};
 \node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-7921 | Signals and Systems | EE-158401};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
 \draw[thinwire] (145,300) -- (655,300);
@@ -32,6 +32,6 @@
 \node[font=\small,text=zyloLine] at (664,305) {$t$}; \node[font=\small,text=zyloLine] at (140,205) {$x(t)$};
 \node[font=\small,text=zyloLine] at (480,440) {Sampling, spectra, and system response};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
-\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A signal is band-limited to 6 kHz. What minimum sampling rate avoids aliasing?};
+\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A signal is band-limited to 6 kHz. What is the theoretical Nyquist rate? Practical sampling\\must be higher.};
 \end{tikzpicture}
 \end{document}

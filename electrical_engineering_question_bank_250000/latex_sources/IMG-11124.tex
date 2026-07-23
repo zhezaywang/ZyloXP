@@ -12,17 +12,25 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {UART bit time reference diagram};
-\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-11124 | Embedded Systems | EE-222461};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {SPI transfer time problem diagram};
+\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-11124 | Embedded Systems | EE-222464};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\node[box,minimum width=135pt,minimum height=125pt] at (207,297) {MCU};
-\draw[wire] (275,270) -- (430,270); \draw[wire] (275,330) -- (430,330);
-\node[font=\scriptsize,text=zyloLine] at (330,258) {TX/SCL}; \node[font=\scriptsize,text=zyloLine] at (330,352) {RX/SDA};
-\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=170pt,minimum height=125pt] at (515,297) {Device};
-\draw[wire,->] (600,300) -- (760,300); \node[font=\small,text=zyloLine] at (690,282) {interrupt / data};
-\path[draw=zyloLine,fill=white!80!zyloSoft] (320,420) rectangle (540,448);
-\node[font=\scriptsize,text=zyloLine] at (348,439) {start}; \node[font=\scriptsize,text=zyloLine] at (438,439) {data bits}; \node[font=\scriptsize,text=zyloLine] at (522,439) {stop};
+\path[draw=zyloLine,fill=white!80!zyloSoft,rounded corners=8pt] (86,188) rectangle (326,398);
+\node[font=\small\bfseries,text=zyloLine] at (206,224) {QUESTION GIVENS};
+\node[text=zyloInk] at (206,268) {ES-04};
+\node[font=\small,text=zyloLine,text width=205pt,align=center] at (206,307) {SPI transfer time};
+\node[font=\small,text=zyloLine] at (206,352) {values in the prompt};
+\draw[wire,->] (326,293) -- (390,293);
+\node[box,minimum width=350pt,minimum height=174pt] at (565,293) {};
+\node[font=\small\bfseries,text=zyloLine] at (565,240) {GOVERNING RELATION};
+\node[font=\ttfamily,text=zyloInk,text width=310pt,align=center] at (565,300) {t = Nbytes x 8 bits/byte /\\fSCLK};
+\draw[wire,->] (740,293) -- (796,293);
+\path[draw=zyloOrange,fill=orange!18,rounded corners=8pt,line width=1.5pt] (796,232) rectangle (901,354);
+\node[font=\small\bfseries,text=zyloLine] at (848,276) {FIND};
+\node[font=\Large,text=zyloInk] at (848,312) {?};
+\node[font=\scriptsize,text=zyloLine] at (848,336) {us};
+\node[font=\small,text=zyloLine,text width=820pt,align=center] at (480,440) {Eight bits per byte; no inter-byte gaps.};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
-\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {What is the bit time for a UART baud rate of 19200 baud?};
+\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {How long does it take to clock 16 byte(s) over SPI at 2 MHz?};
 \end{tikzpicture}
 \end{document}

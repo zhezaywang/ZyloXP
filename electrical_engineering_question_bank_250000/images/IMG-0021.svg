@@ -19,11 +19,11 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">Ohm&#x27;s law reference diagram</title>
-<desc id="desc">A 8 V source is applied across a 8 ohm resistor. What current flows?</desc>
+<title id="title">Ohm&#x27;s law problem diagram</title>
+<desc id="desc">An 8 V source is applied across a 8 ohm resistor. What current flows?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Ohm&#x27;s law reference diagram</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Ohm&#x27;s law problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-0021 | DC Circuit Analysis | EE-00401</text>
 <line class="wire" x1="205" y1="320" x2="205" y2="388"/>
 <line class="wire" x1="230" y1="334" x2="230" y2="374"/>
@@ -36,5 +36,5 @@
 <text class="label" x="166" y="364" text-anchor="start">Vs</text>
 <text class="small" x="382" y="466" text-anchor="start">Ohm and Kirchhoff relationships</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A 8 V source is applied across a 8 ohm resistor. What current flows?</text>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">An 8 V source is applied across a 8 ohm resistor. What current flows?</text>
 </svg>

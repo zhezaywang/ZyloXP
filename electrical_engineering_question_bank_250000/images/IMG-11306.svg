@@ -19,23 +19,21 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">Free-space wavelength reference diagram</title>
-<desc id="desc">What is the approximate free-space wavelength at 500 MHz?</desc>
+<title id="title">Free-space wavelength problem diagram</title>
+<desc id="desc">Using c = 300 Mm/s, what is the approximate free-space wavelength at 500 MHz?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Free-space wavelength reference diagram</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Free-space wavelength problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-11306 | RF and Antennas | EE-226101</text>
-<line class="wire" x1="180" y1="330" x2="350" y2="330"/>
-<circle class="thin" cx="370" cy="330" r="18" fill="none"/>
-<path class="wire" d="M388,330 H465" fill="none"/>
-<polyline class="wire" points="465,330 487,330 487,330 493.333,319 499.667,341 506,319 512.333,341 518.667,319 525,341 531.333,319 537.667,341 544,319 550.333,341 556.667,319 563,330 585,330" fill="none"/>
-<path class="wire" d="M585,330 H690" fill="none"/>
-<path class="wire" d="M690,330 L720,250 M690,330 L720,410" fill="none"/>
-<path class="thin" d="M700,285 C760,240 820,230 870,245" fill="none"/>
-<path class="thin" d="M700,375 C760,420 820,430 870,415" fill="none"/>
-<text class="small" x="452" y="306" text-anchor="start">matching</text>
-<text class="small" x="712" y="238" text-anchor="start">antenna</text>
-<text class="small" x="310" y="455" text-anchor="start">Impedance match controls power transfer</text>
+<line class="thin" x1="115" y1="310" x2="850" y2="310" marker-end="url(#arrow)"/>
+<polyline class="accent" points="150,310 156.875,300.341 163.75,290.847 170.625,281.681 177.5,273 184.375,264.952 191.25,257.674 198.125,251.292 205,245.914 211.875,241.633 218.75,238.521 225.625,236.633 232.5,236 239.375,236.633 246.25,238.521 253.125,241.633 260,245.914 266.875,251.292 273.75,257.674 280.625,264.952 287.5,273 294.375,281.681 301.25,290.847 308.125,300.341 315,310 321.875,319.659 328.75,329.153 335.625,338.319 342.5,347 349.375,355.048 356.25,362.326 363.125,368.708 370,374.086 376.875,378.367 383.75,381.479 390.625,383.367 397.5,384 404.375,383.367 411.25,381.479 418.125,378.367 425,374.086 431.875,368.708 438.75,362.326 445.625,355.048 452.5,347 459.375,338.319 466.25,329.153 473.125,319.659 480,310 486.875,300.341 493.75,290.847 500.625,281.681 507.5,273 514.375,264.952 521.25,257.674 528.125,251.292 535,245.914 541.875,241.633 548.75,238.521 555.625,236.633 562.5,236 569.375,236.633 576.25,238.521 583.125,241.633 590,245.914 596.875,251.292 603.75,257.674 610.625,264.952 617.5,273 624.375,281.681 631.25,290.847 638.125,300.341 645,310 651.875,319.659 658.75,329.153 665.625,338.319 672.5,347 679.375,355.048 686.25,362.326 693.125,368.708 700,374.086 706.875,378.367 713.75,381.479 720.625,383.367 727.5,384 734.375,383.367 741.25,381.479 748.125,378.367 755,374.086 761.875,368.708 768.75,362.326 775.625,355.048 782.5,347 789.375,338.319 796.25,329.153 803.125,319.659 810,310" fill="none"/>
+<line class="thin" x1="232.5" y1="205" x2="562.5" y2="205"/>
+<line class="thin" x1="232.5" y1="190" x2="232.5" y2="225"/>
+<line class="thin" x1="562.5" y1="190" x2="562.5" y2="225"/>
+<line class="thin" x1="250" y1="205" x2="545" y2="205" marker-end="url(#arrow)"/>
+<line class="thin" x1="545" y1="205" x2="250" y2="205" marker-end="url(#arrow)"/>
+<text class="small" x="397.5" y="184" text-anchor="middle">one wavelength, lambda</text>
+<text class="small" x="480" y="444" text-anchor="middle">free-space propagation: frequency sets wavelength</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">What is the approximate free-space wavelength at 500 MHz?</text>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">Using c = 300 Mm/s, what is the approximate free-space wavelength at 500 MHz?</text>
 </svg>

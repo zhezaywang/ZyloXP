@@ -12,18 +12,15 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {BJT collector current reference diagram};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {BJT collector current problem diagram};
 \node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-6736 | Semiconductor Devices | EE-134701};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\draw[wire] (155,300) -- (320,300);
-\draw[wire] (320,245) -- (320,355) -- (410,300) -- (320,245);
-\draw[wire] (425,245) -- (425,355);
-\draw[wire] (425,300) -- (595,300);
-\node[font=\small,text=zyloLine] at (280,284) {$p$}; \node[font=\small,text=zyloLine] at (450,284) {$n$};
-\draw[thinwire,->] (500,405) -- (735,405); \draw[thinwire,->] (500,405) -- (500,185);
-\draw[accent] (520,405) -- (560,400) -- (600,385) -- (630,340) -- (650,260) -- (665,205);
-\node[font=\small,text=zyloLine] at (740,428) {$V$}; \node[font=\small,text=zyloLine] at (472,192) {$I$};
-\node[font=\small,text=zyloLine] at (480,455) {Nonlinear $I$-$V$ characteristic};
+\draw[thinwire] (500,305) circle (112); \draw[wire] (430,245) -- (430,365);
+\draw[wire,->] (245,305) -- (430,305); \draw[wire] (430,270) -- (555,205); \draw[wire,->] (555,205) -- (700,205);
+\draw[wire] (430,340) -- (555,405); \draw[wire,->] (555,405) -- (700,405); \draw[accent,->] (515,384) -- (558,406);
+\node[font=\small,text=zyloLine] at (225,290) {$I_B$}; \node[font=\small,text=zyloLine] at (715,210) {$I_C$}; \node[font=\small,text=zyloLine] at (715,410) {$I_E$};
+\node[font=\scriptsize,text=zyloLine] at (405,288) {B}; \node[font=\scriptsize,text=zyloLine] at (540,190) {C}; \node[font=\scriptsize,text=zyloLine] at (540,430) {E};
+\node[font=\small,text=zyloLine] at (500,466) {NPN transistor in forward-active operation};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
 \node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A BJT has beta = 230 and base current 55 uA in active region. What is collector current?};
 \end{tikzpicture}

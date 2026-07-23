@@ -12,17 +12,25 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {ADC LSB size reference diagram};
-\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-9448 | Measurement and Instrumentation | EE-188941};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Quantization uncertainty problem diagram};
+\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-9448 | Measurement and Instrumentation | EE-188943};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\draw[wire] (125,305) -- (260,305);
-\node[box,minimum width=160pt,minimum height=130pt] at (340,305) {ADC};
-\draw[wire,->] (420,305) -- (520,305);
-\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=250pt,minimum height=160pt] at (645,305) {};
-\node at (645,210) {digital code}; \draw[thinwire] (552,270) -- (735,270); \draw[thinwire] (552,295) -- (735,295); \draw[thinwire] (552,320) -- (735,320); \draw[thinwire] (552,345) -- (735,345);
-\node[text=zyloInk] at (635,412) {$\mathrm{LSB}=V_{ref}/2^N$}; \node at (90,292) {$V_{in}$};
-\node[font=\small,text=zyloLine] at (480,452) {Quantization step is set by reference and bit depth};
+\path[draw=zyloLine,fill=white!80!zyloSoft,rounded corners=8pt] (86,188) rectangle (326,398);
+\node[font=\small\bfseries,text=zyloLine] at (206,224) {QUESTION GIVENS};
+\node[text=zyloInk] at (206,268) {MI-03};
+\node[font=\small,text=zyloLine,text width=205pt,align=center] at (206,307) {Quantization uncertainty};
+\node[font=\small,text=zyloLine] at (206,352) {values in the prompt};
+\draw[wire,->] (326,293) -- (390,293);
+\node[box,minimum width=350pt,minimum height=174pt] at (565,293) {};
+\node[font=\small\bfseries,text=zyloLine] at (565,240) {GOVERNING RELATION};
+\node[font=\ttfamily,text=zyloInk,text width=310pt,align=center] at (565,300) {|eq,max| = 0.5 Vref/2\textasciicircum{}N};
+\draw[wire,->] (740,293) -- (796,293);
+\path[draw=zyloOrange,fill=orange!18,rounded corners=8pt,line width=1.5pt] (796,232) rectangle (901,354);
+\node[font=\small\bfseries,text=zyloLine] at (848,276) {FIND};
+\node[font=\Large,text=zyloInk] at (848,312) {?};
+\node[font=\scriptsize,text=zyloLine] at (848,336) {mV};
+\node[font=\small,text=zyloLine,text width=820pt,align=center] at (480,440) {Ideal rounding quantizer.};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
-\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {An 10-bit ADC uses a 3.3 V reference. What is one LSB?};
+\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {For an ideal 8-bit ADC with 5 V reference, for an in-range input and rounding-to-nearest\\quantization, for an in-range input and rounding-to-nearest quantization, for an in-range\\input and rounding-to-nearest quantization, what is the maximum quantization error magnitude?...};
 \end{tikzpicture}
 \end{document}

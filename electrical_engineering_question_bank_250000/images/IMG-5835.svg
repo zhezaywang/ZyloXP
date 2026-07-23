@@ -19,23 +19,27 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">Inverting op-amp gain reference diagram</title>
-<desc id="desc">An ideal inverting amplifier has Rin = 3 kohm and Rf = 15 kohm. What is the voltage gain?</desc>
+<title id="title">Slew rate problem diagram</title>
+<desc id="desc">What minimum slew rate is needed for a 40 kHz sine wave with peak amplitude 4 V?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Inverting op-amp gain reference diagram</text>
-<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-5835 | Analog Electronics and Op-Amps | EE-116681</text>
-<path class="wire" d="M330,220 L330,380 L545,300 Z" fill="none"/>
-<text class="label" x="352" y="267" text-anchor="start">+</text>
-<text class="label" x="352" y="344" text-anchor="start">-</text>
-<line class="wire" x1="205" y1="340" x2="330" y2="340"/>
-<line class="wire" x1="545" y1="300" x2="720" y2="300"/>
-<polyline class="wire" points="345,205 367,205 367,205 387.917,193 408.833,217 429.75,193 450.667,217 471.583,193 492.5,217 513.417,193 534.333,217 555.25,193 576.167,217 597.083,193 618,205 640,205" fill="none"/>
-<path class="wire" d="M345,205 V340 M640,205 V300" fill="none"/>
-<text class="small" x="472" y="188" text-anchor="start">Rf</text>
-<text class="label" x="190" y="345" text-anchor="start">Vin</text>
-<text class="label" x="728" y="305" text-anchor="start">Vout</text>
-<text class="small" x="354" y="432" text-anchor="start">Gain set by feedback network</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Slew rate problem diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-5835 | Analog Electronics and Op-Amps | EE-116685</text>
+<rect class="soft" x="86" y="188" width="240" height="210" rx="8"/>
+<text class="small" x="206" y="224" text-anchor="middle">QUESTION GIVENS</text>
+<text class="label" x="206" y="268" text-anchor="middle">AE-05</text>
+<text class="small" x="206" y="352" text-anchor="middle">values in the prompt</text>
+<line class="wire" x1="326" y1="293" x2="390" y2="293" marker-end="url(#arrow)"/>
+<rect class="box" x="390" y="206" width="350" height="174" rx="8"/>
+<text class="small" x="565" y="240" text-anchor="middle">GOVERNING RELATION</text>
+<line class="wire" x1="740" y1="293" x2="796" y2="293" marker-end="url(#arrow)"/>
+<rect class="accentFill" x="796" y="232" width="105" height="122" rx="8"/>
+<text class="small" x="848" y="276" text-anchor="middle">FIND</text>
+<text class="label" x="848" y="312" text-anchor="middle">?</text>
+<text class="tiny" x="848" y="336" text-anchor="middle">V/us</text>
+<text class="small" x="206" y="300" text-anchor="middle">Slew rate</text>
+<text class="math" x="565" y="282" text-anchor="middle">SRmin = 2 pi f Vpeak</text>
+<text class="small" x="480" y="430" text-anchor="middle">Sinusoidal output at the stated peak amplitude.</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">An ideal inverting amplifier has Rin = 3 kohm and Rf = 15 kohm. What is the voltage gain?</text>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">What minimum slew rate is needed for a 40 kHz sine wave with peak amplitude 4 V?</text>
 </svg>

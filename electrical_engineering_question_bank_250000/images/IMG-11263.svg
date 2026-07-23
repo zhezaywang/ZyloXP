@@ -19,23 +19,28 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">Free-space wavelength reference diagram</title>
-<desc id="desc">What is the approximate free-space wavelength at 600 MHz?</desc>
+<title id="title">Free-space path loss problem diagram</title>
+<desc id="desc">What is FSPL for 300 MHz over 3 km? Use FSPL(dB)=32.44+20log10(f_MHz)+20log10(d_km).</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Free-space wavelength reference diagram</text>
-<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-11263 | RF and Antennas | EE-225241</text>
-<line class="wire" x1="180" y1="330" x2="350" y2="330"/>
-<circle class="thin" cx="370" cy="330" r="18" fill="none"/>
-<path class="wire" d="M388,330 H465" fill="none"/>
-<polyline class="wire" points="465,330 487,330 487,330 493.333,319 499.667,341 506,319 512.333,341 518.667,319 525,341 531.333,319 537.667,341 544,319 550.333,341 556.667,319 563,330 585,330" fill="none"/>
-<path class="wire" d="M585,330 H690" fill="none"/>
-<path class="wire" d="M690,330 L720,250 M690,330 L720,410" fill="none"/>
-<path class="thin" d="M700,285 C760,240 820,230 870,245" fill="none"/>
-<path class="thin" d="M700,375 C760,420 820,430 870,415" fill="none"/>
-<text class="small" x="452" y="306" text-anchor="start">matching</text>
-<text class="small" x="712" y="238" text-anchor="start">antenna</text>
-<text class="small" x="310" y="455" text-anchor="start">Impedance match controls power transfer</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Free-space path loss problem diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-11263 | RF and Antennas | EE-225243</text>
+<rect class="soft" x="86" y="188" width="240" height="210" rx="8"/>
+<text class="small" x="206" y="224" text-anchor="middle">QUESTION GIVENS</text>
+<text class="label" x="206" y="268" text-anchor="middle">RF-03</text>
+<text class="small" x="206" y="352" text-anchor="middle">values in the prompt</text>
+<line class="wire" x1="326" y1="293" x2="390" y2="293" marker-end="url(#arrow)"/>
+<rect class="box" x="390" y="206" width="350" height="174" rx="8"/>
+<text class="small" x="565" y="240" text-anchor="middle">GOVERNING RELATION</text>
+<line class="wire" x1="740" y1="293" x2="796" y2="293" marker-end="url(#arrow)"/>
+<rect class="accentFill" x="796" y="232" width="105" height="122" rx="8"/>
+<text class="small" x="848" y="276" text-anchor="middle">FIND</text>
+<text class="label" x="848" y="312" text-anchor="middle">?</text>
+<text class="tiny" x="848" y="336" text-anchor="middle">dB</text>
+<text class="small" x="206" y="300" text-anchor="middle">Free-space path loss</text>
+<text class="math" x="565" y="273" text-anchor="middle">FSPL = 32.44 + 20 log10(fMHz)</text>
+<text class="math" x="565" y="295" text-anchor="middle">+ 20 log10(dkm)</text>
+<text class="small" x="480" y="430" text-anchor="middle">Free-space far field; stated unit convention.</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">What is the approximate free-space wavelength at 600 MHz?</text>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">What is FSPL for 300 MHz over 3 km? Use FSPL(dB)=32.44+20log10(f_MHz)+20log10(d_km).</text>
 </svg>

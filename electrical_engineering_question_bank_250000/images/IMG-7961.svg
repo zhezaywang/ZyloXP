@@ -19,11 +19,11 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">Nyquist sampling reference diagram</title>
-<desc id="desc">A signal is band-limited to 9 kHz. What minimum sampling rate avoids aliasing?</desc>
+<title id="title">Nyquist sampling problem diagram</title>
+<desc id="desc">A signal is band-limited to 9 kHz. What is the theoretical Nyquist rate? Practical sampling must be higher.</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Nyquist sampling reference diagram</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Nyquist sampling problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-7961 | Signals and Systems | EE-159201</text>
 <line class="thin" x1="145" y1="300" x2="655" y2="300"/>
 <line class="thin" x1="170" y1="210" x2="170" y2="390"/>
@@ -54,5 +54,5 @@
 <text class="small" x="140" y="205" text-anchor="start">x(t)</text>
 <text class="small" x="310" y="440" text-anchor="start">Sampling, spectra, and system response</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A signal is band-limited to 9 kHz. What minimum sampling rate avoids aliasing?</text>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A signal is band-limited to 9 kHz. What is the theoretical Nyquist rate? Practical sampling must be higher.</text>
 </svg>

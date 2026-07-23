@@ -6,3 +6,9 @@ AGENTS.md
 
 # Exceeds GitHub's 100 MB per-file limit; the full dataset remains in the XLSX workbook.
 electrical_engineering_question_bank_250000/question_database.csv
+
+# Local duplicate exports; keep the canonical files without the " 2" suffix.
+electrical_engineering_question_bank_250000/README 2.md
+electrical_engineering_question_bank_250000/image_database 2.csv
+electrical_engineering_question_bank_250000/question_database 2.csv
+electrical_engineering_question_bank_250000/validation_summary 2.json

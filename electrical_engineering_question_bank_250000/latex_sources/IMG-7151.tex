@@ -12,16 +12,17 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Binary state count reference diagram};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Binary state count problem diagram};
 \node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-7151 | Digital Logic | EE-143001};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=90pt,minimum height=52pt] at (195,231) {bit 0};
-\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=90pt,minimum height=52pt] at (195,300) {bit 1};
-\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=90pt,minimum height=52pt] at (195,369) {bit n};
-\draw[wire] (240,231) -- (405,292); \draw[wire] (240,300) -- (405,300); \draw[wire] (240,369) -- (405,308);
-\node[box,minimum width=190pt,minimum height=130pt] at (500,300) {logic / FSM\\truth table};
-\draw[wire,->] (595,300) -- (760,300); \node at (770,305) {$Y$};
-\node[font=\small,text=zyloLine] at (480,432) {Boolean algebra and timing};
+\node[font=\small,text=zyloLine] at (172,188) {$n$ independent bits};
+\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=125pt,minimum height=78pt] at (172,264) {bit 0};
+\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=125pt,minimum height=78pt] at (317,264) {bit 1};
+\node[font=\Large,text=zyloLine] at (452,264) {$\cdots$};
+\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=155pt,minimum height=78pt] at (602,264) {bit $n-1$};
+\draw[wire,->] (680,264) -- (760,264);
+\node[draw=zyloOrange,fill=orange!18,minimum width=130pt,minimum height=98pt,align=center] at (825,264) {$2^n$\\unique states};
+\node[font=\small,text=zyloLine] at (480,410) {Every added independent bit doubles the state count};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
 \node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {How many unique states can 11 binary bits represent?};
 \end{tikzpicture}

@@ -19,25 +19,32 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">ADC LSB size reference diagram</title>
-<desc id="desc">An 14-bit ADC uses a 2.5 V reference. What is one LSB?</desc>
+<title id="title">Wheatstone bridge balance problem diagram</title>
+<desc id="desc">A Wheatstone bridge balances with R1 = 450 ohm, R2 = 550 ohm, and R3 = 325 ohm. If R1/R2 = R3/Rx, what is Rx?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">ADC LSB size reference diagram</text>
-<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-9760 | Measurement and Instrumentation | EE-195181</text>
-<line class="wire" x1="125" y1="305" x2="260" y2="305"/>
-<rect class="box" x="260" y="240" width="160" height="130" rx="8"/>
-<text class="label" x="316" y="310" text-anchor="start">ADC</text>
-<line class="wire" x1="420" y1="305" x2="520" y2="305" marker-end="url(#arrow)"/>
-<rect class="soft" x="520" y="225" width="250" height="160" rx="8"/>
-<text class="label" x="604" y="210" text-anchor="start">digital code</text>
-<line class="thin" x1="552" y1="270" x2="735" y2="270"/>
-<line class="thin" x1="552" y1="295" x2="735" y2="295"/>
-<line class="thin" x1="552" y1="320" x2="735" y2="320"/>
-<line class="thin" x1="552" y1="345" x2="735" y2="345"/>
-<text class="math" x="565" y="412" text-anchor="start">LSB = Vref / 2^N</text>
-<text class="label" x="90" y="292" text-anchor="start">Vin</text>
-<text class="small" x="273" y="452" text-anchor="start">Quantization step is set by reference and bit depth</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Wheatstone bridge balance problem diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-9760 | Measurement and Instrumentation | EE-195185</text>
+<circle class="accentFill" cx="480" cy="165" r="5" fill="none"/>
+<circle class="accentFill" cx="480" cy="440" r="5" fill="none"/>
+<circle class="accentFill" cx="255" cy="300" r="5" fill="none"/>
+<circle class="accentFill" cx="705" cy="300" r="5" fill="none"/>
+<path class="wire" d="M480,165 L390,215 M340,245 L255,300 M255,300 L340,355 M390,385 L480,440" fill="none"/>
+<path class="wire" d="M480,165 L570,215 M620,245 L705,300 M705,300 L620,355 M570,385 L480,440" fill="none"/>
+<rect class="soft" x="340" y="205" width="50" height="50" rx="2"/>
+<rect class="soft" x="340" y="345" width="50" height="50" rx="2"/>
+<rect class="soft" x="570" y="205" width="50" height="50" rx="2"/>
+<rect class="soft" x="570" y="345" width="50" height="50" rx="2"/>
+<text class="small" x="365" y="238" text-anchor="middle">R1</text>
+<text class="small" x="365" y="378" text-anchor="middle">R2</text>
+<text class="small" x="595" y="238" text-anchor="middle">R3</text>
+<text class="small" x="595" y="378" text-anchor="middle">Rx</text>
+<line class="wire" x1="260" y1="300" x2="422" y2="300"/>
+<circle class="thin" cx="480" cy="300" r="58" fill="none"/>
+<text class="label" x="480" y="311" text-anchor="middle">G</text>
+<line class="wire" x1="538" y1="300" x2="700" y2="300"/>
+<text class="small" x="480" y="132" text-anchor="middle">excitation +</text>
+<text class="small" x="480" y="474" text-anchor="middle">excitation -</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">An 14-bit ADC uses a 2.5 V reference. What is one LSB?</text>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A Wheatstone bridge balances with R1 = 450 ohm, R2 = 550 ohm, and R3 = 325 ohm. If R1/R2 = R3/Rx, what is Rx?</text>
 </svg>

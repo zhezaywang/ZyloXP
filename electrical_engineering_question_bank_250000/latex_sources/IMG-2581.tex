@@ -12,21 +12,16 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Coulomb force reference diagram};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Coulomb force problem diagram};
 \node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-2581 | Electromagnetics | EE-51601};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\draw[draw=zyloOrange,fill=orange!18,line width=1.5pt] (480,300) circle (34); \node at (480,306) {$q$};
-\draw[wire,->] (480,300) -- (480,185);
-\draw[wire,->] (480,300) -- (480,415);
-\draw[wire,->] (480,300) -- (365,300);
-\draw[wire,->] (480,300) -- (595,300);
-\draw[wire,->] (480,300) -- (398,218);
-\draw[wire,->] (480,300) -- (562,218);
-\draw[wire,->] (480,300) -- (398,382);
-\draw[wire,->] (480,300) -- (562,382);
-\node[text=zyloInk] at (518,306) {$\vec E$};
-\node[font=\small,text=zyloLine] at (480,448) {Field strength follows geometry and material laws};
+\draw[draw=zyloOrange,fill=orange!18,line width=1.5pt] (260,310) circle (36); \draw[draw=zyloOrange,fill=orange!18,line width=1.5pt] (700,310) circle (36);
+\node at (260,316) {$q_1$}; \node at (700,316) {$q_2$};
+\draw[thinwire] (310,310) -- (650,310); \draw[thinwire,<->] (310,270) -- (650,270); \node[font=\small,text=zyloLine] at (480,254) {separation $r$};
+\draw[accent,->] (224,310) -- (145,310); \draw[accent,->] (736,310) -- (815,310);
+\node[font=\small,text=zyloLine] at (175,290) {$\vec F$ on $q_1$}; \node[font=\small,text=zyloLine] at (785,290) {$\vec F$ on $q_2$};
+\node[font=\small,text=zyloLine] at (480,424) {equal and opposite forces along the line of centers};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
-\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {Two point charges, 4 uC and 5 uC, are separated by 0.15 m in air. What is the force magnitude?};
+\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {Two point charges, 4 uC and 5 uC, are separated by 0.15 m in air. Using k = 8.98755e9 N\\m\textasciicircum{}2/C\textasciicircum{}2, what is the force magnitude?};
 \end{tikzpicture}
 \end{document}

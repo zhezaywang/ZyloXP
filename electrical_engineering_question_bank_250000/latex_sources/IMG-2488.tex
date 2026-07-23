@@ -12,20 +12,25 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {RC time constant reference diagram};
-\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-2488 | Transient Circuit Analysis | EE-49741};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {RL current rise problem diagram};
+\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-2488 | Transient Circuit Analysis | EE-49743};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\draw[wire] (145,330) -- (225,330) -- (272,295);
-\draw[wire] (292,330) -- (330,330);
-\draw[wire] (330,330) -- (352,330) -- (352,330) -- (358.333,316) -- (364.667,344) -- (371,316) -- (377.333,344) -- (383.667,316) -- (390,344) -- (396.333,316) -- (402.667,344) -- (409,316) -- (415.333,344) -- (421.667,316) -- (428,330) -- (450,330);
-\draw[wire] (450,330) -- (470,330);
-\draw[wire] (470,295) -- (470,365); \draw[wire] (490,295) -- (490,365);
-\draw[wire] (490,330) -- (535,330) -- (535,430) -- (145,430) -- (145,330);
-\node[font=\small,text=zyloLine] at (250,286) {switch}; \node at (386,303) {$R$}; \node at (500,335) {$C$};
-\draw[thinwire,->] (610,405) -- (850,405); \draw[thinwire,->] (610,405) -- (610,215);
-\draw[accent] (610,405) -- (612.75,397.328) -- (615.5,390.049) -- (618.25,383.142) -- (621,376.588) -- (623.75,370.369) -- (626.5,364.468) -- (629.25,358.869) -- (632,353.557) -- (634.75,348.516) -- (637.5,343.733) -- (640.25,339.195) -- (643,334.889) -- (645.75,330.803) -- (648.5,326.926) -- (651.25,323.247) -- (654,319.757) -- (656.75,316.445) -- (659.5,313.302) -- (662.25,310.32) -- (665,307.491) -- (667.75,304.806) -- (670.5,302.259) -- (673.25,299.842) -- (676,297.548) -- (678.75,295.372) -- (681.5,293.307) -- (684.25,291.348) -- (687,289.489) -- (689.75,287.725) -- (692.5,286.051) -- (695.25,284.463) -- (698,282.956) -- (700.75,281.526) -- (703.5,280.17) -- (706.25,278.882) -- (709,277.661) -- (711.75,276.502) -- (714.5,275.402) -- (717.25,274.359) -- (720,273.368) -- (722.75,272.429) -- (725.5,271.538) -- (728.25,270.692) -- (731,269.889) -- (733.75,269.128) -- (736.5,268.405) -- (739.25,267.719) -- (742,267.069) -- (744.75,266.452) -- (747.5,265.866) -- (750.25,265.31) -- (753,264.783) -- (755.75,264.283) -- (758.5,263.808) -- (761.25,263.357) -- (764,262.93) -- (766.75,262.524) -- (769.5,262.139) -- (772.25,261.774) -- (775,261.428) -- (777.75,261.099) -- (780.5,260.787) -- (783.25,260.491) -- (786,260.21) -- (788.75,259.944) -- (791.5,259.691) -- (794.25,259.451) -- (797,259.223) -- (799.75,259.007) -- (802.5,258.802) -- (805.25,258.608) -- (808,258.423) -- (810.75,258.248) -- (813.5,258.082) -- (816.25,257.925) -- (819,257.775) -- (821.75,257.633) -- (824.5,257.498) -- (827.25,257.371) -- (830,257.249);
-\node[font=\small,text=zyloLine] at (850,428) {$t$}; \node[font=\small,text=zyloLine] at (582,222) {$v_C$};
+\path[draw=zyloLine,fill=white!80!zyloSoft,rounded corners=8pt] (86,188) rectangle (326,398);
+\node[font=\small\bfseries,text=zyloLine] at (206,224) {QUESTION GIVENS};
+\node[text=zyloInk] at (206,268) {TR-03};
+\node[font=\small,text=zyloLine,text width=205pt,align=center] at (206,307) {RL current rise};
+\node[font=\small,text=zyloLine] at (206,352) {values in the prompt};
+\draw[wire,->] (326,293) -- (390,293);
+\node[box,minimum width=350pt,minimum height=174pt] at (565,293) {};
+\node[font=\small\bfseries,text=zyloLine] at (565,240) {GOVERNING RELATION};
+\node[font=\ttfamily,text=zyloInk,text width=310pt,align=center] at (565,300) {i/(Vs/R) = 1 - exp(-t/tau)};
+\draw[wire,->] (740,293) -- (796,293);
+\path[draw=zyloOrange,fill=orange!18,rounded corners=8pt,line width=1.5pt] (796,232) rectangle (901,354);
+\node[font=\small\bfseries,text=zyloLine] at (848,276) {FIND};
+\node[font=\Large,text=zyloInk] at (848,312) {?};
+\node[font=\scriptsize,text=zyloLine] at (848,336) {A};
+\node[font=\small,text=zyloLine,text width=820pt,align=center] at (480,440) {Zero initial current; DC step input.};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
-\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {An RC circuit has R = 7 kohm and C = 30 uF. What is the time constant?};
+\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {An initially unenergized series RL circuit is connected at the switching instant to 14 V\\through 9 ohm. What is the inductor current after 2 time constants?};
 \end{tikzpicture}
 \end{document}

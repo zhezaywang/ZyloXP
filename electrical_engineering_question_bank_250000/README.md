@@ -1,40 +1,85 @@
 # ZyloXP Electrical Engineering Question Bank
 
-Generated package for app ingestion.
+App-ready question and image database containing 250,000 electrical engineering
+multiple-choice questions.
 
-## Contents
+## Package Contents
 
-- electrical_engineering_question_bank_250000.xlsx: full workbook with 250,000 verified electrical engineering multiple-choice questions.
-- question_database.csv: flat import-friendly question database with the same fields as the Question Bank sheet. This generated 111 MB export is excluded from Git because it exceeds GitHub's per-file size limit; the complete dataset remains available in the workbook.
-- images/: app-facing SVG circuit, waveform, block, PCB, RF, safety, and concept diagrams generated from LaTeX/TikZ-authored templates.
-- latex_sources/: editable LaTeX/TikZ source files, one per image_id.
-- image_database.csv and image_database.json: image metadata that can be joined to questions by image_id.
-- latex_image_manifest.csv: image_id to SVG and LaTeX source cross-reference.
-- latex_image_validation.json: validation for the LaTeX/TikZ image generation pass.
-- validation_summary.json: generator validation checks and counts.
-- image_contact_sheet_250000.png: representative visual QA sheet sampled across all electrical engineering topics.
-- latex_image_contact_sheet.png and latex_image_contact_sheet.svg: representative visual QA sheets for the LaTeX/TikZ-generated image set.
-- tools/generate_latex_diagrams.py: repeatable generator for rebuilding the LaTeX source files and SVG outputs.
+- `electrical_engineering_question_bank_250000.xlsx`: stratified review
+  workbook with 50,000 question rows, a summary, 20 topic sheets, all image
+  assets, formula catalog, validation results, field dictionary, and import
+  instructions. The complete app database is the CSV below.
+- `question_database.csv`: canonical full-schema source for bulk app ingestion.
+- `image_database.csv` and `image_database.json`: image metadata joined to
+  questions by `image_id`.
+- `images/`: 12,500 app-facing SVG circuit, waveform, block, PCB, RF, safety,
+  and concept diagrams.
+- `latex_sources/`: 12,500 editable LaTeX/TikZ sources, one per image.
+- `latex_image_manifest.csv`: SVG/LaTeX cross-reference and semantic render
+  metadata.
+- `latex_image_validation.json`: structural and coverage validation for the
+  complete image set.
+- `latex_image_contact_sheet.png` and `latex_image_contact_sheet.svg`: one
+  visually reviewed sample from each of the 100 question templates.
+- `formula_catalog.csv`: governing formula and explicit assumptions for all
+  100 templates.
+- `fact_check_report.json` and `fact_check_failures.csv`: deterministic
+  recomputation results for all 250,000 answers.
+- `content_refinement_report.json`: wording, option, answer-key, and image
+  reassignment summary.
+- `tools/`: repeatable refinement, verification, image, and workbook builders.
+
+## Verified Structure
+
+- 20 electrical engineering topics.
+- 25 organizational levels per topic.
+- 500 questions per topic and level.
+- 12,500 questions per topic and 250,000 questions total.
+- Six distinct, same-unit choices per question with uniform displayed precision.
+- 100 formula templates, each used by 2,500 numeric variants.
+- 12,500 linked images: 125 per template and 625 per topic.
+- Decimal `ROUND_HALF_UP` answer generation, including an exact midpoint fixture.
 
 ## Import Notes
 
-- Use question_id as the primary key for questions.
-- Use section_order, topic, difficulty_rank, level_question_number, and tree_path for curriculum-tree ordering.
-- Use difficulty_rank for progression, where 1 is easy and 25 is super advanced.
-- Each of the 20 topics has 25 levels with 500 questions per level.
-- Each question has six similar answer choices: option_a through option_f.
-- correct_option stores the A-F key; correct_answer stores the exact matching option text.
-- If image_required is Yes, display the SVG at image_path and/or join image_id to the Image Assets sheet.
-- For editable diagram source, join image_id to latex_image_manifest.csv and open latex_source_path.
-- The Image Assets sheet mirrors image_database.csv/json.
-- Keep the relative image paths rooted at this package directory.
-- The current machine did not have pdflatex/lualatex installed, so the SVGs were rendered by the project generator from the same LaTeX/TikZ geometry. The .tex files are standalone/circuitikz-compatible for future TeX-based rendering.
+- Use `question_id` as the question primary key.
+- Use `image_id` as an optional foreign key into the image asset table.
+- Use `correct_option` as the keyed A-F response and `correct_answer` as the
+  matching display value.
+- Order the curriculum tree with `section_order`, `topic`, `difficulty_rank`,
+  `level_question_number`, and `tree_path`.
+- Display an image when `image_required` is `Yes`; resolve its relative SVG
+  path through `image_database.csv` or `image_database.json`.
+- Treat linked images as `instructional_hint` assets. Many relation diagrams
+  intentionally expose the governing relation and should be shown only when
+  that is appropriate for the app mode.
+- Levels 1-25 are preserved for app compatibility. The current bank is made
+  primarily from one-step numeric variants and is not psychometrically
+  calibrated; read `difficulty_calibration` before making ability claims.
+- The package machine did not include `pdflatex` or `lualatex`. SVGs are
+  deterministic mirrors of the same geometry stored in the standalone
+  LaTeX/TikZ source files.
 
 ## Suggested App Tables
 
-- topics(topic_id, topic, section_order)
-- curriculum_levels(topic_id, difficulty_rank, difficulty_label, question_count)
-- questions(question_id, section_order, topic, subtopic, difficulty_rank, difficulty_label, level_question_number, tree_path, question, explanation, verification_method, tags, image_id)
-- answer_options(question_id, option_letter, option_text, is_correct)
-- image_assets(image_id, question_id, relative_path, alt_text, tags, use_notes)
-- validation_runs(run_id, generated_at, rows, image_assets, status)
+- `topics(topic_id, topic, section_order)`
+- `curriculum_levels(topic_id, difficulty_rank, difficulty_label, question_count)`
+- `questions(question_id, topic, subtopic, difficulty_rank, question, explanation, image_id)`
+- `answer_options(question_id, option_letter, option_text, is_correct)`
+- `image_assets(image_id, question_id, relative_path, latex_source_path, asset_role)`
+- `validation_runs(run_id, generated_at, questions_checked, failures, status)`
+
+## Rebuild Order
+
+Run the tools from this package directory:
+
+```bash
+python3 tools/refine_question_bank.py
+python3 tools/verify_question_bank.py
+python3 tools/generate_latex_diagrams.py
+python3 tools/build_image_contact_sheet.py
+python3 tools/prepare_workbook_inputs.py
+```
+
+The workbook builder uses the bundled `@oai/artifact-tool` runtime and reads
+the prepared inputs from the `.codex-work` directory on the Desktop.

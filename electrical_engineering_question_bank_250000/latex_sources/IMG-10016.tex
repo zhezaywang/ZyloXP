@@ -12,16 +12,18 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Trace propagation delay reference diagram};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Trace propagation delay problem diagram};
 \node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-10016 | PCB Design and Signal Integrity | EE-200301};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\draw[accent,->] (180,245) .. controls (320,190) and (620,190) .. (760,245);
-\path[draw=zyloOrange,fill=orange!18,rounded corners=7pt,line width=1.5pt] (180,274) rectangle (770,310);
-\draw[thinwire] (475,256) -- (475,274); \node at (475,248) {signal trace};
-\draw[thinwire,->] (190,410) .. controls (330,335) and (620,335) .. (760,410);
-\path[draw=zyloLine,fill=white!80!zyloSoft] (130,410) rectangle (830,448);
-\draw[thinwire] (500,448) -- (500,466); \node at (500,490) {reference plane};
-\node[font=\small,text=zyloLine] at (480,468) {Return path and geometry control impedance and EMI};
+\path[draw=zyloOrange,fill=orange!18,rounded corners=4pt,line width=1.5pt] (145,225) rectangle (815,267);
+\draw[accent,->] (175,205) -- (785,205); \node[font=\small,text=zyloLine] at (480,184) {signal current};
+\node at (480,255) {trace length $L$};
+\path[draw=zyloLine,fill=white!80!zyloSoft] (115,390) rectangle (845,434);
+\draw[wire,->] (785,370) -- (175,370); \node[font=\small,text=zyloLine] at (480,352) {return current};
+\node at (480,422) {continuous reference plane};
+\draw[thinwire] (175,295) -- (785,295); \draw[thinwire] (175,282) -- (175,308); \draw[thinwire] (785,282) -- (785,308);
+\node[font=\small,text=zyloLine] at (480,324) {one-way delay: $t_{pd}=L d$};
+\node[font=\small,text=zyloLine] at (480,464) {$d$ is propagation delay per unit length};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
 \node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A PCB trace is 4 inch long with delay 210 ps/in. What is the one-way propagation delay?};
 \end{tikzpicture}

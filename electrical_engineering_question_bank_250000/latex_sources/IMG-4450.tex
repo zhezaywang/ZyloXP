@@ -12,22 +12,25 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Transformer voltage ratio reference diagram};
-\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-4450 | Transformers and Electrical Machines | EE-88981};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {DC motor back emf problem diagram};
+\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-4450 | Transformers and Electrical Machines | EE-88985};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\draw[wire] (220,300) -- (300,300);
-\draw[thinwire] (320,230) .. controls (280,240) and (280,360) .. (320,370);
-\draw[thinwire] (340,230) .. controls (300,240) and (300,360) .. (340,370);
-\draw[thinwire] (360,230) .. controls (320,240) and (320,360) .. (360,370);
-\draw[thinwire] (430,225) -- (430,375); \draw[thinwire] (452,225) -- (452,375);
-\draw[thinwire] (522,230) .. controls (562,240) and (562,360) .. (522,370);
-\draw[thinwire] (542,230) .. controls (582,240) and (582,360) .. (542,370);
-\draw[thinwire] (562,230) .. controls (602,240) and (602,360) .. (562,370);
-\draw[wire] (585,300) -- (730,300);
-\node[font=\small,text=zyloLine] at (302,205) {$N_p$}; \node[font=\small,text=zyloLine] at (560,205) {$N_s$};
-\node[text=zyloInk] at (480,422) {$V_1/V_2=N_p/N_s$};
-\node[font=\small,text=zyloLine] at (480,462) {Ideal transformer ratios and magnetic flux};
+\path[draw=zyloLine,fill=white!80!zyloSoft,rounded corners=8pt] (86,188) rectangle (326,398);
+\node[font=\small\bfseries,text=zyloLine] at (206,224) {QUESTION GIVENS};
+\node[text=zyloInk] at (206,268) {TM-05};
+\node[font=\small,text=zyloLine,text width=205pt,align=center] at (206,307) {DC motor back emf};
+\node[font=\small,text=zyloLine] at (206,352) {values in the prompt};
+\draw[wire,->] (326,293) -- (390,293);
+\node[box,minimum width=350pt,minimum height=174pt] at (565,293) {};
+\node[font=\small\bfseries,text=zyloLine] at (565,240) {GOVERNING RELATION};
+\node[font=\ttfamily,text=zyloInk,text width=310pt,align=center] at (565,300) {Eb = V - Ia Ra};
+\draw[wire,->] (740,293) -- (796,293);
+\path[draw=zyloOrange,fill=orange!18,rounded corners=8pt,line width=1.5pt] (796,232) rectangle (901,354);
+\node[font=\small\bfseries,text=zyloLine] at (848,276) {FIND};
+\node[font=\Large,text=zyloInk] at (848,312) {?};
+\node[font=\scriptsize,text=zyloLine] at (848,336) {V};
+\node[font=\small,text=zyloLine,text width=820pt,align=center] at (480,440) {DC motor brush drop neglected.};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
-\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {An ideal transformer has Np = 180, Ns = 50, and primary voltage 120 V. What is the secondary\\voltage?};
+\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A DC motor has terminal voltage 216 V, armature current 13 A, and armature resistance 0.2 ohm.\\Neglecting brush voltage drop, what is the back emf?};
 \end{tikzpicture}
 \end{document}

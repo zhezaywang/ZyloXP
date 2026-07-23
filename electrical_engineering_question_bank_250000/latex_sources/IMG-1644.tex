@@ -12,17 +12,25 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Thevenin to Norton reference diagram};
-\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-1644 | Network Theorems and Two-Port Networks | EE-32861};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Source transformation problem diagram};
+\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-1644 | Network Theorems and Two-Port Networks | EE-32864};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\node[box,minimum width=210pt,minimum height=120pt] at (255,295) {};
-\node[text=zyloInk] at (255,292) {Thevenin / Norton}; \node[font=\small,text=zyloLine] at (255,318) {equivalent network};
-\draw[wire] (360,295) -- (485,295);
-\draw[wire] (485,295) -- (507,295) -- (507,295) -- (514.583,281) -- (522.167,309) -- (529.75,281) -- (537.333,309) -- (544.917,281) -- (552.5,309) -- (560.083,281) -- (567.667,309) -- (575.25,281) -- (582.833,309) -- (590.417,281) -- (598,295) -- (620,295);
-\draw[wire] (620,295) -- (720,295);
-\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=105pt,minimum height=98pt] at (772,295) {Load};
-\node[font=\small,text=zyloLine] at (432,252) {$R_{th}$}; \node[font=\small,text=zyloLine] at (500,344) {$V_{th}$ source with equivalent resistance};
+\path[draw=zyloLine,fill=white!80!zyloSoft,rounded corners=8pt] (86,188) rectangle (326,398);
+\node[font=\small\bfseries,text=zyloLine] at (206,224) {QUESTION GIVENS};
+\node[text=zyloInk] at (206,268) {NT-04};
+\node[font=\small,text=zyloLine,text width=205pt,align=center] at (206,307) {Source transformation};
+\node[font=\small,text=zyloLine] at (206,352) {values in the prompt};
+\draw[wire,->] (326,293) -- (390,293);
+\node[box,minimum width=350pt,minimum height=174pt] at (565,293) {};
+\node[font=\small\bfseries,text=zyloLine] at (565,240) {GOVERNING RELATION};
+\node[font=\ttfamily,text=zyloInk,text width=310pt,align=center] at (565,300) {IS = VS/R};
+\draw[wire,->] (740,293) -- (796,293);
+\path[draw=zyloOrange,fill=orange!18,rounded corners=8pt,line width=1.5pt] (796,232) rectangle (901,354);
+\node[font=\small\bfseries,text=zyloLine] at (848,276) {FIND};
+\node[font=\Large,text=zyloInk] at (848,312) {?};
+\node[font=\scriptsize,text=zyloLine] at (848,336) {A};
+\node[font=\small,text=zyloLine,text width=820pt,align=center] at (480,440) {Ideal source transformation.};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
-\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A Thevenin equivalent has Vth = 20 V and Rth = 8 ohm. What is the Norton current?};
+\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A 33 V ideal voltage source in series with 4 ohm is source-transformed. What is the magnitude\\of the equivalent current source?};
 \end{tikzpicture}
 \end{document}

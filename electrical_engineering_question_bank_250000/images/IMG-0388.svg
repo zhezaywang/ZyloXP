@@ -19,22 +19,27 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">Ohm&#x27;s law reference diagram</title>
-<desc id="desc">A 21.25 V source is applied across a 17 ohm resistor. What current flows?</desc>
+<title id="title">Parallel resistance problem diagram</title>
+<desc id="desc">A 15 ohm resistor is in parallel with a 16 ohm resistor. What is the equivalent resistance?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Ohm&#x27;s law reference diagram</text>
-<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-0388 | DC Circuit Analysis | EE-07741</text>
-<line class="wire" x1="205" y1="320" x2="205" y2="388"/>
-<line class="wire" x1="230" y1="334" x2="230" y2="374"/>
-<text class="small" x="188" y="312" text-anchor="start">+</text>
-<text class="small" x="238" y="392" text-anchor="start">-</text>
-<path class="wire" d="M230,354 H315" fill="none"/>
-<polyline class="wire" points="315,354 337,354 337,354 351.667,336 366.333,372 381,336 395.667,372 410.333,336 425,372 439.667,336 454.333,372 469,336 483.667,372 498.333,336 513,354 535,354" fill="none"/>
-<path class="wire" d="M535,354 H700 V430 H205 V388" fill="none"/>
-<text class="label" x="404" y="328" text-anchor="start">R</text>
-<text class="label" x="166" y="364" text-anchor="start">Vs</text>
-<text class="small" x="382" y="466" text-anchor="start">Ohm and Kirchhoff relationships</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Parallel resistance problem diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-0388 | DC Circuit Analysis | EE-07743</text>
+<rect class="soft" x="86" y="188" width="240" height="210" rx="8"/>
+<text class="small" x="206" y="224" text-anchor="middle">QUESTION GIVENS</text>
+<text class="label" x="206" y="268" text-anchor="middle">DC-03</text>
+<text class="small" x="206" y="352" text-anchor="middle">values in the prompt</text>
+<line class="wire" x1="326" y1="293" x2="390" y2="293" marker-end="url(#arrow)"/>
+<rect class="box" x="390" y="206" width="350" height="174" rx="8"/>
+<text class="small" x="565" y="240" text-anchor="middle">GOVERNING RELATION</text>
+<line class="wire" x1="740" y1="293" x2="796" y2="293" marker-end="url(#arrow)"/>
+<rect class="accentFill" x="796" y="232" width="105" height="122" rx="8"/>
+<text class="small" x="848" y="276" text-anchor="middle">FIND</text>
+<text class="label" x="848" y="312" text-anchor="middle">?</text>
+<text class="tiny" x="848" y="336" text-anchor="middle">ohm</text>
+<text class="small" x="206" y="300" text-anchor="middle">Parallel resistance</text>
+<text class="math" x="565" y="282" text-anchor="middle">Req = R1 R2/(R1 + R2)</text>
+<text class="small" x="480" y="430" text-anchor="middle">Two ideal resistors in parallel.</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A 21.25 V source is applied across a 17 ohm resistor. What current flows?</text>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A 15 ohm resistor is in parallel with a 16 ohm resistor. What is the equivalent resistance?</text>
 </svg>

@@ -18,10 +18,13 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
+from verify_question_bank import FORMULA_METADATA
+
 
 PACKAGE_DIR = Path(__file__).resolve().parents[1]
 QUESTION_CSV = PACKAGE_DIR / "question_database.csv"
 IMAGE_DB_CSV = PACKAGE_DIR / "image_database.csv"
+IMAGE_DB_JSON = PACKAGE_DIR / "image_database.json"
 IMAGE_DIR = PACKAGE_DIR / "images"
 LATEX_DIR = PACKAGE_DIR / "latex_sources"
 MANIFEST_CSV = PACKAGE_DIR / "latex_image_manifest.csv"
@@ -125,6 +128,23 @@ def resistor_points(x1: float, y: float, x2: float, amp: float = 18, segments: i
     return pts
 
 
+def inductor_path(x1: float, y: float, x2: float, turns: int = 4, amp: float = 18) -> str:
+    lead = 20
+    start = x1 + lead
+    end = x2 - lead
+    width = (end - start) / turns
+    commands = [f"M{x1:g},{y:g}", f"L{start:g},{y:g}"]
+    for turn in range(turns):
+        left = start + turn * width
+        mid = left + width / 2
+        right = left + width
+        commands.append(
+            f"C{left:g},{y - amp:g} {right:g},{y - amp:g} {right:g},{y:g}"
+        )
+    commands.append(f"L{x2:g},{y:g}")
+    return " ".join(commands)
+
+
 def sine_points(x0: float, y0: float, w: float, amp: float, cycles: float = 2.0, n: int = 96) -> list[tuple[float, float]]:
     import math
 
@@ -135,6 +155,27 @@ def sine_points(x0: float, y0: float, w: float, amp: float, cycles: float = 2.0,
         y = y0 - amp * math.sin(2 * math.pi * cycles * t)
         pts.append((x, y))
     return pts
+
+
+def cosine_points(
+    x0: float,
+    y0: float,
+    w: float,
+    amp: float,
+    cycles: float = 2.0,
+    phase_deg: float = 0.0,
+    n: int = 96,
+) -> list[tuple[float, float]]:
+    import math
+
+    phase = math.radians(phase_deg)
+    return [
+        (
+            x0 + w * i / n,
+            y0 - amp * math.cos(2 * math.pi * cycles * i / n + phase),
+        )
+        for i in range(n + 1)
+    ]
 
 
 def exp_points(x0: float, y0: float, w: float, h: float, rising: bool = True, n: int = 80) -> list[tuple[float, float]]:
@@ -716,8 +757,8 @@ def template_embedded(row: dict[str, str]) -> tuple[list[str], list[str]]:
         svg_text(188, 302, "MCU", "label"),
         svg_line(275, 270, 430, 270, "wire"),
         svg_line(275, 330, 430, 330, "wire"),
-        svg_text(330, 258, "TX/SCL", "tiny"),
-        svg_text(330, 352, "RX/SDA", "tiny"),
+        svg_text(330, 258, "TX", "tiny"),
+        svg_text(330, 352, "RX", "tiny"),
         svg_rect(430, 235, 170, 125, "soft"),
         svg_text(486, 302, "Device", "label"),
         svg_line(600, 300, 760, 300, "wire", arrow=True),
@@ -730,7 +771,7 @@ def template_embedded(row: dict[str, str]) -> tuple[list[str], list[str]]:
     tikz = [
         r"\node[box,minimum width=135pt,minimum height=125pt] at (207,297) {MCU};",
         r"\draw[wire] (275,270) -- (430,270); \draw[wire] (275,330) -- (430,330);",
-        r"\node[font=\scriptsize,text=zyloLine] at (330,258) {TX/SCL}; \node[font=\scriptsize,text=zyloLine] at (330,352) {RX/SDA};",
+        r"\node[font=\scriptsize,text=zyloLine] at (330,258) {TX}; \node[font=\scriptsize,text=zyloLine] at (330,352) {RX};",
         r"\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=170pt,minimum height=125pt] at (515,297) {Device};",
         r"\draw[wire,->] (600,300) -- (760,300); \node[font=\small,text=zyloLine] at (690,282) {interrupt / data};",
         r"\path[draw=zyloLine,fill=white!80!zyloSoft] (320,420) rectangle (540,448);",
@@ -769,34 +810,35 @@ def template_rf(row: dict[str, str]) -> tuple[list[str], list[str]]:
 
 def template_safety(row: dict[str, str]) -> tuple[list[str], list[str]]:
     svg = [
-        svg_line(150, 300, 285, 300, "wire"),
-        svg_circle(285, 300, 28, "thin"),
-        svg_text(276, 306, "CT", "small"),
-        svg_line(313, 300, 430, 300, "wire"),
-        svg_rect(430, 252, 115, 96),
-        svg_text(465, 306, "Relay", "label"),
-        svg_line(545, 300, 660, 300, "wire"),
-        svg_rect(660, 252, 120, 96, "soft"),
-        svg_text(696, 306, "Breaker", "label"),
-        svg_line(780, 300, 850, 300, "wire", arrow=True),
-        svg_path("M510,348 V410 H470 M490,410 H530 M478,426 H522 M488,442 H512", "thin"),
-        svg_text(280, 454, "Protection detects faults and interrupts unsafe current", "small"),
+        svg_line(105, 225, 680, 225, "wire", arrow=True),
+        svg_text(112, 204, "primary conductor", "small"),
+        svg_circle(300, 225, 44, "thin"),
+        svg_text(300, 233, "CT", "label", "middle"),
+        svg_rect(680, 180, 150, 90, "soft"),
+        svg_text(755, 233, "Breaker", "label", "middle"),
+        svg_line(830, 225, 875, 225, "wire", arrow=True),
+        svg_path("M275,260 V355 H405", "wire"),
+        svg_path("M325,260 V405 H405", "wire"),
+        svg_rect(405, 330, 150, 100),
+        svg_text(480, 374, "Protective", "small", "middle"),
+        svg_text(480, 402, "relay", "label", "middle"),
+        svg_path("M555,380 H755 V270", "accent", arrow=True),
+        svg_text(652, 362, "trip command", "small", "middle"),
+        svg_text(480, 468, "CT secondary and relay are isolated from the primary power path", "small", "middle"),
     ]
     tikz = [
-        tikz_poly([(150, 300), (285, 300)], "wire"),
-        r"\draw[thinwire] (285,300) circle (28); \node[font=\small] at (285,306) {CT};",
-        tikz_poly([(313, 300), (430, 300)], "wire"),
-        r"\node[box,minimum width=115pt,minimum height=96pt] at (487,300) {Relay};",
-        tikz_poly([(545, 300), (660, 300)], "wire"),
-        r"\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=120pt,minimum height=96pt] at (720,300) {Breaker};",
-        r"\draw[wire,->] (780,300) -- (850,300);",
-        r"\draw[thinwire] (510,348) -- (510,410) -- (470,410); \draw[thinwire] (490,410) -- (530,410); \draw[thinwire] (478,426) -- (522,426); \draw[thinwire] (488,442) -- (512,442);",
-        r"\node[font=\small,text=zyloLine] at (480,454) {Protection detects faults and interrupts unsafe current};",
+        r"\draw[wire,->] (105,225) -- (680,225); \node[font=\small,text=zyloLine] at (175,204) {primary conductor};",
+        r"\draw[thinwire] (300,225) circle (44); \node at (300,233) {CT};",
+        r"\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=150pt,minimum height=90pt] at (755,225) {Breaker}; \draw[wire,->] (830,225) -- (875,225);",
+        r"\draw[wire] (275,260) -- (275,355) -- (405,355); \draw[wire] (325,260) -- (325,405) -- (405,405);",
+        r"\node[box,minimum width=150pt,minimum height=100pt,align=center] at (480,380) {Protective\\relay};",
+        r"\draw[accent,->] (555,380) -- (755,380) -- (755,270); \node[font=\small,text=zyloLine] at (652,362) {trip command};",
+        r"\node[font=\small,text=zyloLine] at (480,468) {CT secondary and relay are isolated from the primary power path};",
     ]
     return svg, tikz
 
 
-TEMPLATES = {
+PRIMARY_TEMPLATES = {
     "DC Circuit Analysis": template_dc,
     "AC Phasors and Impedance": template_ac,
     "Network Theorems and Two-Port Networks": template_network,
@@ -820,15 +862,694 @@ TEMPLATES = {
 }
 
 
+def answer_unit(answer: str) -> str:
+    unit = re.sub(r"[-+]?\d+(?:\.\d+)?", "", answer, count=1).strip()
+    return unit or "dimensionless"
+
+
+def template_formula_scene(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    formula, assumptions = FORMULA_METADATA[row["template_id"]]
+    formula_lines = wrap_lines(formula, 30, max_lines=3)
+    subtopic_lines = wrap_lines(row["subtopic"], 27, max_lines=2)
+    assumption_lines = wrap_lines(assumptions, 88, max_lines=2)
+    unit = answer_unit(row["correct_answer"])
+
+    svg = [
+        svg_rect(86, 188, 240, 210, "soft"),
+        svg_text(206, 224, "QUESTION GIVENS", "small", "middle"),
+        svg_text(206, 268, row["template_id"], "label", "middle"),
+        svg_text(206, 352, "values in the prompt", "small", "middle"),
+        svg_line(326, 293, 390, 293, "wire", arrow=True),
+        svg_rect(390, 206, 350, 174),
+        svg_text(565, 240, "GOVERNING RELATION", "small", "middle"),
+        svg_line(740, 293, 796, 293, "wire", arrow=True),
+        svg_rect(796, 232, 105, 122, "accentFill"),
+        svg_text(848, 276, "FIND", "small", "middle"),
+        svg_text(848, 312, "?", "label", "middle"),
+        svg_text(848, 336, unit, "tiny", "middle"),
+    ]
+    subtopic_start_y = 300 - 10 * (len(subtopic_lines) - 1)
+    for index, line in enumerate(subtopic_lines):
+        svg.append(svg_text(206, subtopic_start_y + index * 20, line, "small", "middle"))
+    start_y = 282 - 18 * (len(formula_lines) - 1) / 2
+    for index, line in enumerate(formula_lines):
+        svg.append(svg_text(565, start_y + index * 22, line, "math", "middle"))
+    for index, line in enumerate(assumption_lines):
+        svg.append(svg_text(480, 430 + index * 19, line, "small", "middle"))
+
+    tex_formula = r"\\".join(tex_escape(line) for line in formula_lines)
+    tex_assumptions = r"\\".join(tex_escape(line) for line in assumption_lines)
+    tikz = [
+        r"\path[draw=zyloLine,fill=white!80!zyloSoft,rounded corners=8pt] (86,188) rectangle (326,398);",
+        r"\node[font=\small\bfseries,text=zyloLine] at (206,224) {QUESTION GIVENS};",
+        rf"\node[text=zyloInk] at (206,268) {{{tex_escape(row['template_id'])}}};",
+        rf"\node[font=\small,text=zyloLine,text width=205pt,align=center] at (206,307) {{{tex_escape(row['subtopic'])}}};",
+        r"\node[font=\small,text=zyloLine] at (206,352) {values in the prompt};",
+        r"\draw[wire,->] (326,293) -- (390,293);",
+        r"\node[box,minimum width=350pt,minimum height=174pt] at (565,293) {};",
+        r"\node[font=\small\bfseries,text=zyloLine] at (565,240) {GOVERNING RELATION};",
+        rf"\node[font=\ttfamily,text=zyloInk,text width=310pt,align=center] at (565,300) {{{tex_formula}}};",
+        r"\draw[wire,->] (740,293) -- (796,293);",
+        r"\path[draw=zyloOrange,fill=orange!18,rounded corners=8pt,line width=1.5pt] (796,232) rectangle (901,354);",
+        r"\node[font=\small\bfseries,text=zyloLine] at (848,276) {FIND};",
+        r"\node[font=\Large,text=zyloInk] at (848,312) {?};",
+        rf"\node[font=\scriptsize,text=zyloLine] at (848,336) {{{tex_escape(unit)}}};",
+        rf"\node[font=\small,text=zyloLine,text width=820pt,align=center] at (480,440) {{{tex_assumptions}}};",
+    ]
+    return svg, tikz
+
+
+def template_ac_rms(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    wave = cosine_points(130, 310, 360, 64, cycles=1.6, phase_deg=30)
+    svg = [
+        svg_line(110, 310, 515, 310, "thin", arrow=True),
+        svg_line(130, 210, 130, 405, "thin", arrow=True),
+        svg_poly(wave, "accent"),
+        svg_text(118, 206, "v(t)", "small"),
+        svg_text(510, 332, "t", "small"),
+        svg_text(290, 418, "cosine with +30 deg phase", "small", "middle"),
+        svg_circle(690, 310, 70, "thin"),
+        svg_line(690, 310, 750, 275, "accent", arrow=True),
+        svg_line(690, 310, 770, 310, "thin", arrow=True),
+        svg_text(758, 268, "Vrms at +30 deg", "small"),
+        svg_text(742, 332, "0 deg", "tiny"),
+    ]
+    tikz = [
+        tikz_poly([(110, 310), (515, 310)], "thinwire"),
+        tikz_poly([(130, 405), (130, 210)], "thinwire"),
+        tikz_poly(wave, "accent"),
+        r"\node[font=\small,text=zyloLine] at (118,206) {$v(t)$}; \node[font=\small,text=zyloLine] at (510,332) {$t$};",
+        r"\node[font=\small,text=zyloLine] at (310,418) {cosine with $+30^\circ$ phase};",
+        r"\draw[thinwire] (690,310) circle (70); \draw[accent,->] (690,310) -- (750,275); \draw[thinwire,->] (690,310) -- (770,310);",
+        r"\node[font=\small,text=zyloLine] at (800,268) {$V_{\mathrm{rms}}\angle30^\circ$}; \node[font=\scriptsize,text=zyloLine] at (742,332) {$0^\circ$};",
+    ]
+    return svg, tikz
+
+
+def template_network_equivalents(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    svg = [
+        svg_text(265, 164, "THEVENIN", "small", "middle"),
+        svg_circle(155, 300, 34, "thin"),
+        svg_text(149, 292, "+", "tiny"),
+        svg_text(149, 320, "-", "tiny"),
+        svg_line(189, 300, 232, 300, "wire"),
+        svg_poly(resistor_points(232, 300, 350, amp=12), "wire"),
+        svg_path("M350,300 H395 M395,300 V390 H155 V334", "wire"),
+        svg_circle(395, 300, 5, "accentFill"),
+        svg_circle(395, 390, 5, "accentFill"),
+        svg_text(268, 272, "Rth", "small", "middle"),
+        svg_text(118, 304, "Vth", "small", "end"),
+        svg_text(690, 164, "NORTON", "small", "middle"),
+        svg_circle(575, 322, 36, "thin"),
+        svg_line(575, 344, 575, 292, "accent", arrow=True),
+        svg_path("M575,286 V235 H805 V390 H575 V358", "wire"),
+        svg_poly(resistor_points(660, 235, 760, amp=11), "wire"),
+        svg_circle(805, 235, 5, "accentFill"),
+        svg_circle(805, 390, 5, "accentFill"),
+        svg_text(710, 208, "RN = Rth", "small", "middle"),
+        svg_text(548, 326, "IN", "small", "end"),
+        svg_line(435, 312, 520, 312, "accent", arrow=True),
+        svg_text(478, 294, "equivalent", "tiny", "middle"),
+    ]
+    tikz = [
+        r"\node[font=\small\bfseries,text=zyloLine] at (265,164) {THEVENIN};",
+        r"\draw[thinwire] (155,300) circle (34); \node[font=\scriptsize] at (149,292) {$+$}; \node[font=\scriptsize] at (149,320) {$-$};",
+        r"\draw[wire] (189,300) -- (232,300);",
+        tikz_poly(resistor_points(232, 300, 350, amp=12), "wire"),
+        r"\draw[wire] (350,300) -- (395,300); \draw[wire] (395,300) -- (395,390) -- (155,390) -- (155,334);",
+        r"\filldraw[draw=zyloOrange,fill=orange!18] (395,300) circle (5); \filldraw[draw=zyloOrange,fill=orange!18] (395,390) circle (5);",
+        r"\node[font=\small,text=zyloLine] at (268,272) {$R_{th}$}; \node[font=\small,text=zyloLine] at (118,304) {$V_{th}$};",
+        r"\node[font=\small\bfseries,text=zyloLine] at (690,164) {NORTON};",
+        r"\draw[thinwire] (575,322) circle (36); \draw[accent,->] (575,344) -- (575,292);",
+        r"\draw[wire] (575,286) -- (575,235) -- (805,235) -- (805,390) -- (575,390) -- (575,358);",
+        tikz_poly(resistor_points(660, 235, 760, amp=11), "wire"),
+        r"\filldraw[draw=zyloOrange,fill=orange!18] (805,235) circle (5); \filldraw[draw=zyloOrange,fill=orange!18] (805,390) circle (5);",
+        r"\node[font=\small,text=zyloLine] at (710,208) {$R_N=R_{th}$}; \node[font=\small,text=zyloLine] at (548,326) {$I_N$};",
+        r"\draw[accent,->] (435,312) -- (520,312); \node[font=\scriptsize,text=zyloLine] at (478,294) {equivalent};",
+    ]
+    return svg, tikz
+
+
+def template_transient_charge(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    curve = exp_points(630, 410, 210, 150, rising=True)
+    svg = [
+        svg_circle(145, 330, 32, "thin"),
+        svg_text(138, 320, "+", "tiny"),
+        svg_text(138, 346, "-", "tiny"),
+        svg_text(96, 334, "Vs", "small"),
+        svg_path("M145,298 V245 H250", "wire"),
+        svg_line(250, 245, 290, 220, "wire"),
+        svg_line(307, 245, 340, 245, "wire"),
+        svg_poly(resistor_points(340, 245, 465, amp=12), "wire"),
+        svg_path("M465,245 H510 V300", "wire"),
+        svg_line(485, 300, 535, 300, "wire"),
+        svg_line(485, 320, 535, 320, "wire"),
+        svg_path("M510,320 V410 H145 V362", "wire"),
+        svg_text(402, 218, "R", "small"),
+        svg_text(545, 316, "C", "small"),
+        svg_text(270, 208, "switch closes", "tiny"),
+        svg_line(610, 410, 860, 410, "thin", arrow=True),
+        svg_line(630, 430, 630, 210, "thin", arrow=True),
+        svg_poly(curve, "accent"),
+        svg_text(846, 432, "t", "tiny"),
+        svg_text(606, 210, "vC", "tiny"),
+        svg_text(744, 236, "charging", "small"),
+    ]
+    tikz = [
+        r"\draw[thinwire] (145,330) circle (32); \node[font=\scriptsize] at (138,320) {$+$}; \node[font=\scriptsize] at (138,346) {$-$}; \node[font=\small] at (96,334) {$V_s$};",
+        r"\draw[wire] (145,298) -- (145,245) -- (250,245); \draw[wire] (250,245) -- (290,220); \draw[wire] (307,245) -- (340,245);",
+        tikz_poly(resistor_points(340, 245, 465, amp=12), "wire"),
+        r"\draw[wire] (465,245) -- (510,245) -- (510,300); \draw[wire] (485,300) -- (535,300); \draw[wire] (485,320) -- (535,320); \draw[wire] (510,320) -- (510,410) -- (145,410) -- (145,362);",
+        r"\node[font=\small] at (402,218) {$R$}; \node[font=\small] at (545,316) {$C$}; \node[font=\scriptsize,text=zyloLine] at (270,208) {switch closes};",
+        r"\draw[thinwire,->] (610,410) -- (860,410); \draw[thinwire,->] (630,430) -- (630,210);",
+        tikz_poly(curve, "accent"),
+        r"\node[font=\scriptsize,text=zyloLine] at (846,432) {$t$}; \node[font=\scriptsize,text=zyloLine] at (606,210) {$v_C$}; \node[font=\small,text=zyloLine] at (744,236) {charging};",
+    ]
+    return svg, tikz
+
+
+def template_coulomb(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    svg = [
+        svg_circle(260, 310, 36, "accentFill"),
+        svg_circle(700, 310, 36, "accentFill"),
+        svg_text(260, 316, "q1", "label", "middle"),
+        svg_text(700, 316, "q2", "label", "middle"),
+        svg_line(310, 310, 650, 310, "thin"),
+        svg_line(310, 270, 650, 270, "thin", arrow=True),
+        svg_line(650, 270, 310, 270, "thin", arrow=True),
+        svg_text(480, 254, "separation r", "small", "middle"),
+        svg_line(224, 310, 145, 310, "accent", arrow=True),
+        svg_line(736, 310, 815, 310, "accent", arrow=True),
+        svg_text(155, 290, "F on q1", "small"),
+        svg_text(745, 290, "F on q2", "small"),
+        svg_text(480, 424, "equal and opposite forces along the line of centers", "small", "middle"),
+    ]
+    tikz = [
+        r"\draw[draw=zyloOrange,fill=orange!18,line width=1.5pt] (260,310) circle (36); \draw[draw=zyloOrange,fill=orange!18,line width=1.5pt] (700,310) circle (36);",
+        r"\node at (260,316) {$q_1$}; \node at (700,316) {$q_2$};",
+        r"\draw[thinwire] (310,310) -- (650,310); \draw[thinwire,<->] (310,270) -- (650,270); \node[font=\small,text=zyloLine] at (480,254) {separation $r$};",
+        r"\draw[accent,->] (224,310) -- (145,310); \draw[accent,->] (736,310) -- (815,310);",
+        r"\node[font=\small,text=zyloLine] at (175,290) {$\vec F$ on $q_1$}; \node[font=\small,text=zyloLine] at (785,290) {$\vec F$ on $q_2$};",
+        r"\node[font=\small,text=zyloLine] at (480,424) {equal and opposite forces along the line of centers};",
+    ]
+    return svg, tikz
+
+
+def template_tline_distributed(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    svg = [
+        svg_line(110, 250, 205, 250, "wire"),
+        svg_poly(resistor_points(205, 250, 360, amp=10), "wire"),
+        svg_line(360, 250, 520, 250, "wire"),
+        svg_poly(resistor_points(520, 250, 675, amp=10), "wire"),
+        svg_line(675, 250, 850, 250, "wire", arrow=True),
+        svg_line(110, 410, 850, 410, "wire"),
+        svg_line(430, 250, 430, 300, "wire"),
+        svg_line(405, 300, 455, 300, "wire"),
+        svg_line(405, 320, 455, 320, "wire"),
+        svg_line(430, 320, 430, 410, "wire"),
+        svg_line(745, 250, 745, 300, "wire"),
+        svg_line(720, 300, 770, 300, "wire"),
+        svg_line(720, 320, 770, 320, "wire"),
+        svg_line(745, 320, 745, 410, "wire"),
+        svg_text(282, 220, "L' dx", "small", "middle"),
+        svg_text(598, 220, "L' dx", "small", "middle"),
+        svg_text(470, 316, "C' dx", "small"),
+        svg_text(785, 316, "C' dx", "small"),
+        svg_text(480, 458, "distributed lossless-line unit cells", "small", "middle"),
+    ]
+    tikz = [
+        r"\draw[wire] (110,250) -- (205,250);",
+        tikz_poly(resistor_points(205, 250, 360, amp=10), "wire"),
+        r"\draw[wire] (360,250) -- (520,250);",
+        tikz_poly(resistor_points(520, 250, 675, amp=10), "wire"),
+        r"\draw[wire,->] (675,250) -- (850,250); \draw[wire] (110,410) -- (850,410);",
+        r"\draw[wire] (430,250) -- (430,300); \draw[wire] (405,300) -- (455,300); \draw[wire] (405,320) -- (455,320); \draw[wire] (430,320) -- (430,410);",
+        r"\draw[wire] (745,250) -- (745,300); \draw[wire] (720,300) -- (770,300); \draw[wire] (720,320) -- (770,320); \draw[wire] (745,320) -- (745,410);",
+        r"\node[font=\small,text=zyloLine] at (282,220) {$L'\Delta x$}; \node[font=\small,text=zyloLine] at (598,220) {$L'\Delta x$};",
+        r"\node[font=\small,text=zyloLine] at (485,316) {$C'\Delta x$}; \node[font=\small,text=zyloLine] at (800,316) {$C'\Delta x$};",
+        r"\node[font=\small,text=zyloLine] at (480,458) {distributed lossless-line unit cells};",
+    ]
+    return svg, tikz
+
+
+def template_three_phase_power(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    svg = [
+        svg_circle(155, 300, 48, "thin"),
+        svg_text(155, 306, "3-PH", "label", "middle"),
+        svg_line(203, 240, 700, 240, "wire", arrow=True),
+        svg_line(203, 300, 700, 300, "wire", arrow=True),
+        svg_line(203, 360, 700, 360, "wire", arrow=True),
+        svg_text(232, 226, "phase A", "tiny"),
+        svg_text(232, 286, "phase B", "tiny"),
+        svg_text(232, 346, "phase C", "tiny"),
+        svg_rect(700, 206, 145, 188, "soft"),
+        svg_text(772, 294, "balanced", "small", "middle"),
+        svg_text(772, 320, "3-phase load", "small", "middle"),
+        svg_line(425, 240, 425, 300, "accent", arrow=True),
+        svg_text(445, 274, "VL", "small"),
+        svg_line(500, 220, 610, 220, "accent", arrow=True),
+        svg_text(555, 202, "IL", "small", "middle"),
+        svg_text(480, 438, "RMS line quantities and load power factor", "small", "middle"),
+    ]
+    tikz = [
+        r"\draw[thinwire] (155,300) circle (48); \node at (155,306) {3-PH};",
+        r"\draw[wire,->] (203,240) -- (700,240); \draw[wire,->] (203,300) -- (700,300); \draw[wire,->] (203,360) -- (700,360);",
+        r"\node[font=\scriptsize,text=zyloLine] at (250,226) {phase A}; \node[font=\scriptsize,text=zyloLine] at (250,286) {phase B}; \node[font=\scriptsize,text=zyloLine] at (250,346) {phase C};",
+        r"\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=145pt,minimum height=188pt,align=center] at (772,300) {balanced\\3-phase load};",
+        r"\draw[accent,->] (425,240) -- (425,300); \node[font=\small,text=zyloLine] at (445,274) {$V_L$};",
+        r"\draw[accent,->] (500,220) -- (610,220); \node[font=\small,text=zyloLine] at (555,202) {$I_L$};",
+        r"\node[font=\small,text=zyloLine] at (480,438) {RMS line quantities and load power factor};",
+    ]
+    return svg, tikz
+
+
+def template_am_bandwidth(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    svg = [
+        svg_line(130, 400, 840, 400, "thin", arrow=True),
+        svg_rect(220, 285, 205, 115, "accentFill", 0),
+        svg_rect(535, 285, 205, 115, "accentFill", 0),
+        svg_line(480, 400, 480, 205, "accent"),
+        svg_text(322, 270, "lower sideband", "small", "middle"),
+        svg_text(638, 270, "upper sideband", "small", "middle"),
+        svg_text(480, 188, "carrier", "small", "middle"),
+        svg_text(220, 424, "fc - fm,max", "tiny", "middle"),
+        svg_text(480, 424, "fc", "tiny", "middle"),
+        svg_text(740, 424, "fc + fm,max", "tiny", "middle"),
+        svg_line(220, 458, 740, 458, "thin"),
+        svg_line(240, 458, 720, 458, "thin", arrow=True),
+        svg_line(720, 458, 240, 458, "thin", arrow=True),
+        svg_text(480, 484, "total occupied span", "small", "middle"),
+    ]
+    tikz = [
+        r"\draw[thinwire,->] (130,400) -- (840,400);",
+        r"\path[draw=zyloOrange,fill=orange!18] (220,285) rectangle (425,400); \path[draw=zyloOrange,fill=orange!18] (535,285) rectangle (740,400);",
+        r"\draw[accent] (480,400) -- (480,205);",
+        r"\node[font=\small,text=zyloLine] at (322,270) {lower sideband}; \node[font=\small,text=zyloLine] at (638,270) {upper sideband}; \node[font=\small,text=zyloLine] at (480,188) {carrier};",
+        r"\node[font=\scriptsize,text=zyloLine] at (220,424) {$f_c-f_{m,\max}$}; \node[font=\scriptsize,text=zyloLine] at (480,424) {$f_c$}; \node[font=\scriptsize,text=zyloLine] at (740,424) {$f_c+f_{m,\max}$};",
+        r"\draw[thinwire,<->] (240,458) -- (720,458); \node[font=\small,text=zyloLine] at (480,484) {total occupied span};",
+    ]
+    return svg, tikz
+
+
+def template_bjt(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    svg = [
+        svg_circle(500, 305, 112, "thin"),
+        svg_line(430, 245, 430, 365, "wire"),
+        svg_line(245, 305, 430, 305, "wire", arrow=True),
+        svg_line(430, 270, 555, 205, "wire"),
+        svg_line(555, 205, 700, 205, "wire", arrow=True),
+        svg_line(430, 340, 555, 405, "wire"),
+        svg_line(555, 405, 700, 405, "wire", arrow=True),
+        svg_line(515, 384, 558, 406, "accent", arrow=True),
+        svg_text(225, 290, "IB", "small"),
+        svg_text(705, 210, "IC", "small"),
+        svg_text(705, 410, "IE", "small"),
+        svg_text(405, 288, "B", "tiny"),
+        svg_text(540, 190, "C", "tiny"),
+        svg_text(540, 430, "E", "tiny"),
+        svg_text(500, 466, "NPN transistor in forward-active operation", "small", "middle"),
+    ]
+    tikz = [
+        r"\draw[thinwire] (500,305) circle (112); \draw[wire] (430,245) -- (430,365);",
+        r"\draw[wire,->] (245,305) -- (430,305); \draw[wire] (430,270) -- (555,205); \draw[wire,->] (555,205) -- (700,205);",
+        r"\draw[wire] (430,340) -- (555,405); \draw[wire,->] (555,405) -- (700,405); \draw[accent,->] (515,384) -- (558,406);",
+        r"\node[font=\small,text=zyloLine] at (225,290) {$I_B$}; \node[font=\small,text=zyloLine] at (715,210) {$I_C$}; \node[font=\small,text=zyloLine] at (715,410) {$I_E$};",
+        r"\node[font=\scriptsize,text=zyloLine] at (405,288) {B}; \node[font=\scriptsize,text=zyloLine] at (540,190) {C}; \node[font=\scriptsize,text=zyloLine] at (540,430) {E};",
+        r"\node[font=\small,text=zyloLine] at (500,466) {NPN transistor in forward-active operation};",
+    ]
+    return svg, tikz
+
+
+def template_inverting_opamp(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    svg = [
+        svg_path("M400,220 L400,380 L610,300 Z", "wire"),
+        svg_text(425, 266, "+", "label"),
+        svg_text(425, 346, "-", "label"),
+        svg_line(120, 340, 180, 340, "wire"),
+        svg_poly(resistor_points(180, 340, 330, amp=12), "wire"),
+        svg_line(330, 340, 400, 340, "wire"),
+        svg_circle(400, 340, 5, "accentFill"),
+        svg_text(245, 314, "Rin", "small", "middle"),
+        svg_text(98, 345, "Vin", "small", "end"),
+        svg_line(610, 300, 825, 300, "wire"),
+        svg_text(835, 305, "Vout", "small"),
+        svg_line(400, 260, 330, 260, "wire"),
+        svg_path("M330,260 V410", "wire"),
+        svg_line(295, 410, 365, 410, "thin"),
+        svg_line(305, 426, 355, 426, "thin"),
+        svg_line(318, 442, 342, 442, "thin"),
+        svg_path("M400,340 H330 V170 H380", "wire"),
+        svg_poly(resistor_points(380, 170, 650, amp=12), "wire"),
+        svg_path("M650,170 H720 V300", "wire"),
+        svg_text(515, 144, "Rf", "small", "middle"),
+        svg_text(515, 462, "negative feedback holds the summing node near virtual ground", "small", "middle"),
+    ]
+    tikz = [
+        r"\draw[wire] (400,220) -- (400,380) -- (610,300) -- cycle;",
+        r"\node at (425,266) {$+$}; \node at (425,346) {$-$};",
+        r"\draw[wire] (120,340) -- (180,340);",
+        tikz_poly(resistor_points(180, 340, 330, amp=12), "wire"),
+        r"\draw[wire] (330,340) -- (400,340); \filldraw[draw=zyloOrange,fill=orange!18] (400,340) circle (5);",
+        r"\node[font=\small,text=zyloLine] at (245,314) {$R_{in}$}; \node[font=\small,text=zyloLine] at (98,345) {$V_{in}$};",
+        r"\draw[wire] (610,300) -- (825,300); \node[font=\small,text=zyloLine] at (850,305) {$V_{out}$};",
+        r"\draw[wire] (400,260) -- (330,260) -- (330,410); \draw[thinwire] (295,410) -- (365,410); \draw[thinwire] (305,426) -- (355,426); \draw[thinwire] (318,442) -- (342,442);",
+        r"\draw[wire] (400,340) -- (330,340) -- (330,170) -- (380,170);",
+        tikz_poly(resistor_points(380, 170, 650, amp=12), "wire"),
+        r"\draw[wire] (650,170) -- (720,170) -- (720,300); \node[font=\small,text=zyloLine] at (515,144) {$R_f$};",
+        r"\node[font=\small,text=zyloLine] at (515,462) {negative feedback holds the summing node near virtual ground};",
+    ]
+    return svg, tikz
+
+
+def template_transformer_valid(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    left_coil = (
+        "M310,215 C265,230 265,260 310,275 "
+        "C265,290 265,320 310,335 C265,350 265,380 310,395"
+    )
+    right_coil = (
+        "M550,215 C595,230 595,260 550,275 "
+        "C595,290 595,320 550,335 C595,350 595,380 550,395"
+    )
+    svg = [
+        svg_path("M150,215 H310", "wire"),
+        svg_path(left_coil, "wire"),
+        svg_path("M310,395 H150", "wire"),
+        svg_line(420, 190, 420, 420, "thin"),
+        svg_line(442, 190, 442, 420, "thin"),
+        svg_path("M550,215 H760", "wire"),
+        svg_path(right_coil, "wire"),
+        svg_path("M550,395 H760", "wire"),
+        svg_text(260, 186, "Np", "small", "middle"),
+        svg_text(620, 186, "Ns", "small", "middle"),
+        svg_text(128, 222, "Vp+", "tiny", "end"),
+        svg_text(128, 401, "Vp-", "tiny", "end"),
+        svg_text(782, 222, "Vs+", "tiny"),
+        svg_text(782, 401, "Vs-", "tiny"),
+        svg_text(431, 458, "continuous windings linked by common core flux", "small", "middle"),
+    ]
+    tikz = [
+        r"\draw[wire] (150,215) -- (310,215);",
+        rf"\draw[wire] {left_coil.replace('M', '(').replace(',', ',').replace(' C', ') .. controls (').replace(' ', ' ')};",
+        r"\draw[wire] (310,395) -- (150,395);",
+        r"\draw[thinwire] (420,190) -- (420,420); \draw[thinwire] (442,190) -- (442,420);",
+        r"\draw[wire] (550,215) -- (760,215);",
+        r"\draw[wire] (550,215) .. controls (595,230) and (595,260) .. (550,275) .. controls (595,290) and (595,320) .. (550,335) .. controls (595,350) and (595,380) .. (550,395);",
+        r"\draw[wire] (550,395) -- (760,395);",
+        r"\node[font=\small,text=zyloLine] at (260,186) {$N_p$}; \node[font=\small,text=zyloLine] at (620,186) {$N_s$};",
+        r"\node[font=\scriptsize,text=zyloLine] at (128,222) {$V_p+$}; \node[font=\scriptsize,text=zyloLine] at (128,401) {$V_p-$};",
+        r"\node[font=\scriptsize,text=zyloLine] at (782,222) {$V_s+$}; \node[font=\scriptsize,text=zyloLine] at (782,401) {$V_s-$};",
+        r"\node[font=\small,text=zyloLine] at (431,458) {continuous windings linked by common core flux};",
+    ]
+    # Use an explicit path for the primary in the TeX source.
+    tikz[1] = (
+        r"\draw[wire] (310,215) .. controls (265,230) and (265,260) .. (310,275) "
+        r".. controls (265,290) and (265,320) .. (310,335) "
+        r".. controls (265,350) and (265,380) .. (310,395);"
+    )
+    return svg, tikz
+
+
+def template_buck_valid(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    load_points = [
+        (715, 235),
+        (715, 270),
+        (700, 282),
+        (730, 296),
+        (700, 310),
+        (730, 324),
+        (700, 338),
+        (715, 350),
+        (715, 425),
+    ]
+    svg = [
+        svg_circle(130, 320, 34, "thin"),
+        svg_text(123, 308, "+", "tiny"),
+        svg_text(123, 338, "-", "tiny"),
+        svg_text(82, 324, "Vin", "small"),
+        svg_path("M130,286 V235 H245", "wire"),
+        svg_rect(245, 205, 90, 60, "soft"),
+        svg_text(290, 241, "SW", "small", "middle"),
+        svg_line(335, 235, 390, 235, "wire"),
+        svg_path(inductor_path(390, 235, 560, turns=4, amp=20), "wire"),
+        svg_line(560, 235, 790, 235, "wire"),
+        svg_circle(390, 235, 5, "accentFill"),
+        svg_path("M390,240 V315", "wire"),
+        svg_rect(350, 315, 80, 62, "soft"),
+        svg_text(390, 352, "D", "small", "middle"),
+        svg_path("M390,377 V425 H130 V354", "wire"),
+        svg_line(620, 235, 620, 305, "wire"),
+        svg_line(595, 305, 645, 305, "wire"),
+        svg_line(595, 325, 645, 325, "wire"),
+        svg_line(620, 325, 620, 425, "wire"),
+        svg_poly(load_points, "wire"),
+        svg_text(475, 198, "L", "small", "middle"),
+        svg_text(650, 318, "C", "small"),
+        svg_text(750, 318, "Rload", "small"),
+        svg_text(802, 240, "Vout", "small"),
+        svg_text(510, 464, "switch node, freewheel path, output filter, and load", "small", "middle"),
+    ]
+    tikz = [
+        r"\draw[thinwire] (130,320) circle (34); \node[font=\scriptsize] at (123,308) {$+$}; \node[font=\scriptsize] at (123,338) {$-$}; \node[font=\small] at (82,324) {$V_{in}$};",
+        r"\draw[wire] (130,286) -- (130,235) -- (245,235); \node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=90pt,minimum height=60pt] at (290,235) {SW};",
+        r"\draw[wire] (335,235) -- (390,235); \draw[wire,decorate,decoration={coil,aspect=0.5,segment length=22pt,amplitude=10pt}] (390,235) -- (560,235); \draw[wire] (560,235) -- (790,235);",
+        r"\filldraw[draw=zyloOrange,fill=orange!18] (390,235) circle (5); \draw[wire] (390,240) -- (390,315); \node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=80pt,minimum height=62pt] at (390,346) {D}; \draw[wire] (390,377) -- (390,425) -- (130,425) -- (130,354);",
+        r"\draw[wire] (620,235) -- (620,305); \draw[wire] (595,305) -- (645,305); \draw[wire] (595,325) -- (645,325); \draw[wire] (620,325) -- (620,425);",
+        tikz_poly(load_points, "wire"),
+        r"\node[font=\small,text=zyloLine] at (475,198) {$L$}; \node[font=\small,text=zyloLine] at (650,318) {$C$}; \node[font=\small,text=zyloLine] at (758,318) {$R_{load}$}; \node[font=\small,text=zyloLine] at (815,240) {$V_{out}$};",
+        r"\node[font=\small,text=zyloLine] at (510,464) {switch node, freewheel path, output filter, and load};",
+    ]
+    return svg, tikz
+
+
+def template_wavelength(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    wave = sine_points(150, 310, 660, 74, cycles=2.0)
+    svg = [
+        svg_line(115, 310, 850, 310, "thin", arrow=True),
+        svg_poly(wave, "accent"),
+        svg_line(232.5, 205, 562.5, 205, "thin"),
+        svg_line(232.5, 190, 232.5, 225, "thin"),
+        svg_line(562.5, 190, 562.5, 225, "thin"),
+        svg_line(250, 205, 545, 205, "thin", arrow=True),
+        svg_line(545, 205, 250, 205, "thin", arrow=True),
+        svg_text(397.5, 184, "one wavelength, lambda", "small", "middle"),
+        svg_text(480, 444, "free-space propagation: frequency sets wavelength", "small", "middle"),
+    ]
+    tikz = [
+        r"\draw[thinwire,->] (115,310) -- (850,310);",
+        tikz_poly(wave, "accent"),
+        r"\draw[thinwire] (232.5,190) -- (232.5,225); \draw[thinwire] (562.5,190) -- (562.5,225); \draw[thinwire,<->] (250,205) -- (545,205);",
+        r"\node[font=\small,text=zyloLine] at (397.5,184) {one wavelength, $\lambda$};",
+        r"\node[font=\small,text=zyloLine] at (480,444) {free-space propagation: frequency sets wavelength};",
+    ]
+    return svg, tikz
+
+
+def template_digital_states(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    svg = [
+        svg_text(110, 188, "n independent bits", "small"),
+        svg_rect(110, 225, 125, 78, "soft"),
+        svg_rect(255, 225, 125, 78, "soft"),
+        svg_rect(525, 225, 155, 78, "soft"),
+        svg_text(172, 272, "bit 0", "label", "middle"),
+        svg_text(317, 272, "bit 1", "label", "middle"),
+        svg_text(452, 272, "...", "label", "middle"),
+        svg_text(602, 272, "bit n - 1", "label", "middle"),
+        svg_line(680, 264, 760, 264, "wire", arrow=True),
+        svg_rect(760, 215, 130, 98, "accentFill"),
+        svg_text(825, 255, "2^n", "label", "middle"),
+        svg_text(825, 284, "unique states", "small", "middle"),
+        svg_text(480, 410, "Every added independent bit doubles the state count", "small", "middle"),
+    ]
+    tikz = [
+        r"\node[font=\small,text=zyloLine] at (172,188) {$n$ independent bits};",
+        r"\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=125pt,minimum height=78pt] at (172,264) {bit 0};",
+        r"\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=125pt,minimum height=78pt] at (317,264) {bit 1};",
+        r"\node[font=\Large,text=zyloLine] at (452,264) {$\cdots$};",
+        r"\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=155pt,minimum height=78pt] at (602,264) {bit $n-1$};",
+        r"\draw[wire,->] (680,264) -- (760,264);",
+        r"\node[draw=zyloOrange,fill=orange!18,minimum width=130pt,minimum height=98pt,align=center] at (825,264) {$2^n$\\unique states};",
+        r"\node[font=\small,text=zyloLine] at (480,410) {Every added independent bit doubles the state count};",
+    ]
+    return svg, tikz
+
+
+def template_unity_feedback(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    svg = [
+        svg_text(88, 286, "r", "label"),
+        svg_line(105, 300, 202, 300, "wire", arrow=True),
+        svg_circle(226, 300, 24, "thin"),
+        svg_text(216, 291, "+", "small"),
+        svg_text(218, 329, "-", "small"),
+        svg_line(250, 300, 365, 300, "wire", arrow=True),
+        svg_rect(365, 245, 190, 110),
+        svg_text(460, 293, "forward path", "small", "middle"),
+        svg_text(460, 325, "DC gain K", "label", "middle"),
+        svg_line(555, 300, 825, 300, "wire", arrow=True),
+        svg_text(842, 306, "y", "label"),
+        svg_circle(690, 300, 5, "accentFill"),
+        svg_path("M690,305 V420 H226 V324", "wire", arrow=True),
+        svg_rect(425, 392, 110, 56, "soft"),
+        svg_text(480, 427, "H(s) = 1", "small", "middle"),
+        svg_text(480, 472, "negative unity feedback", "small", "middle"),
+    ]
+    tikz = [
+        r"\node at (88,286) {$r$}; \draw[wire,->] (105,300) -- (202,300);",
+        r"\draw[thinwire] (226,300) circle (24); \node[font=\small] at (216,291) {$+$}; \node[font=\small] at (218,329) {$-$};",
+        r"\draw[wire,->] (250,300) -- (365,300);",
+        r"\node[box,minimum width=190pt,minimum height=110pt,align=center] at (460,300) {forward path\\DC gain $K$};",
+        r"\draw[wire,->] (555,300) -- (825,300); \node at (842,306) {$y$};",
+        r"\filldraw[draw=zyloOrange,fill=orange!18] (690,300) circle (5);",
+        r"\draw[wire,->] (690,305) -- (690,420) -- (226,420) -- (226,324);",
+        r"\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=110pt,minimum height=56pt] at (480,420) {$H(s)=1$};",
+        r"\node[font=\small,text=zyloLine] at (480,472) {negative unity feedback};",
+    ]
+    return svg, tikz
+
+
+def template_pcb_delay(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    svg = [
+        svg_rect(145, 225, 670, 42, "accentFill", 4),
+        svg_line(175, 205, 785, 205, "accent", arrow=True),
+        svg_text(480, 184, "signal current", "small", "middle"),
+        svg_text(480, 255, "trace length L", "label", "middle"),
+        svg_rect(115, 390, 730, 44, "soft", 0),
+        svg_line(785, 370, 175, 370, "wire", arrow=True),
+        svg_text(480, 352, "return current", "small", "middle"),
+        svg_text(480, 422, "continuous reference plane", "label", "middle"),
+        svg_line(175, 295, 785, 295, "thin"),
+        svg_line(175, 282, 175, 308, "thin"),
+        svg_line(785, 282, 785, 308, "thin"),
+        svg_text(480, 324, "one-way delay: tpd = L x d", "small", "middle"),
+        svg_text(480, 464, "d is propagation delay per unit length", "small", "middle"),
+    ]
+    tikz = [
+        r"\path[draw=zyloOrange,fill=orange!18,rounded corners=4pt,line width=1.5pt] (145,225) rectangle (815,267);",
+        r"\draw[accent,->] (175,205) -- (785,205); \node[font=\small,text=zyloLine] at (480,184) {signal current};",
+        r"\node at (480,255) {trace length $L$};",
+        r"\path[draw=zyloLine,fill=white!80!zyloSoft] (115,390) rectangle (845,434);",
+        r"\draw[wire,->] (785,370) -- (175,370); \node[font=\small,text=zyloLine] at (480,352) {return current};",
+        r"\node at (480,422) {continuous reference plane};",
+        r"\draw[thinwire] (175,295) -- (785,295); \draw[thinwire] (175,282) -- (175,308); \draw[thinwire] (785,282) -- (785,308);",
+        r"\node[font=\small,text=zyloLine] at (480,324) {one-way delay: $t_{pd}=L d$};",
+        r"\node[font=\small,text=zyloLine] at (480,464) {$d$ is propagation delay per unit length};",
+    ]
+    return svg, tikz
+
+
+def template_voltmeter_loading(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    svg = [
+        svg_circle(150, 325, 38, "thin"),
+        svg_text(143, 315, "+", "tiny"),
+        svg_text(143, 342, "-", "tiny"),
+        svg_text(93, 330, "Vs", "label"),
+        svg_path("M150,287 V225 H250", "wire"),
+        svg_poly(resistor_points(250, 225, 430, amp=12), "wire"),
+        svg_text(340, 198, "Rs", "label", "middle"),
+        svg_line(430, 225, 690, 225, "wire"),
+        svg_circle(690, 325, 58, "thin"),
+        svg_text(690, 337, "V", "label", "middle"),
+        svg_path("M690,225 V267 M690,383 V425 H150 V363", "wire"),
+        svg_text(770, 330, "Rm input", "small"),
+        svg_circle(690, 225, 5, "accentFill"),
+        svg_circle(690, 425, 5, "accentFill"),
+        svg_text(480, 470, "The meter input resistance loads the source", "small", "middle"),
+    ]
+    tikz = [
+        r"\draw[thinwire] (150,325) circle (38); \node[font=\scriptsize] at (143,315) {$+$}; \node[font=\scriptsize] at (143,342) {$-$}; \node at (93,330) {$V_s$};",
+        r"\draw[wire] (150,287) -- (150,225) -- (250,225);",
+        tikz_poly(resistor_points(250, 225, 430, amp=12), "wire"),
+        r"\node at (340,198) {$R_s$}; \draw[wire] (430,225) -- (690,225);",
+        r"\draw[thinwire] (690,325) circle (58); \node at (690,337) {$V$};",
+        r"\draw[wire] (690,225) -- (690,267); \draw[wire] (690,383) -- (690,425) -- (150,425) -- (150,363);",
+        r"\node[font=\small,text=zyloLine] at (790,330) {$R_m$ input};",
+        r"\filldraw[draw=zyloOrange,fill=orange!18] (690,225) circle (5); \filldraw[draw=zyloOrange,fill=orange!18] (690,425) circle (5);",
+        r"\node[font=\small,text=zyloLine] at (480,470) {The meter input resistance loads the source};",
+    ]
+    return svg, tikz
+
+
+def template_wheatstone_bridge(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    svg = [
+        svg_circle(480, 165, 5, "accentFill"),
+        svg_circle(480, 440, 5, "accentFill"),
+        svg_circle(255, 300, 5, "accentFill"),
+        svg_circle(705, 300, 5, "accentFill"),
+        svg_path("M480,165 L390,215 M340,245 L255,300 M255,300 L340,355 M390,385 L480,440", "wire"),
+        svg_path("M480,165 L570,215 M620,245 L705,300 M705,300 L620,355 M570,385 L480,440", "wire"),
+        svg_rect(340, 205, 50, 50, "soft", 2),
+        svg_rect(340, 345, 50, 50, "soft", 2),
+        svg_rect(570, 205, 50, 50, "soft", 2),
+        svg_rect(570, 345, 50, 50, "soft", 2),
+        svg_text(365, 238, "R1", "small", "middle"),
+        svg_text(365, 378, "R2", "small", "middle"),
+        svg_text(595, 238, "R3", "small", "middle"),
+        svg_text(595, 378, "Rx", "small", "middle"),
+        svg_line(260, 300, 422, 300, "wire"),
+        svg_circle(480, 300, 58, "thin"),
+        svg_text(480, 311, "G", "label", "middle"),
+        svg_line(538, 300, 700, 300, "wire"),
+        svg_text(480, 132, "excitation +", "small", "middle"),
+        svg_text(480, 474, "excitation -", "small", "middle"),
+    ]
+    tikz = [
+        r"\filldraw[draw=zyloOrange,fill=orange!18] (480,165) circle (5); \filldraw[draw=zyloOrange,fill=orange!18] (480,440) circle (5);",
+        r"\filldraw[draw=zyloOrange,fill=orange!18] (255,300) circle (5); \filldraw[draw=zyloOrange,fill=orange!18] (705,300) circle (5);",
+        r"\draw[wire] (480,165) -- (390,215); \draw[wire] (340,245) -- (255,300) -- (340,355); \draw[wire] (390,385) -- (480,440);",
+        r"\draw[wire] (480,165) -- (570,215); \draw[wire] (620,245) -- (705,300) -- (620,355); \draw[wire] (570,385) -- (480,440);",
+        r"\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=50pt,minimum height=50pt] at (365,230) {$R_1$};",
+        r"\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=50pt,minimum height=50pt] at (365,370) {$R_2$};",
+        r"\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=50pt,minimum height=50pt] at (595,230) {$R_3$};",
+        r"\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=50pt,minimum height=50pt] at (595,370) {$R_x$};",
+        r"\draw[wire] (260,300) -- (422,300); \draw[thinwire] (480,300) circle (58); \node at (480,311) {$G$}; \draw[wire] (538,300) -- (700,300);",
+        r"\node[font=\small,text=zyloLine] at (480,132) {excitation $+$}; \node[font=\small,text=zyloLine] at (480,474) {excitation $-$};",
+    ]
+    return svg, tikz
+
+
+PRIMARY_OVERRIDES = {
+    "AC-01": template_ac_rms,
+    "NT-01": template_network_equivalents,
+    "TR-01": template_transient_charge,
+    "EM-01": template_coulomb,
+    "TL-01": template_tline_distributed,
+    "PS-01": template_three_phase_power,
+    "TM-01": template_transformer_valid,
+    "PE-01": template_buck_valid,
+    "AE-01": template_inverting_opamp,
+    "SD-01": template_bjt,
+    "DL-01": template_digital_states,
+    "CS-01": template_unity_feedback,
+    "CM-01": template_am_bandwidth,
+    "MI-04": template_voltmeter_loading,
+    "MI-05": template_wheatstone_bridge,
+    "PCB-01": template_pcb_delay,
+    "RF-01": template_wavelength,
+}
+
+
+def template_problem(row: dict[str, str]) -> tuple[list[str], list[str]]:
+    template_id = row["template_id"]
+    if template_id in PRIMARY_OVERRIDES:
+        return PRIMARY_OVERRIDES[template_id](row)
+    if template_id.endswith("-01"):
+        return PRIMARY_TEMPLATES[row["topic"]](row)
+    return template_formula_scene(row)
+
+
+TEMPLATES = {topic: template_problem for topic in PRIMARY_TEMPLATES}
+
+
 def render_asset(image_row: dict[str, str], question_row: dict[str, str]) -> tuple[str, str]:
     image_id = image_row["image_id"]
     question_id = image_row["question_id"]
-    title = f"{image_row['subtopic']} reference diagram"
+    title = f"{image_row['subtopic']} problem diagram"
     prompt = clean_prompt(question_row["question"])
     subtitle = f"{image_id} | {image_row['topic']} | {question_id}"
     source_path = f"latex_sources/{image_id}.tex"
-    template = TEMPLATES.get(image_row["topic"], template_dc)
-    svg_body, tikz_body = template(image_row)
+    template = TEMPLATES.get(image_row["topic"], template_problem)
+    asset_row = dict(image_row)
+    asset_row.update(question_row)
+    svg_body, tikz_body = template(asset_row)
 
     svg_parts = common_svg_start(image_id, title, subtitle, prompt, source_path)
     svg_parts.extend(svg_body)
@@ -855,12 +1576,12 @@ def read_images() -> list[dict[str, str]]:
 
 def write_contact_sheet(rows: list[dict[str, str]]) -> None:
     selected = []
-    first_by_topic: dict[str, dict[str, str]] = {}
+    first_by_template: dict[str, dict[str, str]] = {}
     for row in rows:
-        first_by_topic.setdefault(row["topic"], row)
-    for topic in TEMPLATES:
-        if topic in first_by_topic:
-            selected.append(first_by_topic[topic])
+        first_by_template.setdefault(row["template_id"], row)
+    for template_id in sorted(FORMULA_METADATA):
+        if template_id in first_by_template:
+            selected.append(first_by_template[template_id])
 
     cell_w = 240
     cell_h = 150
@@ -896,13 +1617,23 @@ def validate(rows: list[dict[str, str]], questions: dict[str, dict[str, str]]) -
     missing_sources = [row["image_id"] for row in rows if not (LATEX_DIR / f"{row['image_id']}.tex").exists()]
     missing_svgs = [row["image_id"] for row in rows if not (IMAGE_DIR / f"{row['image_id']}.svg").exists()]
     topics = Counter(row["topic"] for row in rows)
+    template_counts = Counter(row["template_id"] for row in rows)
     template_missing = sorted(set(topics) - set(TEMPLATES))
+    formula_scene_missing = sorted(set(FORMULA_METADATA) - set(template_counts))
 
     sample_bad = []
-    for row in rows[:100]:
+    sampled_rows: dict[str, dict[str, str]] = {}
+    for row in rows:
+        sampled_rows.setdefault(row["template_id"], row)
+    for row in sampled_rows.values():
         svg = (IMAGE_DIR / f"{row['image_id']}.svg").read_text(encoding="utf-8")
         tex = (LATEX_DIR / f"{row['image_id']}.tex").read_text(encoding="utf-8")
-        if "LaTeX/TikZ source" not in svg or r"\begin{tikzpicture}" not in tex:
+        if (
+            "LaTeX/TikZ source" not in svg
+            or r"\begin{tikzpicture}" not in tex
+            or 'viewBox="0 0 960 600"' not in svg
+            or '<rect class="panel" x="24" y="500"' not in svg
+        ):
             sample_bad.append(row["image_id"])
 
     add("Image metadata rows", len(rows) == 12500, f"Found {len(rows)} image metadata rows.")
@@ -911,6 +1642,16 @@ def validate(rows: list[dict[str, str]], questions: dict[str, dict[str, str]]) -
     add("Source cross-reference", not missing_sources, f"Missing source count: {len(missing_sources)}.")
     add("SVG cross-reference", not missing_svgs, f"Missing SVG count: {len(missing_svgs)}.")
     add("Topic template coverage", not template_missing, f"Missing templates: {template_missing}.")
+    add(
+        "Question-template image coverage",
+        not formula_scene_missing and len(template_counts) == 100,
+        f"Covered {len(template_counts)} of 100 question templates; missing: {formula_scene_missing}.",
+    )
+    add(
+        "Balanced image distribution",
+        set(template_counts.values()) == {125},
+        f"Image counts per template: {sorted(set(template_counts.values()))}.",
+    )
     add("Linked question coverage", all(row["question_id"] in questions for row in rows), "Every image row has a linked question row.")
     add("SVG/TeX provenance markers", not sample_bad, f"Bad sampled assets: {sample_bad[:5]}.")
     add("Fixed layout bounds", True, "Header, drawing zone, and prompt panel use fixed non-overlapping y-ranges.")
@@ -924,13 +1665,30 @@ def validate(rows: list[dict[str, str]], questions: dict[str, dict[str, str]]) -
         "latex_sources": source_count,
         "svg_images": svg_count,
         "topics": dict(topics),
+        "question_templates": dict(template_counts),
         "checks": checks,
         "notes": [
             "Each app-facing SVG has a matching editable LaTeX/TikZ source file in latex_sources/.",
             "The package machine did not include pdflatex/lualatex; SVGs are rendered deterministically from the same LaTeX/TikZ geometry by this generator.",
             "Question prompts are placed in a separate bottom panel to prevent text from overlapping the circuit or concept diagram.",
+            "Each of the 100 question templates has 125 linked images, distributed evenly across all 25 levels.",
         ],
     }
+
+
+def write_image_database(rows: list[dict[str, str]], qa_status: str) -> None:
+    if not rows:
+        return
+    fieldnames = list(rows[0].keys())
+    for row in rows:
+        row["qa_status"] = qa_status
+    temp = IMAGE_DB_CSV.with_suffix(".csv.tmp")
+    with temp.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+    temp.replace(IMAGE_DB_CSV)
+    IMAGE_DB_JSON.write_text(json.dumps(rows, indent=2), encoding="utf-8")
 
 
 def main() -> None:
@@ -945,9 +1703,13 @@ def main() -> None:
         "question_id",
         "topic",
         "subtopic",
+        "template_id",
         "difficulty_rank",
         "svg_path",
         "latex_source_path",
+        "semantic_render_type",
+        "asset_role",
+        "visual_spec_version",
         "render_status",
     ]
 
@@ -969,10 +1731,19 @@ def main() -> None:
                     "question_id": image_row["question_id"],
                     "topic": image_row["topic"],
                     "subtopic": image_row["subtopic"],
+                    "template_id": image_row["template_id"],
                     "difficulty_rank": image_row["difficulty_rank"],
                     "svg_path": f"images/{image_id}.svg",
                     "latex_source_path": f"latex_sources/{image_id}.tex",
-                    "render_status": "generated",
+                    "semantic_render_type": (
+                        "circuit_or_concept"
+                        if image_row["template_id"] in PRIMARY_OVERRIDES
+                        or image_row["template_id"].endswith("-01")
+                        else "governing_relation"
+                    ),
+                    "asset_role": image_row.get("asset_role", "instructional_hint"),
+                    "visual_spec_version": image_row.get("visual_spec_version", "2.0"),
+                    "render_status": "generated_and_structurally_validated",
                 }
             )
             if idx % 1000 == 0:
@@ -984,6 +1755,7 @@ def main() -> None:
 
     if validation["status"] != "PASS":
         raise SystemExit("LaTeX image validation failed")
+    write_image_database(image_rows, "Generated and structurally validated")
     print(f"Generated {len(image_rows)} LaTeX/TikZ sources and SVG diagrams.")
     print(f"Validation written to {VALIDATION_JSON}.")
 

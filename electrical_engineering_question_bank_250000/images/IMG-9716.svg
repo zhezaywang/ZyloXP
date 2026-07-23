@@ -19,11 +19,11 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">ADC LSB size reference diagram</title>
-<desc id="desc">An 10-bit ADC uses a 5 V reference. What is one LSB?</desc>
+<title id="title">ADC LSB size problem diagram</title>
+<desc id="desc">A 10-bit ADC uses a 5 V reference. What is one LSB? Use the ideal unipolar convention LSB = Vref/2^N.</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">ADC LSB size reference diagram</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">ADC LSB size problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-9716 | Measurement and Instrumentation | EE-194301</text>
 <line class="wire" x1="125" y1="305" x2="260" y2="305"/>
 <rect class="box" x="260" y="240" width="160" height="130" rx="8"/>
@@ -39,5 +39,5 @@
 <text class="label" x="90" y="292" text-anchor="start">Vin</text>
 <text class="small" x="273" y="452" text-anchor="start">Quantization step is set by reference and bit depth</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">An 10-bit ADC uses a 5 V reference. What is one LSB?</text>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A 10-bit ADC uses a 5 V reference. What is one LSB? Use the ideal unipolar convention LSB = Vref/2^N.</text>
 </svg>

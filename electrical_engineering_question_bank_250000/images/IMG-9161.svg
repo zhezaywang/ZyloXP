@@ -19,23 +19,26 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">AM bandwidth reference diagram</title>
+<title id="title">AM bandwidth problem diagram</title>
 <desc id="desc">A conventional AM signal has highest modulating frequency 6 kHz. What transmission bandwidth is required?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">AM bandwidth reference diagram</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">AM bandwidth problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-9161 | Communications | EE-183201</text>
-<line class="thin" x1="160" y1="390" x2="770" y2="390" marker-end="url(#arrow)"/>
-<line class="accent" x1="250" y1="390" x2="250" y2="250"/>
-<line class="accent" x1="480" y1="390" x2="480" y2="190"/>
-<line class="accent" x1="710" y1="390" x2="710" y2="250"/>
-<text class="tiny" x="232" y="414" text-anchor="start">fc - fm</text>
-<text class="tiny" x="468" y="414" text-anchor="start">fc</text>
-<text class="tiny" x="692" y="414" text-anchor="start">fc + fm</text>
-<text class="small" x="450" y="178" text-anchor="start">carrier</text>
-<text class="small" x="205" y="236" text-anchor="start">sideband</text>
-<text class="small" x="665" y="236" text-anchor="start">sideband</text>
-<text class="small" x="350" y="462" text-anchor="start">Bandwidth, modulation, and SNR</text>
+<line class="thin" x1="130" y1="400" x2="840" y2="400" marker-end="url(#arrow)"/>
+<rect class="accentFill" x="220" y="285" width="205" height="115" rx="0"/>
+<rect class="accentFill" x="535" y="285" width="205" height="115" rx="0"/>
+<line class="accent" x1="480" y1="400" x2="480" y2="205"/>
+<text class="small" x="322" y="270" text-anchor="middle">lower sideband</text>
+<text class="small" x="638" y="270" text-anchor="middle">upper sideband</text>
+<text class="small" x="480" y="188" text-anchor="middle">carrier</text>
+<text class="tiny" x="220" y="424" text-anchor="middle">fc - fm,max</text>
+<text class="tiny" x="480" y="424" text-anchor="middle">fc</text>
+<text class="tiny" x="740" y="424" text-anchor="middle">fc + fm,max</text>
+<line class="thin" x1="220" y1="458" x2="740" y2="458"/>
+<line class="thin" x1="240" y1="458" x2="720" y2="458" marker-end="url(#arrow)"/>
+<line class="thin" x1="720" y1="458" x2="240" y2="458" marker-end="url(#arrow)"/>
+<text class="small" x="480" y="484" text-anchor="middle">total occupied span</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
 <text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A conventional AM signal has highest modulating frequency 6 kHz. What transmission bandwidth is required?</text>
 </svg>

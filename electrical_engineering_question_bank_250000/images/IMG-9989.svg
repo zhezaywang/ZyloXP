@@ -19,25 +19,28 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">ADC LSB size reference diagram</title>
-<desc id="desc">An 10-bit ADC uses a 10 V reference. What is one LSB?</desc>
+<title id="title">Voltmeter loading problem diagram</title>
+<desc id="desc">A 9 V source has source resistance 50 kohm and is measured by a voltmeter of 500 kohm input resistance. What voltage is read?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">ADC LSB size reference diagram</text>
-<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-9989 | Measurement and Instrumentation | EE-199761</text>
-<line class="wire" x1="125" y1="305" x2="260" y2="305"/>
-<rect class="box" x="260" y="240" width="160" height="130" rx="8"/>
-<text class="label" x="316" y="310" text-anchor="start">ADC</text>
-<line class="wire" x1="420" y1="305" x2="520" y2="305" marker-end="url(#arrow)"/>
-<rect class="soft" x="520" y="225" width="250" height="160" rx="8"/>
-<text class="label" x="604" y="210" text-anchor="start">digital code</text>
-<line class="thin" x1="552" y1="270" x2="735" y2="270"/>
-<line class="thin" x1="552" y1="295" x2="735" y2="295"/>
-<line class="thin" x1="552" y1="320" x2="735" y2="320"/>
-<line class="thin" x1="552" y1="345" x2="735" y2="345"/>
-<text class="math" x="565" y="412" text-anchor="start">LSB = Vref / 2^N</text>
-<text class="label" x="90" y="292" text-anchor="start">Vin</text>
-<text class="small" x="273" y="452" text-anchor="start">Quantization step is set by reference and bit depth</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Voltmeter loading problem diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-9989 | Measurement and Instrumentation | EE-199764</text>
+<circle class="thin" cx="150" cy="325" r="38" fill="none"/>
+<text class="tiny" x="143" y="315" text-anchor="start">+</text>
+<text class="tiny" x="143" y="342" text-anchor="start">-</text>
+<text class="label" x="93" y="330" text-anchor="start">Vs</text>
+<path class="wire" d="M150,287 V225 H250" fill="none"/>
+<polyline class="wire" points="250,225 272,225 272,225 283.333,213 294.667,237 306,213 317.333,237 328.667,213 340,237 351.333,213 362.667,237 374,213 385.333,237 396.667,213 408,225 430,225" fill="none"/>
+<text class="label" x="340" y="198" text-anchor="middle">Rs</text>
+<line class="wire" x1="430" y1="225" x2="690" y2="225"/>
+<circle class="thin" cx="690" cy="325" r="58" fill="none"/>
+<text class="label" x="690" y="337" text-anchor="middle">V</text>
+<path class="wire" d="M690,225 V267 M690,383 V425 H150 V363" fill="none"/>
+<text class="small" x="770" y="330" text-anchor="start">Rm input</text>
+<circle class="accentFill" cx="690" cy="225" r="5" fill="none"/>
+<circle class="accentFill" cx="690" cy="425" r="5" fill="none"/>
+<text class="small" x="480" y="470" text-anchor="middle">The meter input resistance loads the source</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">An 10-bit ADC uses a 10 V reference. What is one LSB?</text>
+<text x="48" y="522" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">A 9 V source has source resistance 50 kohm and is measured by a voltmeter of 500 kohm input resistance. What</text>
+<text x="48" y="541" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">voltage is read?</text>
 </svg>

@@ -19,21 +19,25 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">Trace propagation delay reference diagram</title>
+<title id="title">Trace propagation delay problem diagram</title>
 <desc id="desc">A PCB trace is 12 inch long with delay 170 ps/in. What is the one-way propagation delay?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Trace propagation delay reference diagram</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Trace propagation delay problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-10116 | PCB Design and Signal Integrity | EE-202301</text>
-<path class="accent" d="M180,245 C320,190 620,190 760,245" fill="none" marker-end="url(#arrow)"/>
-<rect class="accentFill" x="180" y="274" width="590" height="36" rx="7"/>
-<line class="thin" x1="475" y1="256" x2="475" y2="274"/>
-<text class="label" x="430" y="248" text-anchor="start">signal trace</text>
-<path class="thin" d="M190,410 C330,335 620,335 760,410" fill="none" marker-end="url(#arrow)"/>
-<rect class="soft" x="130" y="410" width="700" height="38" rx="0"/>
-<line class="thin" x1="500" y1="448" x2="500" y2="466"/>
-<text class="label" x="438" y="490" text-anchor="start">reference plane</text>
-<text class="small" x="300" y="468" text-anchor="start">Return path and geometry control impedance and EMI</text>
+<rect class="accentFill" x="145" y="225" width="670" height="42" rx="4"/>
+<line class="accent" x1="175" y1="205" x2="785" y2="205" marker-end="url(#arrow)"/>
+<text class="small" x="480" y="184" text-anchor="middle">signal current</text>
+<text class="label" x="480" y="255" text-anchor="middle">trace length L</text>
+<rect class="soft" x="115" y="390" width="730" height="44" rx="0"/>
+<line class="wire" x1="785" y1="370" x2="175" y2="370" marker-end="url(#arrow)"/>
+<text class="small" x="480" y="352" text-anchor="middle">return current</text>
+<text class="label" x="480" y="422" text-anchor="middle">continuous reference plane</text>
+<line class="thin" x1="175" y1="295" x2="785" y2="295"/>
+<line class="thin" x1="175" y1="282" x2="175" y2="308"/>
+<line class="thin" x1="785" y1="282" x2="785" y2="308"/>
+<text class="small" x="480" y="324" text-anchor="middle">one-way delay: tpd = L x d</text>
+<text class="small" x="480" y="464" text-anchor="middle">d is propagation delay per unit length</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
 <text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A PCB trace is 12 inch long with delay 170 ps/in. What is the one-way propagation delay?</text>
 </svg>

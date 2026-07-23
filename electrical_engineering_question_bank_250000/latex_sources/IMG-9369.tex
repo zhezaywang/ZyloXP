@@ -12,15 +12,25 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {AM bandwidth reference diagram};
-\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-9369 | Communications | EE-187361};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Power ratio in dB problem diagram};
+\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-9369 | Communications | EE-187364};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\draw[thinwire,->] (160,390) -- (770,390);
-\draw[accent] (250,390) -- (250,250); \draw[accent] (480,390) -- (480,190); \draw[accent] (710,390) -- (710,250);
-\node[font=\scriptsize,text=zyloLine] at (250,414) {$f_c-f_m$}; \node[font=\scriptsize,text=zyloLine] at (480,414) {$f_c$}; \node[font=\scriptsize,text=zyloLine] at (710,414) {$f_c+f_m$};
-\node[font=\small,text=zyloLine] at (480,178) {carrier}; \node[font=\small,text=zyloLine] at (235,236) {sideband}; \node[font=\small,text=zyloLine] at (695,236) {sideband};
-\node[font=\small,text=zyloLine] at (480,462) {Bandwidth, modulation, and SNR};
+\path[draw=zyloLine,fill=white!80!zyloSoft,rounded corners=8pt] (86,188) rectangle (326,398);
+\node[font=\small\bfseries,text=zyloLine] at (206,224) {QUESTION GIVENS};
+\node[text=zyloInk] at (206,268) {CM-04};
+\node[font=\small,text=zyloLine,text width=205pt,align=center] at (206,307) {Power ratio in dB};
+\node[font=\small,text=zyloLine] at (206,352) {values in the prompt};
+\draw[wire,->] (326,293) -- (390,293);
+\node[box,minimum width=350pt,minimum height=174pt] at (565,293) {};
+\node[font=\small\bfseries,text=zyloLine] at (565,240) {GOVERNING RELATION};
+\node[font=\ttfamily,text=zyloInk,text width=310pt,align=center] at (565,300) {dB = 10 log10(P2/P1)};
+\draw[wire,->] (740,293) -- (796,293);
+\path[draw=zyloOrange,fill=orange!18,rounded corners=8pt,line width=1.5pt] (796,232) rectangle (901,354);
+\node[font=\small\bfseries,text=zyloLine] at (848,276) {FIND};
+\node[font=\Large,text=zyloInk] at (848,312) {?};
+\node[font=\scriptsize,text=zyloLine] at (848,336) {dB};
+\node[font=\small,text=zyloLine,text width=820pt,align=center] at (480,440) {Power ratio.};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
-\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A conventional AM signal has highest modulating frequency 4 kHz. What transmission bandwidth\\is required?};
+\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {What is the dB value of a power ratio of 20?};
 \end{tikzpicture}
 \end{document}

@@ -19,26 +19,27 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">Transformer voltage ratio reference diagram</title>
+<title id="title">Transformer voltage ratio problem diagram</title>
 <desc id="desc">An ideal transformer has Np = 160, Ns = 65, and primary voltage 240 V. What is the secondary voltage?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Transformer voltage ratio reference diagram</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Transformer voltage ratio problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-4811 | Transformers and Electrical Machines | EE-96201</text>
-<line class="wire" x1="220" y1="300" x2="300" y2="300"/>
-<path class="thin" d="M320,230 C280,240 280,360 320,370" fill="none"/>
-<path class="thin" d="M340,230 C300,240 300,360 340,370" fill="none"/>
-<path class="thin" d="M360,230 C320,240 320,360 360,370" fill="none"/>
-<line class="thin" x1="430" y1="225" x2="430" y2="375"/>
-<line class="thin" x1="452" y1="225" x2="452" y2="375"/>
-<path class="thin" d="M522,230 C562,240 562,360 522,370" fill="none"/>
-<path class="thin" d="M542,230 C582,240 582,360 542,370" fill="none"/>
-<path class="thin" d="M562,230 C602,240 602,360 562,370" fill="none"/>
-<line class="wire" x1="585" y1="300" x2="730" y2="300"/>
-<text class="small" x="302" y="205" text-anchor="start">Np</text>
-<text class="small" x="560" y="205" text-anchor="start">Ns</text>
-<text class="math" x="393" y="422" text-anchor="start">V1/V2 = Np/Ns</text>
-<text class="small" x="337" y="462" text-anchor="start">Ideal transformer ratios and magnetic flux</text>
+<path class="wire" d="M150,215 H310" fill="none"/>
+<path class="wire" d="M310,215 C265,230 265,260 310,275 C265,290 265,320 310,335 C265,350 265,380 310,395" fill="none"/>
+<path class="wire" d="M310,395 H150" fill="none"/>
+<line class="thin" x1="420" y1="190" x2="420" y2="420"/>
+<line class="thin" x1="442" y1="190" x2="442" y2="420"/>
+<path class="wire" d="M550,215 H760" fill="none"/>
+<path class="wire" d="M550,215 C595,230 595,260 550,275 C595,290 595,320 550,335 C595,350 595,380 550,395" fill="none"/>
+<path class="wire" d="M550,395 H760" fill="none"/>
+<text class="small" x="260" y="186" text-anchor="middle">Np</text>
+<text class="small" x="620" y="186" text-anchor="middle">Ns</text>
+<text class="tiny" x="128" y="222" text-anchor="end">Vp+</text>
+<text class="tiny" x="128" y="401" text-anchor="end">Vp-</text>
+<text class="tiny" x="782" y="222" text-anchor="start">Vs+</text>
+<text class="tiny" x="782" y="401" text-anchor="start">Vs-</text>
+<text class="small" x="431" y="458" text-anchor="middle">continuous windings linked by common core flux</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
 <text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">An ideal transformer has Np = 160, Ns = 65, and primary voltage 240 V. What is the secondary voltage?</text>
 </svg>

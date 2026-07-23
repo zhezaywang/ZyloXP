@@ -1,0 +1,101 @@
+template_id,formula,assumptions,rows_checked,fact_check_method
+AC-01,Vrms = Vpeak/sqrt(2),Sinusoidal steady state; magnitude only.,2500,Independent deterministic recomputation from question givens
+AC-02,|ZL| = 2 pi f L,Ideal inductor.,2500,Independent deterministic recomputation from question givens
+AC-03,|ZC| = 1/(2 pi f C),Ideal capacitor.,2500,Independent deterministic recomputation from question givens
+AC-04,|Z| = sqrt(R^2 + X^2),Rectangular impedance components.,2500,Independent deterministic recomputation from question givens
+AC-05,f0 = 1/(2 pi sqrt(LC)),Ideal series RLC resonance.,2500,Independent deterministic recomputation from question givens
+AE-01,Av = -Rf/Rin,Ideal op-amp with negative feedback.,2500,Independent deterministic recomputation from question givens
+AE-02,Av = 1 + Rf/Rg,Ideal op-amp with negative feedback.,2500,Independent deterministic recomputation from question givens
+AE-03,fc = 1/(2 pi RC),Single-pole ideal RC filter.,2500,Independent deterministic recomputation from question givens
+AE-04,fp = 1/(2 pi Rf Cp),Single parasitic capacitance across the feedback resistor.,2500,Independent deterministic recomputation from question givens
+AE-05,SRmin = 2 pi f Vpeak,Sinusoidal output at the stated peak amplitude.,2500,Independent deterministic recomputation from question givens
+CM-01,"BWAM = 2 fm,max",Conventional double-sideband AM.,2500,Independent deterministic recomputation from question givens
+CM-02,"BW ~= 2(Delta f + fm,max)",Carson's-rule estimate.,2500,Independent deterministic recomputation from question givens
+CM-03,C = B log2(1 + SNR),AWGN channel; SNR is linear.,2500,Independent deterministic recomputation from question givens
+CM-04,dB = 10 log10(P2/P1),Power ratio.,2500,Independent deterministic recomputation from question givens
+CM-05,Rb = Rs log2 M,M is a power of two; coding overhead excluded.,2500,Independent deterministic recomputation from question givens
+CS-01,T(0) = K/(1 + K),Negative unity feedback; scalar DC forward gain.,2500,Independent deterministic recomputation from question givens
+CS-02,ess = 1/(1 + Kp),Stable type-0 negative-unity-feedback system; unit step.,2500,Independent deterministic recomputation from question givens
+CS-03,"Ts,2% ~= 4/(zeta wn)",Standard dominant underdamped second-order approximation.,2500,Independent deterministic recomputation from question givens
+CS-04,PO = 100 exp(-zeta pi/sqrt(1-zeta^2)),Standard underdamped second-order step response.,2500,Independent deterministic recomputation from question givens
+CS-05,wd = wn sqrt(1-zeta^2),Underdamped second-order poles.,2500,Independent deterministic recomputation from question givens
+DC-01,I = V/R,Ideal resistor; DC steady state.,2500,Independent deterministic recomputation from question givens
+DC-02,Req = R1 + R2 + R3,Only the stated series resistors are present.,2500,Independent deterministic recomputation from question givens
+DC-03,Req = R1 R2/(R1 + R2),Two ideal resistors in parallel.,2500,Independent deterministic recomputation from question givens
+DC-04,Vout = Vs Rbottom/(Rtop + Rbottom),Divider output is unloaded.,2500,Independent deterministic recomputation from question givens
+DC-05,P = I^2 R,Ideal resistor at the stated current.,2500,Independent deterministic recomputation from question givens
+DL-01,states = 2^n,Independent binary bits.,2500,Independent deterministic recomputation from question givens
+DL-02,bits = ceil(log2 N),Fixed-length binary encoding.,2500,Independent deterministic recomputation from question givens
+DL-03,count(A xor B xor Cin = 1 across five cases),Positive-logic full adder; five independent input triplets.,2500,Independent deterministic recomputation from question givens
+DL-04,count(AB + ACin + BCin = 1 across five cases),Positive-logic full adder; five independent input triplets.,2500,Independent deterministic recomputation from question givens
+DL-05,fmax ~= 1/(stages tpd),Uses the period >= total-delay approximation stated.,2500,Independent deterministic recomputation from question givens
+EM-01,F = k |q1 q2|/r^2,"Point charges in air, treated as vacuum.",2500,Independent deterministic recomputation from question givens
+EM-02,E = V/d,Uniform field; fringing neglected.,2500,Independent deterministic recomputation from question givens
+EM-03,C = epsilon0 epsilonr A/d,Parallel plates; fringing neglected.,2500,Independent deterministic recomputation from question givens
+EM-04,H = I/(2 pi r),Infinitely long straight conductor.,2500,Independent deterministic recomputation from question givens
+EM-05,|emf| = N |Delta Phi|/Delta t,Uniform linear flux change; magnitude requested.,2500,Independent deterministic recomputation from question givens
+ES-01,tbit = 1/baud,One symbol per UART bit.,2500,Independent deterministic recomputation from question givens
+ES-02,Toverflow = counts x prescaler/fclock,Timer increments once per prescaled clock.,2500,Independent deterministic recomputation from question givens
+ES-03,Vavg = D Vhigh + (1-D) Vlow,Ideal PWM and averaging interval spans whole cycles.,2500,Independent deterministic recomputation from question givens
+ES-04,t = Nbytes x 8 bits/byte / fSCLK,Eight bits per byte; no inter-byte gaps.,2500,Independent deterministic recomputation from question givens
+ES-05,Vin ~= code Vref/2^N,Ideal unipolar ADC using LSB = Vref/2^N.,2500,Independent deterministic recomputation from question givens
+MI-01,LSB = Vref/2^N,Ideal unipolar ADC using the stated quantization-step convention.,2500,Independent deterministic recomputation from question givens
+MI-02,Vin ~= code Vref/2^N,Ideal unipolar ADC using LSB = Vref/2^N.,2500,Independent deterministic recomputation from question givens
+MI-03,"|eq,max| = 0.5 Vref/2^N",Ideal rounding quantizer.,2500,Independent deterministic recomputation from question givens
+MI-04,Vm = Vs Rm/(Rs + Rm),Voltmeter represented by its input resistance.,2500,Independent deterministic recomputation from question givens
+MI-05,Rx = R2 R3/R1,Uses the bridge-arm ratio explicitly stated.,2500,Independent deterministic recomputation from question givens
+NT-01,IN = Vth/Rth,Linear Thevenin/Norton source equivalence.,2500,Independent deterministic recomputation from question givens
+NT-02,RL = Rth,Purely resistive DC maximum-power condition.,2500,Independent deterministic recomputation from question givens
+NT-03,Pmax = Vth^2/(4 Rth),Load is matched to a resistive Thevenin source.,2500,Independent deterministic recomputation from question givens
+NT-04,IS = VS/R,Ideal source transformation.,2500,Independent deterministic recomputation from question givens
+NT-05,AD - BC = 1,ABCD convention stated in the question.,2500,Independent deterministic recomputation from question givens
+PCB-01,tpd = length x delay_per_length,Uniform trace.,2500,Independent deterministic recomputation from question givens
+PCB-02,|XC| = 1/(2 pi f C),Ideal capacitor; ESR and ESL neglected.,2500,Independent deterministic recomputation from question givens
+PCB-03,|V| = L |Delta I/Delta t|,Linear current ramp over the stated transition time; magnitude requested.,2500,Independent deterministic recomputation from question givens
+PCB-04,Rseries ~= Z0 - Rdriver,Driver resistance is stated as negligible.,2500,Independent deterministic recomputation from question givens
+PCB-05,BW ~= 0.35/tr,Single-pole 10-90% rise-time approximation.,2500,Independent deterministic recomputation from question givens
+PE-01,Vo = D Vin,Ideal buck converter in continuous conduction.,2500,Independent deterministic recomputation from question givens
+PE-02,Vo = Vin/(1 - D),Ideal boost converter in continuous conduction.,2500,Independent deterministic recomputation from question givens
+PE-03,D = Vo/Vin,Ideal buck converter in continuous conduction.,2500,Independent deterministic recomputation from question givens
+PE-04,Vavg = 2 Vpeak/pi,Ideal full-wave rectifier; zero diode drop.,2500,Independent deterministic recomputation from question givens
+PE-05,Delta IL = (Vin - Vo) D/(L fs),Ideal buck converter in continuous conduction.,2500,Independent deterministic recomputation from question givens
+PS-01,P = sqrt(3) VL IL pf,Balanced three-phase load; RMS line quantities.,2500,Independent deterministic recomputation from question givens
+PS-02,IL = S/(sqrt(3) VL),Balanced three-phase load; RMS line voltage.,2500,Independent deterministic recomputation from question givens
+PS-03,Q = S sqrt(1 - pf^2),Sinusoidal lagging load.,2500,Independent deterministic recomputation from question givens
+PS-04,"Zpu,new = Zpu,old * Sbase,new/Sbase,old",Voltage base is unchanged.,2500,Independent deterministic recomputation from question givens
+PS-05,Delta VLL ~= sqrt(3) I R,Balanced feeder; reactance and angle effects neglected.,2500,Independent deterministic recomputation from question givens
+RF-01,lambda = c/f,Free space with c approximated as 300 Mm/s.,2500,Independent deterministic recomputation from question givens
+RF-02,Ldipole = 0.95 c/(2 f),Thin half-wave dipole; c = 300 Mm/s and the stated 0.95 end-effect factor.,2500,Independent deterministic recomputation from question givens
+RF-03,FSPL = 32.44 + 20 log10(fMHz) + 20 log10(dkm),Free-space far field; stated unit convention.,2500,Independent deterministic recomputation from question givens
+RF-04,Glinear = 10^(GdBi/10),Power gain relative to isotropic.,2500,Independent deterministic recomputation from question givens
+RF-05,N = -174 + 10 log10(BHz) + NF,Room-temperature -174 dBm/Hz reference.,2500,Independent deterministic recomputation from question givens
+SD-01,IC = beta IB,BJT is in forward-active region.,2500,Independent deterministic recomputation from question givens
+SD-02,I = (VS - VD)/R,Constant-voltage diode model.,2500,Independent deterministic recomputation from question givens
+SD-03,gm = 2 ID/Vov,Long-channel square-law MOSFET in saturation.,2500,Independent deterministic recomputation from question givens
+SD-04,IZ = (VS - VZ)/R,No load; Zener is regulating at its stated voltage.,2500,Independent deterministic recomputation from question givens
+SD-05,VT = 25.85 mV (T/300 K),Thermal voltage is scaled linearly from the stated reference.,2500,Independent deterministic recomputation from question givens
+SP-01,"Is = Ip x Is,rated/Ip,rated",Ideal current-transformer ratio; saturation and ratio error neglected.,2500,Independent deterministic recomputation from question givens
+SP-02,Ifault = V/Zloop,The stated voltage is across the complete fault loop.,2500,Independent deterministic recomputation from question givens
+SP-03,E = 0.5 C V^2,Ideal capacitor.,2500,Independent deterministic recomputation from question givens
+SP-04,"Ip,pickup = Is,pickup x Ip,rated/Is,rated",Ideal current-transformer ratio.,2500,Independent deterministic recomputation from question givens
+SP-05,P = I^2 R,Steady RMS current and stated conductor resistance.,2500,Independent deterministic recomputation from question givens
+SS-01,Nyquist rate = 2 fmax,Ideal baseband signal supported on |f| <= fmax; practical sampling must exceed the theoretical rate.,2500,Independent deterministic recomputation from question givens
+SS-02,Lout = M + N - 1,Finite-duration linear convolution with nonzero endpoint samples.,2500,Independent deterministic recomputation from question givens
+SS-03,Vrms = Vpeak/sqrt(2),Pure sinusoid.,2500,Independent deterministic recomputation from question givens
+SS-04,f3dB = 1/(2 pi tau),Canonical low-pass H(s)=K/(1+s*tau); bandwidth is relative to DC gain.,2500,Independent deterministic recomputation from question givens
+SS-05,H(1) = sum h[n] = 1/(1 - a),|a| < 1.,2500,Independent deterministic recomputation from question givens
+TL-01,Z0 = sqrt(L/C),Lossless transmission line.,2500,Independent deterministic recomputation from question givens
+TL-02,GammaL = (ZL - Z0)/(ZL + Z0),Real positive load and lossless line.,2500,Independent deterministic recomputation from question givens
+TL-03,VSWR = (1 + |Gamma|)/(1 - |Gamma|),0 <= |Gamma| < 1.,2500,Independent deterministic recomputation from question givens
+TL-04,Zin = Z0^2/ZL,Lossless line exactly one quarter wavelength long.,2500,Independent deterministic recomputation from question givens
+TL-05,Zt = sqrt(Z0 RL),Real positive impedances at the design frequency.,2500,Independent deterministic recomputation from question givens
+TM-01,Vs/Vp = Ns/Np,Ideal transformer.,2500,Independent deterministic recomputation from question givens
+TM-02,Vp Ip = Vs Is,Ideal transformer; RMS magnitudes.,2500,Independent deterministic recomputation from question givens
+TM-03,eta = (Pin - Ploss)/Pin,All losses are included in the stated total.,2500,Independent deterministic recomputation from question givens
+TM-04,ns = 120 f/P,Synchronous AC machine speed.,2500,Independent deterministic recomputation from question givens
+TM-05,Eb = V - Ia Ra,DC motor brush drop neglected.,2500,Independent deterministic recomputation from question givens
+TR-01,tau = RC,First-order ideal RC circuit.,2500,Independent deterministic recomputation from question givens
+TR-02,vc/Vs = 1 - exp(-t/tau),Zero initial voltage; DC step input.,2500,Independent deterministic recomputation from question givens
+TR-03,i/(Vs/R) = 1 - exp(-t/tau),Zero initial current; DC step input.,2500,Independent deterministic recomputation from question givens
+TR-04,t/tau = -ln(1 - fraction),Zero initial voltage; first-order charging.,2500,Independent deterministic recomputation from question givens
+TR-05,f0 = 1/(2 pi sqrt(LC)),Ideal undamped LC tank.,2500,Independent deterministic recomputation from question givens

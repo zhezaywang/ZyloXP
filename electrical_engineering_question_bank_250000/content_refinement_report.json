@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-07-23T16:40:05.483049+00:00",
+  "content_version": "2.0",
+  "questions": 250000,
+  "images": 12500,
+  "templates_with_images": 100,
+  "images_per_template": [
+    125
+  ],
+  "changes": {
+    "answer_keys_reshuffled": 250000,
+    "questions_reworded": 20000
+  },
+  "answer_position_distribution": {
+    "C": 41790,
+    "A": 41872,
+    "F": 41651,
+    "D": 41625,
+    "B": 41815,
+    "E": 41247
+  },
+  "difficulty_disclosure": "Existing 1-25 levels are preserved for application compatibility. A new calibration field explicitly distinguishes numeric variant levels from validated cognitive difficulty."
+}

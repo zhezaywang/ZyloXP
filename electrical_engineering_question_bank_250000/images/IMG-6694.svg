@@ -19,24 +19,27 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">BJT collector current reference diagram</title>
-<desc id="desc">A BJT has beta = 150 and base current 35 uA in active region. What is collector current?</desc>
+<title id="title">Zener current problem diagram</title>
+<desc id="desc">A 5.1 V Zener diode is fed from 27 V through 600 ohm with no load. What Zener current flows?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">BJT collector current reference diagram</text>
-<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-6694 | Semiconductor Devices | EE-133861</text>
-<line class="wire" x1="155" y1="300" x2="320" y2="300"/>
-<path class="wire" d="M320,245 L320,355 L410,300 Z" fill="none"/>
-<line class="wire" x1="425" y1="245" x2="425" y2="355"/>
-<line class="wire" x1="425" y1="300" x2="595" y2="300"/>
-<text class="small" x="280" y="284" text-anchor="start">p</text>
-<text class="small" x="450" y="284" text-anchor="start">n</text>
-<line class="thin" x1="500" y1="405" x2="735" y2="405" marker-end="url(#arrow)"/>
-<line class="thin" x1="500" y1="405" x2="500" y2="185" marker-end="url(#arrow)"/>
-<polyline class="accent" points="520,405 560,400 600,385 630,340 650,260 665,205" fill="none" marker-end="url(#arrow)"/>
-<text class="small" x="740" y="428" text-anchor="start">V</text>
-<text class="small" x="472" y="192" text-anchor="start">I</text>
-<text class="small" x="328" y="455" text-anchor="start">Nonlinear I-V characteristic</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Zener current problem diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-6694 | Semiconductor Devices | EE-133864</text>
+<rect class="soft" x="86" y="188" width="240" height="210" rx="8"/>
+<text class="small" x="206" y="224" text-anchor="middle">QUESTION GIVENS</text>
+<text class="label" x="206" y="268" text-anchor="middle">SD-04</text>
+<text class="small" x="206" y="352" text-anchor="middle">values in the prompt</text>
+<line class="wire" x1="326" y1="293" x2="390" y2="293" marker-end="url(#arrow)"/>
+<rect class="box" x="390" y="206" width="350" height="174" rx="8"/>
+<text class="small" x="565" y="240" text-anchor="middle">GOVERNING RELATION</text>
+<line class="wire" x1="740" y1="293" x2="796" y2="293" marker-end="url(#arrow)"/>
+<rect class="accentFill" x="796" y="232" width="105" height="122" rx="8"/>
+<text class="small" x="848" y="276" text-anchor="middle">FIND</text>
+<text class="label" x="848" y="312" text-anchor="middle">?</text>
+<text class="tiny" x="848" y="336" text-anchor="middle">mA</text>
+<text class="small" x="206" y="300" text-anchor="middle">Zener current</text>
+<text class="math" x="565" y="282" text-anchor="middle">IZ = (VS - VZ)/R</text>
+<text class="small" x="480" y="430" text-anchor="middle">No load; Zener is regulating at its stated voltage.</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A BJT has beta = 150 and base current 35 uA in active region. What is collector current?</text>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A 5.1 V Zener diode is fed from 27 V through 600 ohm with no load. What Zener current flows?</text>
 </svg>

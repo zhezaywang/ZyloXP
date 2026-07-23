@@ -12,20 +12,25 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Three-phase real power reference diagram};
-\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-4052 | Power Systems | EE-81021};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Three-phase line current problem diagram};
+\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-4052 | Power Systems | EE-81022};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\draw[thinwire] (145,290) circle (36); \node at (145,296) {$G$};
-\draw[wire] (181,290) -- (250,290);
-\draw[wire] (250,225) -- (250,355);
-\draw[wire] (250,250) -- (445,210);
-\draw[wire] (250,330) -- (445,390);
-\draw[wire] (445,190) -- (445,410);
-\draw[wire] (445,300) -- (650,300);
-\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=128pt,minimum height=96pt] at (714,300) {Load};
-\node[font=\small,text=zyloLine] at (304,214) {line}; \node[font=\small,text=zyloLine] at (304,365) {line};
-\node[font=\small,text=zyloLine] at (480,462) {Per-unit, power flow, fault and protection quantities};
+\path[draw=zyloLine,fill=white!80!zyloSoft,rounded corners=8pt] (86,188) rectangle (326,398);
+\node[font=\small\bfseries,text=zyloLine] at (206,224) {QUESTION GIVENS};
+\node[text=zyloInk] at (206,268) {PS-02};
+\node[font=\small,text=zyloLine,text width=205pt,align=center] at (206,307) {Three-phase line current};
+\node[font=\small,text=zyloLine] at (206,352) {values in the prompt};
+\draw[wire,->] (326,293) -- (390,293);
+\node[box,minimum width=350pt,minimum height=174pt] at (565,293) {};
+\node[font=\small\bfseries,text=zyloLine] at (565,240) {GOVERNING RELATION};
+\node[font=\ttfamily,text=zyloInk,text width=310pt,align=center] at (565,300) {IL = S/(sqrt(3) VL)};
+\draw[wire,->] (740,293) -- (796,293);
+\path[draw=zyloOrange,fill=orange!18,rounded corners=8pt,line width=1.5pt] (796,232) rectangle (901,354);
+\node[font=\small\bfseries,text=zyloLine] at (848,276) {FIND};
+\node[font=\Large,text=zyloInk] at (848,312) {?};
+\node[font=\scriptsize,text=zyloLine] at (848,336) {A};
+\node[font=\small,text=zyloLine,text width=820pt,align=center] at (480,440) {Balanced three-phase load; RMS line voltage.};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
-\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A balanced three-phase load has line voltage 6 kV, line current 100 A, and power factor 0.85.\\What real power is delivered?};
+\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A balanced three-phase load is rated 500 kVA at 4160 V line-to-line. What is the rated full-\\load line current?};
 \end{tikzpicture}
 \end{document}

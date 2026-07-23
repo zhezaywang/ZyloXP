@@ -19,24 +19,27 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">BJT collector current reference diagram</title>
+<title id="title">BJT collector current problem diagram</title>
 <desc id="desc">A BJT has beta = 150 and base current 35 uA in active region. What is collector current?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">BJT collector current reference diagram</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">BJT collector current problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-6281 | Semiconductor Devices | EE-125601</text>
-<line class="wire" x1="155" y1="300" x2="320" y2="300"/>
-<path class="wire" d="M320,245 L320,355 L410,300 Z" fill="none"/>
-<line class="wire" x1="425" y1="245" x2="425" y2="355"/>
-<line class="wire" x1="425" y1="300" x2="595" y2="300"/>
-<text class="small" x="280" y="284" text-anchor="start">p</text>
-<text class="small" x="450" y="284" text-anchor="start">n</text>
-<line class="thin" x1="500" y1="405" x2="735" y2="405" marker-end="url(#arrow)"/>
-<line class="thin" x1="500" y1="405" x2="500" y2="185" marker-end="url(#arrow)"/>
-<polyline class="accent" points="520,405 560,400 600,385 630,340 650,260 665,205" fill="none" marker-end="url(#arrow)"/>
-<text class="small" x="740" y="428" text-anchor="start">V</text>
-<text class="small" x="472" y="192" text-anchor="start">I</text>
-<text class="small" x="328" y="455" text-anchor="start">Nonlinear I-V characteristic</text>
+<circle class="thin" cx="500" cy="305" r="112" fill="none"/>
+<line class="wire" x1="430" y1="245" x2="430" y2="365"/>
+<line class="wire" x1="245" y1="305" x2="430" y2="305" marker-end="url(#arrow)"/>
+<line class="wire" x1="430" y1="270" x2="555" y2="205"/>
+<line class="wire" x1="555" y1="205" x2="700" y2="205" marker-end="url(#arrow)"/>
+<line class="wire" x1="430" y1="340" x2="555" y2="405"/>
+<line class="wire" x1="555" y1="405" x2="700" y2="405" marker-end="url(#arrow)"/>
+<line class="accent" x1="515" y1="384" x2="558" y2="406" marker-end="url(#arrow)"/>
+<text class="small" x="225" y="290" text-anchor="start">IB</text>
+<text class="small" x="705" y="210" text-anchor="start">IC</text>
+<text class="small" x="705" y="410" text-anchor="start">IE</text>
+<text class="tiny" x="405" y="288" text-anchor="start">B</text>
+<text class="tiny" x="540" y="190" text-anchor="start">C</text>
+<text class="tiny" x="540" y="430" text-anchor="start">E</text>
+<text class="small" x="500" y="466" text-anchor="middle">NPN transistor in forward-active operation</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
 <text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A BJT has beta = 150 and base current 35 uA in active region. What is collector current?</text>
 </svg>

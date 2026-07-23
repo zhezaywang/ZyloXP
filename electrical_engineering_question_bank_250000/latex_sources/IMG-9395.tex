@@ -12,17 +12,20 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {ADC LSB size reference diagram};
-\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-9395 | Measurement and Instrumentation | EE-187881};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Wheatstone bridge balance problem diagram};
+\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-9395 | Measurement and Instrumentation | EE-187885};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\draw[wire] (125,305) -- (260,305);
-\node[box,minimum width=160pt,minimum height=130pt] at (340,305) {ADC};
-\draw[wire,->] (420,305) -- (520,305);
-\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=250pt,minimum height=160pt] at (645,305) {};
-\node at (645,210) {digital code}; \draw[thinwire] (552,270) -- (735,270); \draw[thinwire] (552,295) -- (735,295); \draw[thinwire] (552,320) -- (735,320); \draw[thinwire] (552,345) -- (735,345);
-\node[text=zyloInk] at (635,412) {$\mathrm{LSB}=V_{ref}/2^N$}; \node at (90,292) {$V_{in}$};
-\node[font=\small,text=zyloLine] at (480,452) {Quantization step is set by reference and bit depth};
+\filldraw[draw=zyloOrange,fill=orange!18] (480,165) circle (5); \filldraw[draw=zyloOrange,fill=orange!18] (480,440) circle (5);
+\filldraw[draw=zyloOrange,fill=orange!18] (255,300) circle (5); \filldraw[draw=zyloOrange,fill=orange!18] (705,300) circle (5);
+\draw[wire] (480,165) -- (390,215); \draw[wire] (340,245) -- (255,300) -- (340,355); \draw[wire] (390,385) -- (480,440);
+\draw[wire] (480,165) -- (570,215); \draw[wire] (620,245) -- (705,300) -- (620,355); \draw[wire] (570,385) -- (480,440);
+\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=50pt,minimum height=50pt] at (365,230) {$R_1$};
+\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=50pt,minimum height=50pt] at (365,370) {$R_2$};
+\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=50pt,minimum height=50pt] at (595,230) {$R_3$};
+\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=50pt,minimum height=50pt] at (595,370) {$R_x$};
+\draw[wire] (260,300) -- (422,300); \draw[thinwire] (480,300) circle (58); \node at (480,311) {$G$}; \draw[wire] (538,300) -- (700,300);
+\node[font=\small,text=zyloLine] at (480,132) {excitation $+$}; \node[font=\small,text=zyloLine] at (480,474) {excitation $-$};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
-\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {An 14-bit ADC uses a 10 V reference. What is one LSB?};
+\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A Wheatstone bridge balances with R1 = 200 ohm, R2 = 300 ohm, and R3 = 300 ohm. If R1/R2 =\\R3/Rx, what is Rx?};
 \end{tikzpicture}
 \end{document}

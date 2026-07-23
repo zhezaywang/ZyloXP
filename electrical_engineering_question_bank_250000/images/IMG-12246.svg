@@ -19,24 +19,28 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">CT secondary current reference diagram</title>
-<desc id="desc">A 800:5 current transformer carries 250 A primary current. What secondary current flows ideally?</desc>
+<title id="title">CT secondary current problem diagram</title>
+<desc id="desc">An 800:5 ideal current transformer, with saturation and ratio error neglected, carries 250 A primary current. What secondary current flows ideally?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">CT secondary current reference diagram</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">CT secondary current problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-12246 | Electrical Safety and Protection | EE-244901</text>
-<line class="wire" x1="150" y1="300" x2="285" y2="300"/>
-<circle class="thin" cx="285" cy="300" r="28" fill="none"/>
-<text class="small" x="276" y="306" text-anchor="start">CT</text>
-<line class="wire" x1="313" y1="300" x2="430" y2="300"/>
-<rect class="box" x="430" y="252" width="115" height="96" rx="8"/>
-<text class="label" x="465" y="306" text-anchor="start">Relay</text>
-<line class="wire" x1="545" y1="300" x2="660" y2="300"/>
-<rect class="soft" x="660" y="252" width="120" height="96" rx="8"/>
-<text class="label" x="696" y="306" text-anchor="start">Breaker</text>
-<line class="wire" x1="780" y1="300" x2="850" y2="300" marker-end="url(#arrow)"/>
-<path class="thin" d="M510,348 V410 H470 M490,410 H530 M478,426 H522 M488,442 H512" fill="none"/>
-<text class="small" x="280" y="454" text-anchor="start">Protection detects faults and interrupts unsafe current</text>
+<line class="wire" x1="105" y1="225" x2="680" y2="225" marker-end="url(#arrow)"/>
+<text class="small" x="112" y="204" text-anchor="start">primary conductor</text>
+<circle class="thin" cx="300" cy="225" r="44" fill="none"/>
+<text class="label" x="300" y="233" text-anchor="middle">CT</text>
+<rect class="soft" x="680" y="180" width="150" height="90" rx="8"/>
+<text class="label" x="755" y="233" text-anchor="middle">Breaker</text>
+<line class="wire" x1="830" y1="225" x2="875" y2="225" marker-end="url(#arrow)"/>
+<path class="wire" d="M275,260 V355 H405" fill="none"/>
+<path class="wire" d="M325,260 V405 H405" fill="none"/>
+<rect class="box" x="405" y="330" width="150" height="100" rx="8"/>
+<text class="small" x="480" y="374" text-anchor="middle">Protective</text>
+<text class="label" x="480" y="402" text-anchor="middle">relay</text>
+<path class="accent" d="M555,380 H755 V270" fill="none" marker-end="url(#arrow)"/>
+<text class="small" x="652" y="362" text-anchor="middle">trip command</text>
+<text class="small" x="480" y="468" text-anchor="middle">CT secondary and relay are isolated from the primary power path</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A 800:5 current transformer carries 250 A primary current. What secondary current flows ideally?</text>
+<text x="48" y="522" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">An 800:5 ideal current transformer, with saturation and ratio error neglected, carries 250 A primary current.</text>
+<text x="48" y="541" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">What secondary current flows ideally?</text>
 </svg>

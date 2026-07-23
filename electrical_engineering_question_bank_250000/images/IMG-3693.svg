@@ -19,22 +19,28 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">Lossless characteristic impedance reference diagram</title>
-<desc id="desc">A lossless line has L = 350 nH/m and C = 140 pF/m. What is Z0?</desc>
+<title id="title">VSWR problem diagram</title>
+<desc id="desc">If |Gamma| = 0.25, what is the VSWR?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Lossless characteristic impedance reference diagram</text>
-<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-3693 | Transmission Lines | EE-73841</text>
-<rect class="box" x="120" y="258" width="100" height="78" rx="8"/>
-<text class="label" x="152" y="302" text-anchor="start">Source</text>
-<line class="wire" x1="220" y1="278" x2="710" y2="278"/>
-<line class="wire" x1="220" y1="326" x2="710" y2="326"/>
-<rect class="soft" x="710" y="250" width="120" height="96" rx="8"/>
-<text class="label" x="754" y="304" text-anchor="start">Load</text>
-<text class="math" x="430" y="258" text-anchor="start">Z0, beta, l</text>
-<line class="accent" x1="560" y1="236" x2="450" y2="236" marker-end="url(#arrow)"/>
-<text class="small" x="468" y="222" text-anchor="start">reflected wave</text>
-<text class="small" x="350" y="372" text-anchor="start">Transmission-line impedance and reflection</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">VSWR problem diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-3693 | Transmission Lines | EE-73843</text>
+<rect class="soft" x="86" y="188" width="240" height="210" rx="8"/>
+<text class="small" x="206" y="224" text-anchor="middle">QUESTION GIVENS</text>
+<text class="label" x="206" y="268" text-anchor="middle">TL-03</text>
+<text class="small" x="206" y="352" text-anchor="middle">values in the prompt</text>
+<line class="wire" x1="326" y1="293" x2="390" y2="293" marker-end="url(#arrow)"/>
+<rect class="box" x="390" y="206" width="350" height="174" rx="8"/>
+<text class="small" x="565" y="240" text-anchor="middle">GOVERNING RELATION</text>
+<line class="wire" x1="740" y1="293" x2="796" y2="293" marker-end="url(#arrow)"/>
+<rect class="accentFill" x="796" y="232" width="105" height="122" rx="8"/>
+<text class="small" x="848" y="276" text-anchor="middle">FIND</text>
+<text class="label" x="848" y="312" text-anchor="middle">?</text>
+<text class="tiny" x="848" y="336" text-anchor="middle">dimensionless</text>
+<text class="small" x="206" y="300" text-anchor="middle">VSWR</text>
+<text class="math" x="565" y="273" text-anchor="middle">VSWR = (1 + |Gamma|)/(1 -</text>
+<text class="math" x="565" y="295" text-anchor="middle">|Gamma|)</text>
+<text class="small" x="480" y="430" text-anchor="middle">0 &lt;= |Gamma| &lt; 1.</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A lossless line has L = 350 nH/m and C = 140 pF/m. What is Z0?</text>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">If |Gamma| = 0.25, what is the VSWR?</text>
 </svg>

@@ -19,22 +19,32 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">Lossless characteristic impedance reference diagram</title>
-<desc id="desc">A lossless line has L = 325 nH/m and C = 130 pF/m. What is Z0?</desc>
+<title id="title">Lossless characteristic impedance problem diagram</title>
+<desc id="desc">A lossless line has per-unit-length inductance L&#x27; = 325 nH/m and per-unit-length capacitance C&#x27; = 130 pF/m. What is Z0?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Lossless characteristic impedance reference diagram</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Lossless characteristic impedance problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-3656 | Transmission Lines | EE-73101</text>
-<rect class="box" x="120" y="258" width="100" height="78" rx="8"/>
-<text class="label" x="152" y="302" text-anchor="start">Source</text>
-<line class="wire" x1="220" y1="278" x2="710" y2="278"/>
-<line class="wire" x1="220" y1="326" x2="710" y2="326"/>
-<rect class="soft" x="710" y="250" width="120" height="96" rx="8"/>
-<text class="label" x="754" y="304" text-anchor="start">Load</text>
-<text class="math" x="430" y="258" text-anchor="start">Z0, beta, l</text>
-<line class="accent" x1="560" y1="236" x2="450" y2="236" marker-end="url(#arrow)"/>
-<text class="small" x="468" y="222" text-anchor="start">reflected wave</text>
-<text class="small" x="350" y="372" text-anchor="start">Transmission-line impedance and reflection</text>
+<line class="wire" x1="110" y1="250" x2="205" y2="250"/>
+<polyline class="wire" points="205,250 227,250 227,250 236.25,240 245.5,260 254.75,240 264,260 273.25,240 282.5,260 291.75,240 301,260 310.25,240 319.5,260 328.75,240 338,250 360,250" fill="none"/>
+<line class="wire" x1="360" y1="250" x2="520" y2="250"/>
+<polyline class="wire" points="520,250 542,250 542,250 551.25,240 560.5,260 569.75,240 579,260 588.25,240 597.5,260 606.75,240 616,260 625.25,240 634.5,260 643.75,240 653,250 675,250" fill="none"/>
+<line class="wire" x1="675" y1="250" x2="850" y2="250" marker-end="url(#arrow)"/>
+<line class="wire" x1="110" y1="410" x2="850" y2="410"/>
+<line class="wire" x1="430" y1="250" x2="430" y2="300"/>
+<line class="wire" x1="405" y1="300" x2="455" y2="300"/>
+<line class="wire" x1="405" y1="320" x2="455" y2="320"/>
+<line class="wire" x1="430" y1="320" x2="430" y2="410"/>
+<line class="wire" x1="745" y1="250" x2="745" y2="300"/>
+<line class="wire" x1="720" y1="300" x2="770" y2="300"/>
+<line class="wire" x1="720" y1="320" x2="770" y2="320"/>
+<line class="wire" x1="745" y1="320" x2="745" y2="410"/>
+<text class="small" x="282" y="220" text-anchor="middle">L&#x27; dx</text>
+<text class="small" x="598" y="220" text-anchor="middle">L&#x27; dx</text>
+<text class="small" x="470" y="316" text-anchor="start">C&#x27; dx</text>
+<text class="small" x="785" y="316" text-anchor="start">C&#x27; dx</text>
+<text class="small" x="480" y="458" text-anchor="middle">distributed lossless-line unit cells</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A lossless line has L = 325 nH/m and C = 130 pF/m. What is Z0?</text>
+<text x="48" y="522" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">A lossless line has per-unit-length inductance L&#x27; = 325 nH/m and per-unit-length capacitance C&#x27; = 130 pF/m. What</text>
+<text x="48" y="541" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">is Z0?</text>
 </svg>

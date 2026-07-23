@@ -12,19 +12,25 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {BJT collector current reference diagram};
-\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-6668 | Semiconductor Devices | EE-133341};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {MOSFET transconductance problem diagram};
+\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-6668 | Semiconductor Devices | EE-133343};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\draw[wire] (155,300) -- (320,300);
-\draw[wire] (320,245) -- (320,355) -- (410,300) -- (320,245);
-\draw[wire] (425,245) -- (425,355);
-\draw[wire] (425,300) -- (595,300);
-\node[font=\small,text=zyloLine] at (280,284) {$p$}; \node[font=\small,text=zyloLine] at (450,284) {$n$};
-\draw[thinwire,->] (500,405) -- (735,405); \draw[thinwire,->] (500,405) -- (500,185);
-\draw[accent] (520,405) -- (560,400) -- (600,385) -- (630,340) -- (650,260) -- (665,205);
-\node[font=\small,text=zyloLine] at (740,428) {$V$}; \node[font=\small,text=zyloLine] at (472,192) {$I$};
-\node[font=\small,text=zyloLine] at (480,455) {Nonlinear $I$-$V$ characteristic};
+\path[draw=zyloLine,fill=white!80!zyloSoft,rounded corners=8pt] (86,188) rectangle (326,398);
+\node[font=\small\bfseries,text=zyloLine] at (206,224) {QUESTION GIVENS};
+\node[text=zyloInk] at (206,268) {SD-03};
+\node[font=\small,text=zyloLine,text width=205pt,align=center] at (206,307) {MOSFET transconductance};
+\node[font=\small,text=zyloLine] at (206,352) {values in the prompt};
+\draw[wire,->] (326,293) -- (390,293);
+\node[box,minimum width=350pt,minimum height=174pt] at (565,293) {};
+\node[font=\small\bfseries,text=zyloLine] at (565,240) {GOVERNING RELATION};
+\node[font=\ttfamily,text=zyloInk,text width=310pt,align=center] at (565,300) {gm = 2 ID/Vov};
+\draw[wire,->] (740,293) -- (796,293);
+\path[draw=zyloOrange,fill=orange!18,rounded corners=8pt,line width=1.5pt] (796,232) rectangle (901,354);
+\node[font=\small\bfseries,text=zyloLine] at (848,276) {FIND};
+\node[font=\Large,text=zyloInk] at (848,312) {?};
+\node[font=\scriptsize,text=zyloLine] at (848,336) {mS};
+\node[font=\small,text=zyloLine,text width=820pt,align=center] at (480,440) {Long-channel square-law MOSFET in saturation.};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
-\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A BJT has beta = 210 and base current 50 uA in active region. What is collector current?};
+\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {A long-channel MOSFET in saturation has, under the square-law model with channel-length\\modulation neglected, Id = 1 mA and overdrive Vov = 0.1 V. Estimate gm.};
 \end{tikzpicture}
 \end{document}

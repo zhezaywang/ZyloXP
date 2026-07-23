@@ -19,18 +19,18 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">UART bit time reference diagram</title>
+<title id="title">UART bit time problem diagram</title>
 <desc id="desc">What is the bit time for a UART baud rate of 19200 baud?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">UART bit time reference diagram</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">UART bit time problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-10656 | Embedded Systems | EE-213101</text>
 <rect class="box" x="140" y="235" width="135" height="125" rx="8"/>
 <text class="label" x="188" y="302" text-anchor="start">MCU</text>
 <line class="wire" x1="275" y1="270" x2="430" y2="270"/>
 <line class="wire" x1="275" y1="330" x2="430" y2="330"/>
-<text class="tiny" x="330" y="258" text-anchor="start">TX/SCL</text>
-<text class="tiny" x="330" y="352" text-anchor="start">RX/SDA</text>
+<text class="tiny" x="330" y="258" text-anchor="start">TX</text>
+<text class="tiny" x="330" y="352" text-anchor="start">RX</text>
 <rect class="soft" x="430" y="235" width="170" height="125" rx="8"/>
 <text class="label" x="486" y="302" text-anchor="start">Device</text>
 <line class="wire" x1="600" y1="300" x2="760" y2="300" marker-end="url(#arrow)"/>

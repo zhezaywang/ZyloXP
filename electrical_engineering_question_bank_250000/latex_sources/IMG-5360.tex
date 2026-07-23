@@ -12,19 +12,25 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Buck converter output reference diagram};
-\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-5360 | Power Electronics | EE-107181};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Buck inductor ripple problem diagram};
+\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-5360 | Power Electronics | EE-107185};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\node[box,minimum width=80pt,minimum height=72pt] at (150,296) {$V_{in}$};
-\draw[wire] (190,296) -- (278,296);
-\node[draw=zyloLine,fill=white!80!zyloSoft,minimum width=72pt,minimum height=88pt] at (314,296) {SW};
-\draw[wire] (350,296) -- (372,296) -- (372,296) -- (382.917,283) -- (393.833,309) -- (404.75,283) -- (415.667,309) -- (426.583,283) -- (437.5,309) -- (448.417,283) -- (459.333,309) -- (470.25,283) -- (481.167,309) -- (492.083,283) -- (503,296) -- (525,296);
-\draw[wire] (525,296) -- (610,296);
-\draw[wire] (610,262) -- (610,330); \draw[wire] (630,262) -- (630,330);
-\draw[wire] (630,296) -- (725,296);
-\node at (425,262) {$L$}; \node at (640,304) {$C$}; \node at (750,302) {$V_{out}$};
-\node[font=\small,text=zyloLine] at (480,388) {Duty cycle controls average output};
+\path[draw=zyloLine,fill=white!80!zyloSoft,rounded corners=8pt] (86,188) rectangle (326,398);
+\node[font=\small\bfseries,text=zyloLine] at (206,224) {QUESTION GIVENS};
+\node[text=zyloInk] at (206,268) {PE-05};
+\node[font=\small,text=zyloLine,text width=205pt,align=center] at (206,307) {Buck inductor ripple};
+\node[font=\small,text=zyloLine] at (206,352) {values in the prompt};
+\draw[wire,->] (326,293) -- (390,293);
+\node[box,minimum width=350pt,minimum height=174pt] at (565,293) {};
+\node[font=\small\bfseries,text=zyloLine] at (565,240) {GOVERNING RELATION};
+\node[font=\ttfamily,text=zyloInk,text width=310pt,align=center] at (565,300) {Delta IL = (Vin - Vo) D/(L fs)};
+\draw[wire,->] (740,293) -- (796,293);
+\path[draw=zyloOrange,fill=orange!18,rounded corners=8pt,line width=1.5pt] (796,232) rectangle (901,354);
+\node[font=\small\bfseries,text=zyloLine] at (848,276) {FIND};
+\node[font=\Large,text=zyloInk] at (848,312) {?};
+\node[font=\scriptsize,text=zyloLine] at (848,336) {A};
+\node[font=\small,text=zyloLine,text width=820pt,align=center] at (480,440) {Ideal buck converter in continuous conduction.};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
-\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {An ideal buck converter has Vin = 12 V and duty cycle D = 0.33. What is the output voltage?};
+\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {An ideal buck converter operating in continuous-conduction mode at steady state has Vin = 24\\V, Vo = 5 V, L = 150 uH, and fs = 50 kHz. What is peak-to-peak inductor ripple current?};
 \end{tikzpicture}
 \end{document}

@@ -12,21 +12,25 @@
 \begin{tikzpicture}[x=1pt,y=-1pt,>=Latex,line cap=round,line join=round]
 \path[fill=zyloPaper] (0,0) rectangle (960,600);
 \path[fill=zyloTeal,rounded corners=10pt] (24,22) rectangle (936,94);
-\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Coulomb force reference diagram};
-\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-2980 | Electromagnetics | EE-59581};
+\node[anchor=west,text=white,font=\bfseries\Large] at (48,56) {Faraday induction problem diagram};
+\node[anchor=west,text=white!82,font=\small] at (48,80) {IMG-2980 | Electromagnetics | EE-59585};
 \tikzset{wire/.style={draw=zyloTeal,line width=2.2pt},thinwire/.style={draw=zyloLine,line width=1.35pt},accent/.style={draw=zyloOrange,line width=2.2pt},box/.style={draw=zyloTealTwo,fill=zyloSoft,line width=1.5pt,rounded corners=8pt}}
-\draw[draw=zyloOrange,fill=orange!18,line width=1.5pt] (480,300) circle (34); \node at (480,306) {$q$};
-\draw[wire,->] (480,300) -- (480,185);
-\draw[wire,->] (480,300) -- (480,415);
-\draw[wire,->] (480,300) -- (365,300);
-\draw[wire,->] (480,300) -- (595,300);
-\draw[wire,->] (480,300) -- (398,218);
-\draw[wire,->] (480,300) -- (562,218);
-\draw[wire,->] (480,300) -- (398,382);
-\draw[wire,->] (480,300) -- (562,382);
-\node[text=zyloInk] at (518,306) {$\vec E$};
-\node[font=\small,text=zyloLine] at (480,448) {Field strength follows geometry and material laws};
+\path[draw=zyloLine,fill=white!80!zyloSoft,rounded corners=8pt] (86,188) rectangle (326,398);
+\node[font=\small\bfseries,text=zyloLine] at (206,224) {QUESTION GIVENS};
+\node[text=zyloInk] at (206,268) {EM-05};
+\node[font=\small,text=zyloLine,text width=205pt,align=center] at (206,307) {Faraday induction};
+\node[font=\small,text=zyloLine] at (206,352) {values in the prompt};
+\draw[wire,->] (326,293) -- (390,293);
+\node[box,minimum width=350pt,minimum height=174pt] at (565,293) {};
+\node[font=\small\bfseries,text=zyloLine] at (565,240) {GOVERNING RELATION};
+\node[font=\ttfamily,text=zyloInk,text width=310pt,align=center] at (565,300) {|emf| = N |Delta Phi|/Delta t};
+\draw[wire,->] (740,293) -- (796,293);
+\path[draw=zyloOrange,fill=orange!18,rounded corners=8pt,line width=1.5pt] (796,232) rectangle (901,354);
+\node[font=\small\bfseries,text=zyloLine] at (848,276) {FIND};
+\node[font=\Large,text=zyloInk] at (848,312) {?};
+\node[font=\scriptsize,text=zyloLine] at (848,336) {V};
+\node[font=\small,text=zyloLine,text width=820pt,align=center] at (480,440) {Uniform linear flux change; magnitude requested.};
 \path[draw=black!15,fill=white,rounded corners=10pt] (24,500) rectangle (936,574);
-\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {Two point charges, 7 uC and 9 uC, are separated by 0.35 m in air. What is the force magnitude?};
+\node[anchor=west,text width=860pt,align=left,text=zyloInk,font=\normalsize] at (48,528) {The magnetic flux through each turn of a 55-turn coil changes by 11 mWb over 10 ms, and every\\turn links the same flux. What is the magnitude of the average induced emf?};
 \end{tikzpicture}
 \end{document}

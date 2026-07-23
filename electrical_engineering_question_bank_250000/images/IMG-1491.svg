@@ -19,22 +19,34 @@
 .math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
 </style>
 </defs>
-<title id="title">Thevenin to Norton reference diagram</title>
-<desc id="desc">A Thevenin equivalent has Vth = 8 V and Rth = 12 ohm. What is the Norton current?</desc>
+<title id="title">Thevenin to Norton problem diagram</title>
+<desc id="desc">A Thevenin equivalent has Vth = 8 V and Rth = 12 ohm. What is the Norton current magnitude?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
-<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Thevenin to Norton reference diagram</text>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Thevenin to Norton problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-1491 | Network Theorems and Two-Port Networks | EE-29801</text>
-<rect class="box" x="150" y="235" width="210" height="120" rx="8"/>
-<text class="label" x="194" y="292" text-anchor="start">Thevenin / Norton</text>
-<text class="small" x="186" y="318" text-anchor="start">equivalent network</text>
-<path class="wire" d="M360,295 H485" fill="none"/>
-<polyline class="wire" points="485,295 507,295 507,295 514.583,281 522.167,309 529.75,281 537.333,309 544.917,281 552.5,309 560.083,281 567.667,309 575.25,281 582.833,309 590.417,281 598,295 620,295" fill="none"/>
-<path class="wire" d="M620,295 H720" fill="none"/>
-<rect class="soft" x="720" y="246" width="105" height="98" rx="8"/>
-<text class="label" x="752" y="300" text-anchor="start">Load</text>
-<text class="small" x="432" y="252" text-anchor="start">Rth</text>
-<text class="small" x="392" y="344" text-anchor="start">Vth source with equivalent resistance</text>
+<text class="small" x="265" y="164" text-anchor="middle">THEVENIN</text>
+<circle class="thin" cx="155" cy="300" r="34" fill="none"/>
+<text class="tiny" x="149" y="292" text-anchor="start">+</text>
+<text class="tiny" x="149" y="320" text-anchor="start">-</text>
+<line class="wire" x1="189" y1="300" x2="232" y2="300"/>
+<polyline class="wire" points="232,300 254,300 254,300 260.167,288 266.333,312 272.5,288 278.667,312 284.833,288 291,312 297.167,288 303.333,312 309.5,288 315.667,312 321.833,288 328,300 350,300" fill="none"/>
+<path class="wire" d="M350,300 H395 M395,300 V390 H155 V334" fill="none"/>
+<circle class="accentFill" cx="395" cy="300" r="5" fill="none"/>
+<circle class="accentFill" cx="395" cy="390" r="5" fill="none"/>
+<text class="small" x="268" y="272" text-anchor="middle">Rth</text>
+<text class="small" x="118" y="304" text-anchor="end">Vth</text>
+<text class="small" x="690" y="164" text-anchor="middle">NORTON</text>
+<circle class="thin" cx="575" cy="322" r="36" fill="none"/>
+<line class="accent" x1="575" y1="344" x2="575" y2="292" marker-end="url(#arrow)"/>
+<path class="wire" d="M575,286 V235 H805 V390 H575 V358" fill="none"/>
+<polyline class="wire" points="660,235 682,235 682,235 686.667,224 691.333,246 696,224 700.667,246 705.333,224 710,246 714.667,224 719.333,246 724,224 728.667,246 733.333,224 738,235 760,235" fill="none"/>
+<circle class="accentFill" cx="805" cy="235" r="5" fill="none"/>
+<circle class="accentFill" cx="805" cy="390" r="5" fill="none"/>
+<text class="small" x="710" y="208" text-anchor="middle">RN = Rth</text>
+<text class="small" x="548" y="326" text-anchor="end">IN</text>
+<line class="accent" x1="435" y1="312" x2="520" y2="312" marker-end="url(#arrow)"/>
+<text class="tiny" x="478" y="294" text-anchor="middle">equivalent</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A Thevenin equivalent has Vth = 8 V and Rth = 12 ohm. What is the Norton current?</text>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A Thevenin equivalent has Vth = 8 V and Rth = 12 ohm. What is the Norton current magnitude?</text>
 </svg>
