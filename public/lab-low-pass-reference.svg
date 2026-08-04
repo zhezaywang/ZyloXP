@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Passive RC low-pass filter reference</title>
+  <desc id="desc">A sinusoidal source drives a series resistor. The output node is measured across a capacitor to ground, with a magnitude response plot showing the minus three decibel cutoff.</desc>
+  <rect width="1200" height="700" fill="#f7fbfd"/>
+  <path d="M0 70H1200M0 140H1200M0 210H1200M0 280H1200M0 350H1200M0 420H1200M0 490H1200M0 560H1200M0 630H1200" stroke="#dfedf3" stroke-width="1"/>
+  <path d="M100 0V700M200 0V700M300 0V700M400 0V700M500 0V700M600 0V700M700 0V700M800 0V700M900 0V700M1000 0V700M1100 0V700" stroke="#dfedf3" stroke-width="1"/>
+
+  <rect x="45" y="42" width="1110" height="78" rx="8" fill="#163f52"/>
+  <text x="78" y="82" fill="#ffffff" font-family="Arial, sans-serif" font-size="30" font-weight="700">PASSIVE RC LOW-PASS FILTER</text>
+  <text x="78" y="105" fill="#bfeaf8" font-family="Arial, sans-serif" font-size="16">Output is measured across the shunt capacitor</text>
+
+  <g transform="translate(65 155)">
+    <rect width="540" height="430" rx="8" fill="#ffffff" stroke="#a9cad8" stroke-width="2"/>
+    <text x="28" y="42" fill="#315568" font-family="Arial, sans-serif" font-size="18" font-weight="700">CIRCUIT CONNECTION</text>
+
+    <circle cx="95" cy="205" r="48" fill="#edf7fa" stroke="#17485d" stroke-width="5"/>
+    <path d="M60 205C70 175 82 175 95 205S120 235 132 205" fill="none" stroke="#159fd2" stroke-width="5" stroke-linecap="round"/>
+    <text x="95" y="276" text-anchor="middle" fill="#315568" font-family="Arial, sans-serif" font-size="17" font-weight="700">5 V RMS</text>
+    <text x="95" y="300" text-anchor="middle" fill="#5c7786" font-family="Arial, sans-serif" font-size="15">VIN</text>
+
+    <path d="M143 205H205" fill="none" stroke="#17485d" stroke-width="6" stroke-linecap="round"/>
+    <path d="M205 205H222L234 178L252 232L270 178L288 232L306 178L324 232L340 205H365" fill="none" stroke="#17485d" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+    <text x="272" y="155" text-anchor="middle" fill="#17485d" font-family="Arial, sans-serif" font-size="19" font-weight="700">R</text>
+
+    <circle cx="365" cy="205" r="7" fill="#20a988" stroke="#ffffff" stroke-width="3"/>
+    <path d="M365 205H470" fill="none" stroke="#17485d" stroke-width="6" stroke-linecap="round"/>
+    <text x="418" y="183" text-anchor="middle" fill="#08769d" font-family="Arial, sans-serif" font-size="18" font-weight="700">VOUT</text>
+
+    <path d="M365 212V273" fill="none" stroke="#17485d" stroke-width="6"/>
+    <path d="M328 273H402M328 292H402" fill="none" stroke="#17485d" stroke-width="7" stroke-linecap="round"/>
+    <path d="M365 292V340" fill="none" stroke="#17485d" stroke-width="6"/>
+    <path d="M143 205V340H365" fill="none" stroke="#17485d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M330 340H400M342 355H388M354 370H376" fill="none" stroke="#17485d" stroke-width="5" stroke-linecap="round"/>
+    <text x="420" y="290" fill="#17485d" font-family="Arial, sans-serif" font-size="19" font-weight="700">C</text>
+
+    <rect x="28" y="390" width="484" height="1" fill="#c4dce6"/>
+    <text x="28" y="418" fill="#526f7f" font-family="Arial, sans-serif" font-size="16">fc = 1 / (2 pi RC)</text>
+    <text x="315" y="418" fill="#526f7f" font-family="Arial, sans-serif" font-size="16">VOUT = VIN |H(jw)|</text>
+  </g>
+
+  <g transform="translate(635 155)">
+    <rect width="500" height="430" rx="8" fill="#ffffff" stroke="#a9cad8" stroke-width="2"/>
+    <text x="28" y="42" fill="#315568" font-family="Arial, sans-serif" font-size="18" font-weight="700">MAGNITUDE RESPONSE</text>
+    <path d="M72 82V350H458" fill="none" stroke="#17485d" stroke-width="4" stroke-linecap="round"/>
+    <path d="M72 125H458M72 210H458M72 295H458M165 82V350M270 82V350M375 82V350" fill="none" stroke="#dbe9ef" stroke-width="2"/>
+    <path d="M78 126C170 127 218 131 258 145C300 160 329 192 353 233C381 280 415 321 452 341" fill="none" stroke="#159fd2" stroke-width="8" stroke-linecap="round"/>
+    <path d="M270 82V350" fill="none" stroke="#20a988" stroke-width="4" stroke-dasharray="10 8"/>
+    <circle cx="270" cy="149" r="9" fill="#20a988" stroke="#ffffff" stroke-width="4"/>
+    <text x="284" y="139" fill="#08745a" font-family="Arial, sans-serif" font-size="17" font-weight="700">-3 dB at fc</text>
+    <text x="18" y="132" fill="#526f7f" font-family="Arial, sans-serif" font-size="15">0 dB</text>
+    <text x="14" y="218" fill="#526f7f" font-family="Arial, sans-serif" font-size="15">-20</text>
+    <text x="14" y="303" fill="#526f7f" font-family="Arial, sans-serif" font-size="15">-40</text>
+    <text x="75" y="380" fill="#526f7f" font-family="Arial, sans-serif" font-size="15">LOW FREQUENCY</text>
+    <text x="349" y="380" fill="#526f7f" font-family="Arial, sans-serif" font-size="15">HIGH FREQUENCY</text>
+    <text x="28" y="418" fill="#526f7f" font-family="Arial, sans-serif" font-size="16">Passband</text>
+    <text x="220" y="418" fill="#08745a" font-family="Arial, sans-serif" font-size="16" font-weight="700">Cutoff</text>
+    <text x="382" y="418" fill="#526f7f" font-family="Arial, sans-serif" font-size="16">Stopband</text>
+  </g>
+
+  <rect x="45" y="614" width="1110" height="50" rx="7" fill="#e6f6fb" stroke="#9bcfe1" stroke-width="2"/>
+  <text x="70" y="646" fill="#17485d" font-family="Arial, sans-serif" font-size="18" font-weight="700">Measurement note:</text>
+  <text x="250" y="646" fill="#315568" font-family="Arial, sans-serif" font-size="18">Use a high-impedance scope input so the instrument does not shift R or the cutoff frequency.</text>
+</svg>

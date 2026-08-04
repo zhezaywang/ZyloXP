@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+<!-- LaTeX/TikZ source: latex_sources/IMG-11251.tex -->
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+</marker>
+<style>
+.wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke:#44606B;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accentFill{fill:#FDECC8;stroke:#D97706;stroke-width:3}
+.box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3}
+.panel{fill:#FFFFFF;stroke:#D9E2E7;stroke-width:1.5}
+.soft{fill:#F1F7F8;stroke:#7AA8B2;stroke-width:2}
+.label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+.small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+.tiny{font-family:Inter,Arial,sans-serif;font-size:11px;fill:#52616B}
+.math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
+</style>
+</defs>
+<title id="title">Free-space wavelength problem diagram</title>
+<desc id="desc">Using c = 300 Mm/s, what is the approximate free-space wavelength at 200 MHz?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Free-space wavelength problem diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-11251 | RF and Antennas | EE-225001</text>
+<line class="thin" x1="115" y1="310" x2="850" y2="310" marker-end="url(#arrow)"/>
+<polyline class="accent" points="150,310 156.875,300.341 163.75,290.847 170.625,281.681 177.5,273 184.375,264.952 191.25,257.674 198.125,251.292 205,245.914 211.875,241.633 218.75,238.521 225.625,236.633 232.5,236 239.375,236.633 246.25,238.521 253.125,241.633 260,245.914 266.875,251.292 273.75,257.674 280.625,264.952 287.5,273 294.375,281.681 301.25,290.847 308.125,300.341 315,310 321.875,319.659 328.75,329.153 335.625,338.319 342.5,347 349.375,355.048 356.25,362.326 363.125,368.708 370,374.086 376.875,378.367 383.75,381.479 390.625,383.367 397.5,384 404.375,383.367 411.25,381.479 418.125,378.367 425,374.086 431.875,368.708 438.75,362.326 445.625,355.048 452.5,347 459.375,338.319 466.25,329.153 473.125,319.659 480,310 486.875,300.341 493.75,290.847 500.625,281.681 507.5,273 514.375,264.952 521.25,257.674 528.125,251.292 535,245.914 541.875,241.633 548.75,238.521 555.625,236.633 562.5,236 569.375,236.633 576.25,238.521 583.125,241.633 590,245.914 596.875,251.292 603.75,257.674 610.625,264.952 617.5,273 624.375,281.681 631.25,290.847 638.125,300.341 645,310 651.875,319.659 658.75,329.153 665.625,338.319 672.5,347 679.375,355.048 686.25,362.326 693.125,368.708 700,374.086 706.875,378.367 713.75,381.479 720.625,383.367 727.5,384 734.375,383.367 741.25,381.479 748.125,378.367 755,374.086 761.875,368.708 768.75,362.326 775.625,355.048 782.5,347 789.375,338.319 796.25,329.153 803.125,319.659 810,310" fill="none"/>
+<line class="thin" x1="232.5" y1="205" x2="562.5" y2="205"/>
+<line class="thin" x1="232.5" y1="190" x2="232.5" y2="225"/>
+<line class="thin" x1="562.5" y1="190" x2="562.5" y2="225"/>
+<line class="thin" x1="250" y1="205" x2="545" y2="205" marker-end="url(#arrow)"/>
+<line class="thin" x1="545" y1="205" x2="250" y2="205" marker-end="url(#arrow)"/>
+<text class="small" x="397.5" y="184" text-anchor="middle">one wavelength, lambda</text>
+<text class="small" x="480" y="444" text-anchor="middle">free-space propagation: frequency sets wavelength</text>
+<rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">Using c = 300 Mm/s, what is the approximate free-space wavelength at 200 MHz?</text>
+</svg>

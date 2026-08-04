@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Inverting operational amplifier reference</title>
+  <desc id="desc">An inverting op-amp circuit with input and feedback resistors, dual supply rails, gain equation, and output clipping reference.</desc>
+  <rect width="1280" height="720" fill="#f5fafc"/>
+  <rect x="38" y="34" width="1204" height="84" rx="8" fill="#123f51"/>
+  <text x="76" y="72" fill="#ffffff" font-family="Arial, sans-serif" font-size="28" font-weight="700">INVERTING OP-AMP SIGNAL PATH</text>
+  <text x="76" y="99" fill="#bce8f4" font-family="Arial, sans-serif" font-size="16">Negative feedback sets gain while the supply rails set the maximum clean output swing</text>
+
+  <rect x="58" y="148" width="730" height="500" rx="8" fill="#ffffff" stroke="#b8d2dd" stroke-width="2"/>
+  <text x="84" y="182" fill="#456777" font-family="Arial, sans-serif" font-size="15" font-weight="700">CIRCUIT CONNECTION</text>
+
+  <circle cx="126" cy="348" r="50" fill="#edf7fb" stroke="#167fa8" stroke-width="4"/>
+  <path d="M88 348 C102 315 116 315 130 348 C144 381 158 381 172 348" fill="none" stroke="#167fa8" stroke-width="4"/>
+  <text x="126" y="418" text-anchor="middle" fill="#14394a" font-family="Arial, sans-serif" font-size="14" font-weight="700">VIN</text>
+
+  <path d="M176 348 H230 L246 328 L266 368 L286 328 L306 368 L326 328 L346 348 H390" fill="none" stroke="#174b60" stroke-width="5" stroke-linejoin="round"/>
+  <text x="286" y="306" text-anchor="middle" fill="#14394a" font-family="Arial, sans-serif" font-size="15" font-weight="700">Rin</text>
+
+  <path d="M390 270 L390 426 L550 348 Z" fill="#eef6f8" stroke="#174b60" stroke-width="5" stroke-linejoin="round"/>
+  <text x="416" y="340" fill="#14394a" font-family="Arial, sans-serif" font-size="24" font-weight="700">-</text>
+  <text x="416" y="390" fill="#14394a" font-family="Arial, sans-serif" font-size="24" font-weight="700">+</text>
+  <text x="457" y="353" text-anchor="middle" fill="#557380" font-family="Arial, sans-serif" font-size="16" font-weight="700">OP AMP</text>
+  <path d="M390 380 H352 V444" fill="none" stroke="#174b60" stroke-width="5"/>
+  <path d="M326 444 H378 M338 458 H366 M348 472 H356" fill="none" stroke="#174b60" stroke-width="4"/>
+
+  <path d="M550 348 H690" fill="none" stroke="#174b60" stroke-width="5"/>
+  <circle cx="690" cy="348" r="7" fill="#20ad82"/>
+  <text x="690" y="326" text-anchor="middle" fill="#14745a" font-family="Arial, sans-serif" font-size="15" font-weight="700">VOUT</text>
+
+  <path d="M550 348 V234 H526 L510 214 L490 254 L470 214 L450 254 L430 214 L410 234 H390 V348" fill="none" stroke="#174b60" stroke-width="5" stroke-linejoin="round"/>
+  <text x="470" y="196" text-anchor="middle" fill="#14394a" font-family="Arial, sans-serif" font-size="15" font-weight="700">Rf</text>
+
+  <path d="M470 270 V228 M470 426 V468" fill="none" stroke="#c56a0a" stroke-width="4"/>
+  <text x="484" y="244" fill="#a75c09" font-family="Arial, sans-serif" font-size="14" font-weight="700">+VS</text>
+  <text x="484" y="462" fill="#a75c09" font-family="Arial, sans-serif" font-size="14" font-weight="700">-VS</text>
+
+  <rect x="84" y="526" width="678" height="92" rx="7" fill="#e3f7f1" stroke="#4eae91" stroke-width="2"/>
+  <text x="108" y="558" fill="#1b5747" font-family="Arial, sans-serif" font-size="16" font-weight="700">CLOSED-LOOP GAIN</text>
+  <text x="108" y="591" fill="#14394a" font-family="Arial, sans-serif" font-size="24" font-weight="700">VOUT = -(Rf / Rin) VIN</text>
+  <text x="476" y="591" fill="#476877" font-family="Arial, sans-serif" font-size="15">Output is inverted by 180 degrees</text>
+
+  <rect x="812" y="148" width="410" height="500" rx="8" fill="#ffffff" stroke="#b8d2dd" stroke-width="2"/>
+  <text x="838" y="182" fill="#456777" font-family="Arial, sans-serif" font-size="15" font-weight="700">OUTPUT HEADROOM</text>
+  <rect x="842" y="214" width="350" height="270" rx="7" fill="#0d303b" stroke="#173f4f" stroke-width="3"/>
+  <g stroke="#315662" stroke-width="1">
+    <path d="M872 250 V454 M932 250 V454 M992 250 V454 M1052 250 V454 M1112 250 V454"/>
+    <path d="M862 286 H1172 M862 352 H1172 M862 418 H1172"/>
+  </g>
+  <path d="M862 352 C882 308 902 308 922 352 C942 396 962 396 982 352 C1002 308 1022 308 1042 352 C1062 396 1082 396 1102 352 C1122 308 1142 308 1172 352" fill="none" stroke="#f0c84b" stroke-width="4"/>
+  <path d="M862 352 C878 274 902 274 922 274 H938 C958 274 978 430 998 430 H1014 C1034 430 1054 274 1074 274 H1090 C1110 274 1130 430 1150 430 H1172" fill="none" stroke="#62d8ef" stroke-width="4"/>
+  <text x="862" y="238" fill="#f0c84b" font-family="Arial, sans-serif" font-size="13" font-weight="700">CH1 INPUT</text>
+  <text x="1062" y="238" fill="#62d8ef" font-family="Arial, sans-serif" font-size="13" font-weight="700">CH2 CLIPPED</text>
+
+  <line x1="850" y1="274" x2="1184" y2="274" stroke="#ef625b" stroke-width="2" stroke-dasharray="7 6"/>
+  <line x1="850" y1="430" x2="1184" y2="430" stroke="#ef625b" stroke-width="2" stroke-dasharray="7 6"/>
+  <text x="1178" y="265" text-anchor="end" fill="#ef625b" font-family="Arial, sans-serif" font-size="12" font-weight="700">+SWING LIMIT</text>
+  <text x="1178" y="449" text-anchor="end" fill="#ef625b" font-family="Arial, sans-serif" font-size="12" font-weight="700">-SWING LIMIT</text>
+
+  <rect x="842" y="516" width="350" height="102" rx="7" fill="#fff3e1" stroke="#d9a148" stroke-width="2"/>
+  <text x="866" y="548" fill="#925e0d" font-family="Arial, sans-serif" font-size="16" font-weight="700">CLIPPING CHECK</text>
+  <text x="866" y="578" fill="#14394a" font-family="Arial, sans-serif" font-size="15">If |Av VIN| exceeds the output swing,</text>
+  <text x="866" y="600" fill="#14394a" font-family="Arial, sans-serif" font-size="15">the peaks flatten and gain is no longer linear.</text>
+</svg>

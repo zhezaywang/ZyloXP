@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Single-phase transformer and magnetic core engineering reference</title>
+  <desc id="desc">An AC source drives a laminated steel transformer with copper primary and secondary windings, a resistive load bank, and a magnetics power analyzer.</desc>
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#dceaf0" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="panel" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#eef4f6"/>
+      <stop offset="1" stop-color="#bacbd1"/>
+    </linearGradient>
+    <linearGradient id="core" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#8b9ba0"/>
+      <stop offset="0.5" stop-color="#536a72"/>
+      <stop offset="1" stop-color="#2c4650"/>
+    </linearGradient>
+    <linearGradient id="copper" x1="0" x2="1">
+      <stop offset="0" stop-color="#8d471d"/>
+      <stop offset="0.45" stop-color="#df8737"/>
+      <stop offset="1" stop-color="#9f5224"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#143d42"/>
+      <stop offset="1" stop-color="#07272e"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#153744" flood-opacity=".2"/>
+    </filter>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="700" rx="14" fill="#f8fbfc"/>
+  <rect x="1" y="1" width="1198" height="698" rx="13" fill="none" stroke="#b9d5df" stroke-width="2"/>
+  <rect x="24" y="24" width="1152" height="82" rx="8" fill="#153e4d"/>
+  <text x="54" y="60" fill="#8edcf0" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="800">ENGINEERING REFERENCE</text>
+  <text x="54" y="88" fill="#fff" font-family="Inter,Arial,sans-serif" font-size="28" font-weight="900">Single-Phase Transformer and Magnetic Core</text>
+  <circle cx="1118" cy="65" r="14" fill="#45c69e" stroke="#c6fff0" stroke-width="3"/>
+  <text x="1090" y="94" fill="#a9cbd3" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="800">AC TEST</text>
+
+  <rect x="24" y="126" width="1152" height="418" rx="8" fill="url(#grid)" stroke="#c8dde5" stroke-width="2"/>
+
+  <g transform="translate(54 170)" filter="url(#shadow)">
+    <rect width="210" height="300" rx="8" fill="url(#panel)" stroke="#173d4b" stroke-width="5"/>
+    <rect x="17" y="18" width="176" height="52" rx="5" fill="#dce7ea" stroke="#77939d" stroke-width="2"/>
+    <text x="105" y="40" text-anchor="middle" fill="#264957" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="900">ISOLATED AC SOURCE</text>
+    <text x="105" y="59" text-anchor="middle" fill="#59727c" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700">0-480 V · 20-400 Hz</text>
+    <rect x="22" y="88" width="166" height="92" rx="6" fill="url(#screen)" stroke="#061f28" stroke-width="4"/>
+    <path d="M38 135c13-39 26-39 39 0s26 39 39 0 26-39 39 0" fill="none" stroke="#65d8ed" stroke-width="4" stroke-linecap="round"/>
+    <text x="105" y="165" text-anchor="middle" fill="#9deed8" font-family="monospace" font-size="17" font-weight="700">120 V / 60 Hz</text>
+    <circle cx="64" cy="224" r="27" fill="#344f59" stroke="#142f39" stroke-width="5"/>
+    <path d="M64 224l14-17" stroke="#ffd25e" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="148" cy="213" r="13" fill="#df524f" stroke="#173642" stroke-width="5"/>
+    <circle cx="176" cy="213" r="13" fill="#263f49" stroke="#173642" stroke-width="5"/>
+    <text x="148" y="242" text-anchor="middle" fill="#4b6670" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="900">L</text>
+    <text x="176" y="242" text-anchor="middle" fill="#4b6670" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="900">N</text>
+    <circle cx="26" cy="276" r="7" fill="#43c69b" stroke="#0b7056" stroke-width="3"/>
+    <text x="42" y="281" fill="#3d5e69" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="900">OUTPUT ENABLED</text>
+  </g>
+
+  <path d="M264 383H337V251H385" fill="none" stroke="#85491f" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M264 413H316V441H385" fill="none" stroke="#85491f" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M271 383H332" fill="none" stroke="#ffb552" stroke-width="3" stroke-dasharray="8 9"/>
+  <path d="M271 413H312" fill="none" stroke="#ffb552" stroke-width="3" stroke-dasharray="8 9"/>
+
+  <g transform="translate(374 164)">
+    <ellipse cx="202" cy="159" rx="174" ry="142" fill="#f39b46" opacity=".1" filter="url(#glow)"/>
+    <rect x="42" y="20" width="320" height="282" rx="13" fill="url(#core)" stroke="#183b48" stroke-width="7" filter="url(#shadow)"/>
+    <rect x="130" y="85" width="144" height="152" rx="7" fill="#f5fafb" stroke="#294751" stroke-width="5"/>
+    <g fill="none" stroke="#b6c2c6" stroke-width="2" opacity=".55">
+      <path d="M59 32v258M72 32v258M85 32v258M98 32v258M111 32v258"/>
+      <path d="M345 32v258M332 32v258M319 32v258M306 32v258M293 32v258"/>
+    </g>
+    <path d="M87 51h230q23 0 23 23v174q0 23-23 23H87q-23 0-23-23V74q0-23 23-23z" fill="none" stroke="#5ee0db" stroke-width="4" stroke-dasharray="12 10"/>
+    <path d="M87 51h230" fill="none" stroke="#b5fff4" stroke-width="2" opacity=".55" filter="url(#glow)"/>
+
+    <g fill="none" stroke="url(#copper)" stroke-width="13" stroke-linecap="round">
+      <path d="M130 97C83 97 83 118 130 118"/>
+      <path d="M130 122C83 122 83 143 130 143"/>
+      <path d="M130 147C83 147 83 168 130 168"/>
+      <path d="M130 172C83 172 83 193 130 193"/>
+      <path d="M130 197C83 197 83 218 130 218"/>
+      <path d="M274 97c47 0 47 21 0 21"/>
+      <path d="M274 122c47 0 47 21 0 21"/>
+      <path d="M274 147c47 0 47 21 0 21"/>
+      <path d="M274 172c47 0 47 21 0 21"/>
+      <path d="M274 197c47 0 47 21 0 21"/>
+    </g>
+
+    <text x="67" y="79" fill="#6c3e20" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="900">PRIMARY N₁</text>
+    <text x="285" y="79" fill="#6c3e20" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="900">SECONDARY N₂</text>
+    <text x="202" y="137" text-anchor="middle" fill="#587079" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="900">LAMINATED</text>
+    <text x="202" y="156" text-anchor="middle" fill="#587079" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="900">STEEL CORE</text>
+    <text x="202" y="190" text-anchor="middle" fill="#0b7784" font-family="monospace" font-size="22" font-weight="900">BMAX 0.75 T</text>
+    <text x="202" y="215" text-anchor="middle" fill="#59727c" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="800">Ae = 12 cm²</text>
+    <rect x="85" y="321" width="234" height="46" rx="6" fill="#dde4e5" stroke="#778c91" stroke-width="2"/>
+    <text x="202" y="341" text-anchor="middle" fill="#294852" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="900">500 : 105 TURNS</text>
+    <text x="202" y="358" text-anchor="middle" fill="#5d737a" font-family="monospace" font-size="12" font-weight="700">120 V → 24.0 V LOADED</text>
+  </g>
+
+  <path d="M748 251H802V310H833" fill="none" stroke="#a65c25" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M748 441H802V409H833" fill="none" stroke="#a65c25" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M754 251H797" fill="none" stroke="#53d3e7" stroke-width="3" stroke-dasharray="8 9"/>
+  <path d="M754 441H797" fill="none" stroke="#53d3e7" stroke-width="3" stroke-dasharray="8 9"/>
+
+  <g transform="translate(833 170)" filter="url(#shadow)">
+    <rect width="292" height="294" rx="8" fill="url(#panel)" stroke="#173d4b" stroke-width="5"/>
+    <text x="24" y="34" fill="#264957" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="900">MAGNETICS POWER ANALYZER</text>
+    <circle cx="262" cy="29" r="9" fill="#45c69e" stroke="#0b7056" stroke-width="3"/>
+    <rect x="20" y="52" width="252" height="139" rx="6" fill="url(#screen)" stroke="#061f28" stroke-width="4"/>
+    <g stroke="#396168" stroke-width="1" opacity=".55">
+      <path d="M32 76h228M32 105h228M32 134h228M32 163h228"/>
+      <path d="M64 61v120M110 61v120M156 61v120M202 61v120M248 61v120"/>
+    </g>
+    <path d="M34 119c18-40 36-40 54 0s36 40 54 0 36-40 54 0 36 40 54 0" fill="none" stroke="#f0bd4d" stroke-width="3"/>
+    <path d="M34 119c18-20 36-20 54 0s36 20 54 0 36-20 54 0 36 20 54 0" fill="none" stroke="#58d9ec" stroke-width="3"/>
+    <text x="34" y="73" fill="#f0bd4d" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="900">V₁</text>
+    <text x="56" y="73" fill="#58d9ec" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="900">V₂</text>
+    <text x="35" y="179" fill="#9deed8" font-family="monospace" font-size="14" font-weight="800">η 93.6%  ·  LOSS 3.94 W</text>
+    <rect x="20" y="207" width="252" height="43" rx="5" fill="#dff4ee" stroke="#4cb399" stroke-width="2"/>
+    <text x="35" y="225" fill="#4d6f66" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="900">LOADED SECONDARY</text>
+    <text x="257" y="238" text-anchor="end" fill="#08715a" font-family="monospace" font-size="24" font-weight="900">24.0 V RMS</text>
+    <circle cx="39" cy="272" r="10" fill="#df524f" stroke="#173642" stroke-width="4"/>
+    <circle cx="69" cy="272" r="10" fill="#263f49" stroke="#173642" stroke-width="4"/>
+    <path d="M126 273h14l8-13 16 26 16-26 16 26 8-13h26" fill="none" stroke="#a46028" stroke-width="4" stroke-linejoin="round"/>
+    <text x="230" y="279" fill="#4b6670" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="900">10 Ω LOAD</text>
+  </g>
+
+  <g transform="translate(24 568)">
+    <rect width="1152" height="108" rx="8" fill="#edf6f8" stroke="#bed7e0" stroke-width="2"/>
+    <path d="M288 15v78M576 15v78M864 15v78" stroke="#c4dce3" stroke-width="2"/>
+    <text x="24" y="35" fill="#5d7781" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="900">TURNS RATIO</text>
+    <text x="24" y="66" fill="#123e4d" font-family="monospace" font-size="19" font-weight="900">V₂/V₁ = N₂/N₁</text>
+    <text x="312" y="35" fill="#5d7781" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="900">CORE FLUX DENSITY</text>
+    <text x="312" y="66" fill="#123e4d" font-family="monospace" font-size="16" font-weight="900">BMAX = V₁/(4.44 f N₁ Ae)</text>
+    <text x="600" y="35" fill="#5d7781" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="900">LOADED REGULATION</text>
+    <text x="600" y="66" fill="#123e4d" font-family="monospace" font-size="16" font-weight="900">V₂ ≈ V₂,IDEAL - I₂Req</text>
+    <text x="888" y="35" fill="#5d7781" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="900">COMMISSIONING CHECK</text>
+    <text x="888" y="60" fill="#123e4d" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="800">Ratio · polarity · no-load current</text>
+    <text x="888" y="82" fill="#123e4d" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="800">Loaded voltage · temperature rise</text>
+  </g>
+</svg>

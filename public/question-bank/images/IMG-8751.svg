@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+<!-- LaTeX/TikZ source: latex_sources/IMG-8751.tex -->
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+</marker>
+<style>
+.wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke:#44606B;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accentFill{fill:#FDECC8;stroke:#D97706;stroke-width:3}
+.box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3}
+.panel{fill:#FFFFFF;stroke:#D9E2E7;stroke-width:1.5}
+.soft{fill:#F1F7F8;stroke:#7AA8B2;stroke-width:2}
+.label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+.small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+.tiny{font-family:Inter,Arial,sans-serif;font-size:11px;fill:#52616B}
+.math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
+</style>
+</defs>
+<title id="title">AM bandwidth problem diagram</title>
+<desc id="desc">A conventional AM signal has highest modulating frequency 2 kHz. What transmission bandwidth is required?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">AM bandwidth problem diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-8751 | Communications | EE-175001</text>
+<line class="thin" x1="130" y1="400" x2="840" y2="400" marker-end="url(#arrow)"/>
+<rect class="accentFill" x="220" y="285" width="205" height="115" rx="0"/>
+<rect class="accentFill" x="535" y="285" width="205" height="115" rx="0"/>
+<line class="accent" x1="480" y1="400" x2="480" y2="205"/>
+<text class="small" x="322" y="270" text-anchor="middle">lower sideband</text>
+<text class="small" x="638" y="270" text-anchor="middle">upper sideband</text>
+<text class="small" x="480" y="188" text-anchor="middle">carrier</text>
+<text class="tiny" x="220" y="424" text-anchor="middle">fc - fm,max</text>
+<text class="tiny" x="480" y="424" text-anchor="middle">fc</text>
+<text class="tiny" x="740" y="424" text-anchor="middle">fc + fm,max</text>
+<line class="thin" x1="220" y1="458" x2="740" y2="458"/>
+<line class="thin" x1="240" y1="458" x2="720" y2="458" marker-end="url(#arrow)"/>
+<line class="thin" x1="720" y1="458" x2="240" y2="458" marker-end="url(#arrow)"/>
+<text class="small" x="480" y="484" text-anchor="middle">total occupied span</text>
+<rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A conventional AM signal has highest modulating frequency 2 kHz. What transmission bandwidth is required?</text>
+</svg>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+<!-- LaTeX/TikZ source: latex_sources/IMG-0626.tex -->
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+</marker>
+<style>
+.wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke:#44606B;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accentFill{fill:#FDECC8;stroke:#D97706;stroke-width:3}
+.box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3}
+.panel{fill:#FFFFFF;stroke:#D9E2E7;stroke-width:1.5}
+.soft{fill:#F1F7F8;stroke:#7AA8B2;stroke-width:2}
+.label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+.small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+.tiny{font-family:Inter,Arial,sans-serif;font-size:11px;fill:#52616B}
+.math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
+</style>
+</defs>
+<title id="title">Sinusoid to RMS phasor problem diagram</title>
+<desc id="desc">A voltage is v(t) = 18 V cos(omega t + 30 deg). What is the RMS phasor magnitude?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Sinusoid to RMS phasor problem diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-0626 | AC Phasors and Impedance | EE-12501</text>
+<line class="thin" x1="110" y1="310" x2="515" y2="310" marker-end="url(#arrow)"/>
+<line class="thin" x1="130" y1="210" x2="130" y2="405" marker-end="url(#arrow)"/>
+<polyline class="accent" points="130,254.574 133.75,258.223 137.5,262.439 141.25,267.176 145,272.382 148.75,278 152.5,283.969 156.25,290.223 160,296.694 163.75,303.31 167.5,310 171.25,316.69 175,323.306 178.75,329.777 182.5,336.031 186.25,342 190,347.618 193.75,352.824 197.5,357.561 201.25,361.777 205,365.426 208.75,368.467 212.5,370.868 216.25,372.601 220,373.649 223.75,374 227.5,373.649 231.25,372.601 235,370.868 238.75,368.467 242.5,365.426 246.25,361.777 250,357.561 253.75,352.824 257.5,347.618 261.25,342 265,336.031 268.75,329.777 272.5,323.306 276.25,316.69 280,310 283.75,303.31 287.5,296.694 291.25,290.223 295,283.969 298.75,278 302.5,272.382 306.25,267.176 310,262.439 313.75,258.223 317.5,254.574 321.25,251.533 325,249.132 328.75,247.399 332.5,246.351 336.25,246 340,246.351 343.75,247.399 347.5,249.132 351.25,251.533 355,254.574 358.75,258.223 362.5,262.439 366.25,267.176 370,272.382 373.75,278 377.5,283.969 381.25,290.223 385,296.694 388.75,303.31 392.5,310 396.25,316.69 400,323.306 403.75,329.777 407.5,336.031 411.25,342 415,347.618 418.75,352.824 422.5,357.561 426.25,361.777 430,365.426 433.75,368.467 437.5,370.868 441.25,372.601 445,373.649 448.75,374 452.5,373.649 456.25,372.601 460,370.868 463.75,368.467 467.5,365.426 471.25,361.777 475,357.561 478.75,352.824 482.5,347.618 486.25,342 490,336.031" fill="none"/>
+<text class="small" x="118" y="206" text-anchor="start">v(t)</text>
+<text class="small" x="510" y="332" text-anchor="start">t</text>
+<text class="small" x="290" y="418" text-anchor="middle">cosine with +30 deg phase</text>
+<circle class="thin" cx="690" cy="310" r="70" fill="none"/>
+<line class="accent" x1="690" y1="310" x2="750" y2="275" marker-end="url(#arrow)"/>
+<line class="thin" x1="690" y1="310" x2="770" y2="310" marker-end="url(#arrow)"/>
+<text class="small" x="758" y="268" text-anchor="start">Vrms at +30 deg</text>
+<text class="tiny" x="742" y="332" text-anchor="start">0 deg</text>
+<rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A voltage is v(t) = 18 V cos(omega t + 30 deg). What is the RMS phasor magnitude?</text>
+</svg>

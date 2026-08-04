@@ -6,6 +6,7 @@
   "packageManager": "pnpm@11.0.7",
   "scripts": {
     "dev": "vite",
+    "sync:bank": "python3 tools/sync_question_bank.py",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "build": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit && vite build",
     "preview": "vite preview"

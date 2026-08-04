@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+<!-- LaTeX/TikZ source: latex_sources/IMG-4376.tex -->
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+</marker>
+<style>
+.wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke:#44606B;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accentFill{fill:#FDECC8;stroke:#D97706;stroke-width:3}
+.box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3}
+.panel{fill:#FFFFFF;stroke:#D9E2E7;stroke-width:1.5}
+.soft{fill:#F1F7F8;stroke:#7AA8B2;stroke-width:2}
+.label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+.small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+.tiny{font-family:Inter,Arial,sans-serif;font-size:11px;fill:#52616B}
+.math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
+</style>
+</defs>
+<title id="title">Transformer voltage ratio problem diagram</title>
+<desc id="desc">An ideal transformer has Np = 140, Ns = 80, and primary voltage 480 V. What is the secondary voltage?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Transformer voltage ratio problem diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-4376 | Transformers and Electrical Machines | EE-87501</text>
+<path class="wire" d="M150,215 H310" fill="none"/>
+<path class="wire" d="M310,215 C265,230 265,260 310,275 C265,290 265,320 310,335 C265,350 265,380 310,395" fill="none"/>
+<path class="wire" d="M310,395 H150" fill="none"/>
+<line class="thin" x1="420" y1="190" x2="420" y2="420"/>
+<line class="thin" x1="442" y1="190" x2="442" y2="420"/>
+<path class="wire" d="M550,215 H760" fill="none"/>
+<path class="wire" d="M550,215 C595,230 595,260 550,275 C595,290 595,320 550,335 C595,350 595,380 550,395" fill="none"/>
+<path class="wire" d="M550,395 H760" fill="none"/>
+<text class="small" x="260" y="186" text-anchor="middle">Np</text>
+<text class="small" x="620" y="186" text-anchor="middle">Ns</text>
+<text class="tiny" x="128" y="222" text-anchor="end">Vp+</text>
+<text class="tiny" x="128" y="401" text-anchor="end">Vp-</text>
+<text class="tiny" x="782" y="222" text-anchor="start">Vs+</text>
+<text class="tiny" x="782" y="401" text-anchor="start">Vs-</text>
+<text class="small" x="431" y="458" text-anchor="middle">continuous windings linked by common core flux</text>
+<rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">An ideal transformer has Np = 140, Ns = 80, and primary voltage 480 V. What is the secondary voltage?</text>
+</svg>

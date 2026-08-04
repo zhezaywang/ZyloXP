@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+<!-- LaTeX/TikZ source: latex_sources/IMG-5626.tex -->
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+</marker>
+<style>
+.wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke:#44606B;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accentFill{fill:#FDECC8;stroke:#D97706;stroke-width:3}
+.box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3}
+.panel{fill:#FFFFFF;stroke:#D9E2E7;stroke-width:1.5}
+.soft{fill:#F1F7F8;stroke:#7AA8B2;stroke-width:2}
+.label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+.small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+.tiny{font-family:Inter,Arial,sans-serif;font-size:11px;fill:#52616B}
+.math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
+</style>
+</defs>
+<title id="title">Inverting op-amp gain problem diagram</title>
+<desc id="desc">An ideal inverting amplifier has Rin = 3 kohm and Rf = 9 kohm. What is the voltage gain?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Inverting op-amp gain problem diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-5626 | Analog Electronics and Op-Amps | EE-112501</text>
+<path class="wire" d="M400,220 L400,380 L610,300 Z" fill="none"/>
+<text class="label" x="425" y="266" text-anchor="start">+</text>
+<text class="label" x="425" y="346" text-anchor="start">-</text>
+<line class="wire" x1="120" y1="340" x2="180" y2="340"/>
+<polyline class="wire" points="180,340 202,340 202,340 210.833,328 219.667,352 228.5,328 237.333,352 246.167,328 255,352 263.833,328 272.667,352 281.5,328 290.333,352 299.167,328 308,340 330,340" fill="none"/>
+<line class="wire" x1="330" y1="340" x2="400" y2="340"/>
+<circle class="accentFill" cx="400" cy="340" r="5" fill="none"/>
+<text class="small" x="245" y="314" text-anchor="middle">Rin</text>
+<text class="small" x="98" y="345" text-anchor="end">Vin</text>
+<line class="wire" x1="610" y1="300" x2="825" y2="300"/>
+<text class="small" x="835" y="305" text-anchor="start">Vout</text>
+<line class="wire" x1="400" y1="260" x2="330" y2="260"/>
+<path class="wire" d="M330,260 V410" fill="none"/>
+<line class="thin" x1="295" y1="410" x2="365" y2="410"/>
+<line class="thin" x1="305" y1="426" x2="355" y2="426"/>
+<line class="thin" x1="318" y1="442" x2="342" y2="442"/>
+<path class="wire" d="M400,340 H330 V170 H380" fill="none"/>
+<polyline class="wire" points="380,170 402,170 402,170 420.833,158 439.667,182 458.5,158 477.333,182 496.167,158 515,182 533.833,158 552.667,182 571.5,158 590.333,182 609.167,158 628,170 650,170" fill="none"/>
+<path class="wire" d="M650,170 H720 V300" fill="none"/>
+<text class="small" x="515" y="144" text-anchor="middle">Rf</text>
+<text class="small" x="515" y="462" text-anchor="middle">negative feedback holds the summing node near virtual ground</text>
+<rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
+<text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">An ideal inverting amplifier has Rin = 3 kohm and Rf = 9 kohm. What is the voltage gain?</text>
+</svg>

@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">MOSFET switching and gate-drive reference</title>
+  <desc id="desc">A low-side N-channel MOSFET switches a DC load with a gate driver, gate resistor, flyback clamp, and oscilloscope measurements for gate voltage, drain voltage, current, and loss.</desc>
+  <rect width="1200" height="720" fill="#f7fbfd"/>
+  <rect x="34" y="30" width="1132" height="82" rx="8" fill="#123d50"/>
+  <text x="68" y="70" fill="#ffffff" font-family="Inter,Arial,sans-serif" font-size="30" font-weight="800">MOSFET Switching and Gate Drive</text>
+  <text x="68" y="94" fill="#bfe0ec" font-family="Inter,Arial,sans-serif" font-size="16">Low-side power stage, switching waveforms, and device-loss budget</text>
+
+  <g transform="translate(56 150)">
+    <rect width="720" height="330" rx="12" fill="#eaf4f1" stroke="#9abbb0" stroke-width="3"/>
+    <text x="24" y="34" fill="#315e52" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="800">LOW-SIDE POWER LOOP</text>
+
+    <g transform="translate(28 82)">
+      <rect width="110" height="156" rx="9" fill="#d7e3e7" stroke="#173f50" stroke-width="4"/>
+      <text x="55" y="30" text-anchor="middle" fill="#536e79" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">DC BUS</text>
+      <rect x="22" y="48" width="66" height="52" rx="5" fill="#c8dcb9" stroke="#17384a" stroke-width="3"/>
+      <text x="55" y="82" text-anchor="middle" fill="#17384a" font-family="Consolas,monospace" font-size="22" font-weight="800">VDC</text>
+      <line x1="27" y1="122" x2="83" y2="122" stroke="#bd6b0b" stroke-width="5"/>
+      <line x1="38" y1="140" x2="72" y2="140" stroke="#bd6b0b" stroke-width="5"/>
+      <text x="92" y="130" fill="#8a510c" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="800">+</text>
+      <text x="92" y="148" fill="#8a510c" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="800">−</text>
+    </g>
+
+    <path d="M138 108H258" fill="none" stroke="#234f60" stroke-width="7" stroke-linecap="round"/>
+    <g transform="translate(258 78)">
+      <rect width="190" height="62" rx="8" fill="#f2dcad" stroke="#754d13" stroke-width="4"/>
+      <path d="M25 31H46C52 9 67 9 73 31C79 53 94 53 100 31C106 9 121 9 127 31H165" fill="none" stroke="#985c08" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="95" y="88" text-anchor="middle" fill="#365c67" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="800">LOAD / COIL</text>
+    </g>
+    <path d="M448 108H548V190" fill="none" stroke="#234f60" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <path d="M276 64V51H532V64" fill="none" stroke="#375d69" stroke-width="4" stroke-linecap="round"/>
+    <path d="M363 51L383 36V66ZM392 34V68" fill="#ffffff" stroke="#173f50" stroke-width="3" stroke-linejoin="round"/>
+    <text x="420" y="43" fill="#55717d" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="800">FLYBACK CLAMP</text>
+
+    <g transform="translate(498 164)">
+      <rect x="18" width="64" height="28" rx="5" fill="#a7b6bb" stroke="#263f49" stroke-width="3"/>
+      <circle cx="50" cy="14" r="7" fill="#546870"/>
+      <rect y="24" width="100" height="112" rx="9" fill="#1e2a30" stroke="#08171d" stroke-width="4"/>
+      <text x="50" y="63" text-anchor="middle" fill="#ffffff" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">N-MOSFET</text>
+      <text x="50" y="89" text-anchor="middle" fill="#9ddfc9" font-family="Consolas,monospace" font-size="15">RDS(on)</text>
+      <circle cx="50" cy="112" r="7" fill="#32c497" stroke="#0a7154" stroke-width="2"/>
+      <line x1="23" y1="136" x2="23" y2="161" stroke="#aab9be" stroke-width="5"/>
+      <line x1="50" y1="136" x2="50" y2="161" stroke="#aab9be" stroke-width="5"/>
+      <line x1="77" y1="136" x2="77" y2="161" stroke="#aab9be" stroke-width="5"/>
+      <text x="23" y="181" text-anchor="middle" fill="#466673" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="800">G</text>
+      <text x="50" y="181" text-anchor="middle" fill="#466673" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="800">D</text>
+      <text x="77" y="181" text-anchor="middle" fill="#466673" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="800">S</text>
+    </g>
+
+    <path d="M575 325H83V238" fill="none" stroke="#234f60" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <g transform="translate(190 218)">
+      <rect width="184" height="78" rx="9" fill="#dce7ea" stroke="#173f50" stroke-width="4"/>
+      <text x="92" y="27" text-anchor="middle" fill="#536e79" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="800">GATE DRIVER</text>
+      <path d="M24 58H48V41H77V58H106V41H136V58H160" fill="none" stroke="#d69a20" stroke-width="4" stroke-linejoin="round"/>
+    </g>
+    <path d="M374 258H404" fill="none" stroke="#d69a20" stroke-width="5"/>
+    <rect x="404" y="244" width="64" height="28" rx="5" fill="#ead7a8" stroke="#6f4c12" stroke-width="3"/>
+    <path d="M414 258L422 250L432 266L442 250L452 266L460 258" fill="none" stroke="#6d4708" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="436" y="236" text-anchor="middle" fill="#466673" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="800">RG</text>
+    <path d="M468 258H521" fill="none" stroke="#d69a20" stroke-width="5"/>
+
+    <circle cx="548" cy="190" r="9" fill="#3bb9dc" stroke="#ffffff" stroke-width="3"/>
+    <text x="568" y="184" fill="#087da8" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="800">VDS</text>
+    <circle cx="521" cy="258" r="9" fill="#e2ad27" stroke="#ffffff" stroke-width="3"/>
+    <text x="538" y="265" fill="#9b6600" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="800">VGS</text>
+
+    <path d="M154 108H235" fill="none" stroke="#27b48b" stroke-width="6" stroke-dasharray="6 12" marker-end="url(#currentArrow)"/>
+    <path d="M460 108H526" fill="none" stroke="#27b48b" stroke-width="6" stroke-dasharray="6 12" marker-end="url(#currentArrow)"/>
+    <text x="169" y="96" fill="#08745a" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="800">ID</text>
+  </g>
+
+  <defs>
+    <marker id="currentArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#27b48b"/>
+    </marker>
+  </defs>
+
+  <g transform="translate(808 150)">
+    <rect width="334" height="330" rx="12" fill="#d8e4e8" stroke="#173f50" stroke-width="4"/>
+    <text x="24" y="36" fill="#17384a" font-family="Inter,Arial,sans-serif" font-size="17" font-weight="800">SWITCHING OSCILLOSCOPE</text>
+    <rect x="24" y="58" width="286" height="186" rx="7" fill="#102f3b" stroke="#071b23" stroke-width="4"/>
+    <path d="M45 78V226M97 78V226M149 78V226M201 78V226M253 78V226M45 112H290M45 152H290M45 192H290M45 226H290" fill="none" stroke="#39636c" stroke-width="1"/>
+    <text x="46" y="91" fill="#e6b63a" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="800">VGS</text>
+    <path d="M48 129H83V101H130V129H177V101H224V129H286" fill="none" stroke="#e6b63a" stroke-width="4" stroke-linejoin="round"/>
+    <text x="46" y="171" fill="#43c5df" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="800">VDS</text>
+    <path d="M48 182H83V216H130V182H177V216H224V182H286" fill="none" stroke="#43c5df" stroke-width="4" stroke-linejoin="round"/>
+    <circle cx="54" cy="280" r="18" fill="#314c58" stroke="#112a35" stroke-width="4"/>
+    <line x1="54" y1="280" x2="65" y2="267" stroke="#ffd763" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="112" cy="280" r="10" fill="#d29b2a" stroke="#49350c" stroke-width="3"/>
+    <circle cx="142" cy="280" r="10" fill="#39b9dd" stroke="#0b5064" stroke-width="3"/>
+    <text x="178" y="272" fill="#607985" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="800">CHECK BOTH EDGES</text>
+    <text x="178" y="294" fill="#17384a" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">VGS + VDS + ID</text>
+  </g>
+
+  <g transform="translate(56 518)">
+    <rect width="1086" height="158" rx="10" fill="#ffffff" stroke="#bdd4de" stroke-width="3"/>
+    <line x1="362" y1="20" x2="362" y2="138" stroke="#d3e2e8" stroke-width="2"/>
+    <line x1="724" y1="20" x2="724" y2="138" stroke="#d3e2e8" stroke-width="2"/>
+
+    <text x="28" y="45" fill="#55717d" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">CONDUCTION LOSS</text>
+    <text x="28" y="81" fill="#17384a" font-family="Georgia,serif" font-size="24" font-weight="700">PCOND = ID² RDS(on) D</text>
+    <text x="28" y="113" fill="#607886" font-family="Inter,Arial,sans-serif" font-size="14">Full gate enhancement lowers RDS(on).</text>
+    <text x="28" y="134" fill="#607886" font-family="Inter,Arial,sans-serif" font-size="14">Duty cycle sets the conducting time.</text>
+
+    <text x="390" y="45" fill="#55717d" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">SWITCHING LOSS</text>
+    <text x="390" y="81" fill="#17384a" font-family="Georgia,serif" font-size="22" font-weight="700">PSW ≈ VDS ID tsw fs</text>
+    <text x="390" y="113" fill="#607886" font-family="Inter,Arial,sans-serif" font-size="14">Slower edges overlap voltage and current.</text>
+    <text x="390" y="134" fill="#607886" font-family="Inter,Arial,sans-serif" font-size="14">Higher frequency repeats that loss more often.</text>
+
+    <text x="752" y="45" fill="#55717d" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">GATE-DRIVE LOSS</text>
+    <text x="752" y="81" fill="#17384a" font-family="Georgia,serif" font-size="22" font-weight="700">PGATE = QG VGS fs</text>
+    <text x="752" y="113" fill="#607886" font-family="Inter,Arial,sans-serif" font-size="14">The driver moves gate charge every cycle.</text>
+    <text x="752" y="134" fill="#607886" font-family="Inter,Arial,sans-serif" font-size="14">Verify loss and temperature at worst case.</text>
+  </g>
+</svg>

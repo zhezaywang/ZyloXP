@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+<!-- LaTeX/TikZ source: latex_sources/IMG-5001.tex -->
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+</marker>
+<style>
+.wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke:#44606B;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accentFill{fill:#FDECC8;stroke:#D97706;stroke-width:3}
+.box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3}
+.panel{fill:#FFFFFF;stroke:#D9E2E7;stroke-width:1.5}
+.soft{fill:#F1F7F8;stroke:#7AA8B2;stroke-width:2}
+.label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+.small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+.tiny{font-family:Inter,Arial,sans-serif;font-size:11px;fill:#52616B}
+.math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
+</style>
+</defs>
+<title id="title">Buck converter output problem diagram</title>
+<desc id="desc">An ideal buck converter operating in continuous-conduction mode at steady state has Vin = 24 V and duty cycle D = 0.75. What is the output voltage?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Buck converter output problem diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-5001 | Power Electronics | EE-100001</text>
+<circle class="thin" cx="130" cy="320" r="34" fill="none"/>
+<text class="tiny" x="123" y="308" text-anchor="start">+</text>
+<text class="tiny" x="123" y="338" text-anchor="start">-</text>
+<text class="small" x="82" y="324" text-anchor="start">Vin</text>
+<path class="wire" d="M130,286 V235 H245" fill="none"/>
+<rect class="soft" x="245" y="205" width="90" height="60" rx="8"/>
+<text class="small" x="290" y="241" text-anchor="middle">SW</text>
+<line class="wire" x1="335" y1="235" x2="390" y2="235"/>
+<path class="wire" d="M390,235 L410,235 C410,215 442.5,215 442.5,235 C442.5,215 475,215 475,235 C475,215 507.5,215 507.5,235 C507.5,215 540,215 540,235 L560,235" fill="none"/>
+<line class="wire" x1="560" y1="235" x2="790" y2="235"/>
+<circle class="accentFill" cx="390" cy="235" r="5" fill="none"/>
+<path class="wire" d="M390,240 V315" fill="none"/>
+<rect class="soft" x="350" y="315" width="80" height="62" rx="8"/>
+<text class="small" x="390" y="352" text-anchor="middle">D</text>
+<path class="wire" d="M390,377 V425 H130 V354" fill="none"/>
+<line class="wire" x1="620" y1="235" x2="620" y2="305"/>
+<line class="wire" x1="595" y1="305" x2="645" y2="305"/>
+<line class="wire" x1="595" y1="325" x2="645" y2="325"/>
+<line class="wire" x1="620" y1="325" x2="620" y2="425"/>
+<polyline class="wire" points="715,235 715,270 700,282 730,296 700,310 730,324 700,338 715,350 715,425" fill="none"/>
+<text class="small" x="475" y="198" text-anchor="middle">L</text>
+<text class="small" x="650" y="318" text-anchor="start">C</text>
+<text class="small" x="750" y="318" text-anchor="start">Rload</text>
+<text class="small" x="802" y="240" text-anchor="start">Vout</text>
+<text class="small" x="510" y="464" text-anchor="middle">switch node, freewheel path, output filter, and load</text>
+<rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
+<text x="48" y="522" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">An ideal buck converter operating in continuous-conduction mode at steady state has Vin = 24 V and duty cycle D</text>
+<text x="48" y="541" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">= 0.75. What is the output voltage?</text>
+</svg>

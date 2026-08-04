@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+    </marker>
+    <style>
+      .wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+      .thin{stroke:#44606B;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+      .accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+      .box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3;rx:10}
+      .label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+      .small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+    </style>
+  </defs>
+<title id="title">Nyquist sampling reference diagram</title>
+<desc id="desc">A signal is band-limited to 1 kHz. What minimum sampling rate avoids aliasing?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Nyquist sampling reference diagram</text>
+<text x="48" y="80" font-family="Inter, Arial, sans-serif" font-size="13" fill="#D6EEF2">IMG-0151 | Signals and Systems | EE-3001</text>
+<line class="thin" x1="150" y1="300" x2="820" y2="300"/><line class="thin" x1="180" y1="190" x2="180" y2="420"/>
+    <polyline class="accent" points="180,300.0 230,230.7 280,230.7 330,300.0 380,369.3 430,369.3 480,300.0 530,230.7 580,230.7 630,300.0 680,369.3 730,369.3 780,300.0"/>
+    <line class="wire" x1="180" y1="300" x2="180" y2="300.0"/>
+<line class="wire" x1="230" y1="300" x2="230" y2="230.7"/>
+<line class="wire" x1="280" y1="300" x2="280" y2="230.7"/>
+<line class="wire" x1="330" y1="300" x2="330" y2="300.0"/>
+<line class="wire" x1="380" y1="300" x2="380" y2="369.3"/>
+<line class="wire" x1="430" y1="300" x2="430" y2="369.3"/>
+<line class="wire" x1="480" y1="300" x2="480" y2="300.0"/>
+<line class="wire" x1="530" y1="300" x2="530" y2="230.7"/>
+<line class="wire" x1="580" y1="300" x2="580" y2="230.7"/>
+<line class="wire" x1="630" y1="300" x2="630" y2="300.0"/>
+<line class="wire" x1="680" y1="300" x2="680" y2="369.3"/>
+<line class="wire" x1="730" y1="300" x2="730" y2="369.3"/>
+<line class="wire" x1="780" y1="300" x2="780" y2="300.0"/>
+    <text class="label" x="310" y="455">Sampling, convolution, and transforms map signals to systems</text>
+<rect x="24" y="500" width="912" height="74" rx="10" fill="#FFFFFF" stroke="#D9E2E7"/>
+<text x="48" y="528" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="400" text-anchor="start" fill="#1F2933">A signal is band-limited to 1 kHz. What minimum sampling rate avoids aliasing?</text>
+</svg>

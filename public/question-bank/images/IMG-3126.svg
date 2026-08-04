@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+<!-- LaTeX/TikZ source: latex_sources/IMG-3126.tex -->
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
+</marker>
+<style>
+.wire{stroke:#174A5B;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke:#44606B;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accent{stroke:#D97706;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.accentFill{fill:#FDECC8;stroke:#D97706;stroke-width:3}
+.box{fill:#EAF4F4;stroke:#246B7A;stroke-width:3}
+.panel{fill:#FFFFFF;stroke:#D9E2E7;stroke-width:1.5}
+.soft{fill:#F1F7F8;stroke:#7AA8B2;stroke-width:2}
+.label{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#1F2933}
+.small{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#52616B}
+.tiny{font-family:Inter,Arial,sans-serif;font-size:11px;fill:#52616B}
+.math{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#1F2933}
+</style>
+</defs>
+<title id="title">Lossless characteristic impedance problem diagram</title>
+<desc id="desc">A lossless line has per-unit-length inductance L&#x27; = 250 nH/m and per-unit-length capacitance C&#x27; = 100 pF/m. What is Z0?</desc>
+<rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
+<rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
+<text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Lossless characteristic impedance problem diagram</text>
+<text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-3126 | Transmission Lines | EE-62501</text>
+<line class="wire" x1="110" y1="250" x2="205" y2="250"/>
+<polyline class="wire" points="205,250 227,250 227,250 236.25,240 245.5,260 254.75,240 264,260 273.25,240 282.5,260 291.75,240 301,260 310.25,240 319.5,260 328.75,240 338,250 360,250" fill="none"/>
+<line class="wire" x1="360" y1="250" x2="520" y2="250"/>
+<polyline class="wire" points="520,250 542,250 542,250 551.25,240 560.5,260 569.75,240 579,260 588.25,240 597.5,260 606.75,240 616,260 625.25,240 634.5,260 643.75,240 653,250 675,250" fill="none"/>
+<line class="wire" x1="675" y1="250" x2="850" y2="250" marker-end="url(#arrow)"/>
+<line class="wire" x1="110" y1="410" x2="850" y2="410"/>
+<line class="wire" x1="430" y1="250" x2="430" y2="300"/>
+<line class="wire" x1="405" y1="300" x2="455" y2="300"/>
+<line class="wire" x1="405" y1="320" x2="455" y2="320"/>
+<line class="wire" x1="430" y1="320" x2="430" y2="410"/>
+<line class="wire" x1="745" y1="250" x2="745" y2="300"/>
+<line class="wire" x1="720" y1="300" x2="770" y2="300"/>
+<line class="wire" x1="720" y1="320" x2="770" y2="320"/>
+<line class="wire" x1="745" y1="320" x2="745" y2="410"/>
+<text class="small" x="282" y="220" text-anchor="middle">L&#x27; dx</text>
+<text class="small" x="598" y="220" text-anchor="middle">L&#x27; dx</text>
+<text class="small" x="470" y="316" text-anchor="start">C&#x27; dx</text>
+<text class="small" x="785" y="316" text-anchor="start">C&#x27; dx</text>
+<text class="small" x="480" y="458" text-anchor="middle">distributed lossless-line unit cells</text>
+<rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
+<text x="48" y="522" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">A lossless line has per-unit-length inductance L&#x27; = 250 nH/m and per-unit-length capacitance C&#x27; = 100 pF/m. What</text>
+<text x="48" y="541" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">is Z0?</text>
+</svg>

@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">ADC sampling and anti-alias reference</title>
+  <desc id="desc">A signal source passes through an anti-alias low-pass filter into a referenced analog-to-digital converter and a digital spectrum analyzer.</desc>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#dcecf3" stroke-width="1"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0b3142" flood-opacity=".15"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="700" rx="12" fill="#f7fbfd"/>
+  <rect width="1200" height="700" rx="12" fill="url(#grid)"/>
+  <rect x="42" y="36" width="1116" height="86" rx="8" fill="#153f50"/>
+  <text x="76" y="78" fill="#fff" font-family="Inter,Arial,sans-serif" font-size="32" font-weight="800">ADC Sampling and Anti-Alias Chain</text>
+  <text x="76" y="103" fill="#bce8f4" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="700">ANALOG DOMAIN</text>
+  <text x="1000" y="103" fill="#99efd2" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="700">DIGITAL DOMAIN</text>
+
+  <g filter="url(#shadow)">
+    <rect x="62" y="190" width="214" height="250" rx="8" fill="#fff" stroke="#173f50" stroke-width="4"/>
+    <rect x="82" y="214" width="174" height="102" rx="6" fill="#0b3039"/>
+    <path d="M94 267C110 224 128 310 146 267s36-43 54 0 36 43 48 0" fill="none" stroke="#f2c94f" stroke-linecap="round" stroke-width="6"/>
+    <circle cx="122" cy="365" r="28" fill="#e6eef1" stroke="#173f50" stroke-width="4"/>
+    <path d="M122 365l13-17" stroke="#d98a18" stroke-linecap="round" stroke-width="6"/>
+    <circle cx="215" cy="365" r="12" fill="#34c99b" stroke="#0b7255" stroke-width="4"/>
+    <text x="169" y="406" text-anchor="middle" fill="#173f50" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="800">SIGNAL SOURCE</text>
+    <text x="169" y="430" text-anchor="middle" fill="#607786" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700">VIN(t) = A sin(2πfINt)</text>
+  </g>
+
+  <path d="M276 316H350" fill="none" stroke="#f2c94f" stroke-width="7"/>
+  <path d="M322 300l28 16-28 16" fill="#f2c94f"/>
+  <text x="313" y="288" text-anchor="middle" fill="#8b6209" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">SENSOR SIGNAL</text>
+
+  <g filter="url(#shadow)">
+    <rect x="350" y="190" width="250" height="250" rx="8" fill="#eef5ea" stroke="#173f50" stroke-width="4"/>
+    <text x="475" y="232" text-anchor="middle" fill="#173f50" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="800">ANTI-ALIAS FILTER</text>
+    <path d="M384 310h30l14-24 28 48 28-48 28 48 14-24h32" fill="none" stroke="#496a5d" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
+    <path d="M526 278v64m16-64v64m-8 0v35" fill="none" stroke="#496a5d" stroke-width="6"/>
+    <path d="M510 377h48m-38 12h28m-18 12h8" stroke="#496a5d" stroke-linecap="round" stroke-width="5"/>
+    <text x="475" y="416" text-anchor="middle" fill="#517165" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="700">fc above signal bandwidth</text>
+  </g>
+
+  <path d="M600 316H674" fill="none" stroke="#75d9ba" stroke-width="7"/>
+  <path d="M646 300l28 16-28 16" fill="#75d9ba"/>
+  <text x="637" y="288" text-anchor="middle" fill="#157b60" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">BAND-LIMITED</text>
+
+  <g filter="url(#shadow)">
+    <rect x="674" y="166" width="234" height="298" rx="8" fill="#dce9ed" stroke="#173f50" stroke-width="4"/>
+    <text x="791" y="207" text-anchor="middle" fill="#173f50" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="800">N-BIT ADC</text>
+    <rect x="706" y="228" width="170" height="112" rx="6" fill="#0b3039" stroke="#08242c" stroke-width="3"/>
+    <text x="728" y="263" fill="#9cefd1" font-family="ui-monospace,monospace" font-size="24" font-weight="800">10 BIT</text>
+    <text x="728" y="298" fill="#77d9ed" font-family="ui-monospace,monospace" font-size="24" font-weight="800">8.0 kS/s</text>
+    <text x="728" y="324" fill="#c2dce3" font-family="ui-monospace,monospace" font-size="15" font-weight="700">VREF 3.300 V</text>
+    <g fill="#35c99b" stroke="#0c7458" stroke-width="2">
+      <circle cx="716" cy="375" r="8"/><circle cx="746" cy="375" r="8"/><circle cx="776" cy="375" r="8"/>
+      <circle cx="806" cy="375" r="8"/><circle cx="836" cy="375" r="8"/><circle cx="866" cy="375" r="8"/>
+    </g>
+    <text x="791" y="420" text-anchor="middle" fill="#476773" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="800">ΔV = VREF / 2ᴺ</text>
+    <path d="M720 452v62h142v-62" fill="none" stroke="#2997b8" stroke-width="5"/>
+  </g>
+
+  <path d="M908 316H972" fill="none" stroke="#57cce4" stroke-width="7"/>
+  <path d="M944 300l28 16-28 16" fill="#57cce4"/>
+
+  <g filter="url(#shadow)">
+    <rect x="972" y="190" width="166" height="250" rx="8" fill="#d8e3e7" stroke="#173f50" stroke-width="4"/>
+    <rect x="994" y="218" width="122" height="142" rx="6" fill="#0b3039"/>
+    <path d="M1004 266c14-34 28 34 42 0s28-34 42 0 18 26 20 0" fill="none" stroke="#61d8ea" stroke-width="4"/>
+    <path d="M1004 337h104M1018 337v-18m34 18v-62m34 62v-32" stroke="#8de7c5" stroke-width="4"/>
+    <text x="1055" y="398" text-anchor="middle" fill="#173f50" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="800">TIME + FFT</text>
+    <text x="1055" y="422" text-anchor="middle" fill="#607786" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="700">DIGITAL ANALYZER</text>
+  </g>
+
+  <g transform="translate(62 526)">
+    <rect width="1076" height="112" rx="8" fill="#e4f5f1" stroke="#56b89f" stroke-width="3"/>
+    <line x1="268" x2="268" y1="18" y2="94" stroke="#a9d9cd" stroke-width="2"/>
+    <line x1="538" x2="538" y1="18" y2="94" stroke="#a9d9cd" stroke-width="2"/>
+    <line x1="806" x2="806" y1="18" y2="94" stroke="#a9d9cd" stroke-width="2"/>
+    <text x="26" y="43" fill="#4f7168" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">NYQUIST LIMIT</text>
+    <text x="26" y="76" fill="#0d705a" font-family="ui-monospace,monospace" font-size="24" font-weight="800">fN = fS / 2</text>
+    <text x="294" y="43" fill="#4f7168" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">ALIASED TONE</text>
+    <text x="294" y="76" fill="#0d705a" font-family="ui-monospace,monospace" font-size="24" font-weight="800">|fIN − kfS|</text>
+    <text x="564" y="43" fill="#4f7168" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">QUANTIZATION SNR</text>
+    <text x="564" y="76" fill="#0d705a" font-family="ui-monospace,monospace" font-size="24" font-weight="800">6.02N + 1.76 dB</text>
+    <text x="832" y="43" fill="#4f7168" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">GOOD PRACTICE</text>
+    <text x="832" y="72" fill="#173f50" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="800">Filter before sampling</text>
+    <text x="832" y="92" fill="#607786" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="700">Keep signal inside ADC rails</text>
+  </g>
+</svg>
