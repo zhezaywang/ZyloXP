@@ -927,6 +927,11 @@ type CustomSessionConfig = {
   prioritizeReview: boolean;
 };
 
+type LearnerProfile = {
+  displayName: string;
+  email: string;
+};
+
 type StoredLearnerState = {
   activeSprint: SprintState | null;
   activityDate: string;
@@ -956,6 +961,7 @@ type StoredLearnerState = {
   labRunHistory: LabRunSnapshot[];
   labSaveCount: number;
   lastSprintSummary: SprintSummary | null;
+  learnerProfile: LearnerProfile;
   mistakeRecoveryCompletions: number;
   mistakeReflections: Record<string, MistakeReflection>;
   portfolioFeaturedIds: string[];
@@ -5592,6 +5598,48 @@ function readStoredRememberSession() {
   }
 }
 
+function normalizeLearnerProfile(value: unknown): LearnerProfile {
+  const fallback: LearnerProfile = {
+    displayName: 'Zylo Learner',
+    email: '',
+  };
+
+  if (!value || typeof value !== 'object') {
+    return fallback;
+  }
+
+  const profile = value as Partial<LearnerProfile>;
+  const displayName =
+    typeof profile.displayName === 'string'
+      ? profile.displayName.trim().slice(0, 60)
+      : '';
+  const email =
+    typeof profile.email === 'string'
+      ? profile.email.trim().slice(0, 120)
+      : '';
+
+  return {
+    displayName: displayName || fallback.displayName,
+    email,
+  };
+}
+
+function getLearnerInitials(displayName: string) {
+  const nameParts = displayName.trim().split(/\s+/).filter(Boolean);
+
+  if (nameParts.length === 0) {
+    return 'ZL';
+  }
+
+  const firstInitial = nameParts[0].charAt(0);
+  const secondInitial =
+    nameParts.length > 1
+      ? nameParts[nameParts.length - 1].charAt(0)
+      : nameParts[0].charAt(1);
+
+  return `${firstInitial}${secondInitial || ''}`.toUpperCase();
+}
+
 function readPreferredReducedMotion() {
   if (
     typeof window === 'undefined' ||
@@ -6185,6 +6233,7 @@ function readStoredLearnerState(): StoredLearnerState {
     labRunHistory: [],
     labSaveCount: 0,
     lastSprintSummary: null,
+    learnerProfile: normalizeLearnerProfile(null),
     mistakeRecoveryCompletions: 0,
     mistakeReflections: {},
     portfolioFeaturedIds: [],
@@ -6790,6 +6839,7 @@ function readStoredLearnerState(): StoredLearnerState {
           ? Math.max(0, Math.round(parsedState.labSaveCount))
           : 0,
       lastSprintSummary,
+      learnerProfile: normalizeLearnerProfile(parsedState.learnerProfile),
       mistakeRecoveryCompletions:
         typeof parsedState.mistakeRecoveryCompletions === 'number' &&
         Number.isFinite(parsedState.mistakeRecoveryCompletions)
@@ -7099,6 +7149,12 @@ function App() {
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authNotice, setAuthNotice] = useState('');
+  const [learnerProfile, setLearnerProfile] = useState(
+    initialLearnerState.learnerProfile,
+  );
+  const learnerDisplayName =
+    learnerProfile.displayName.trim() || 'Zylo Learner';
+  const learnerInitials = getLearnerInitials(learnerDisplayName);
   const [activeSection, setActiveSection] = useState<AppSection>(
     shouldRestoreActiveSprint ? 'practice' : initialRoute.section,
   );
@@ -10218,6 +10274,7 @@ function App() {
       labRunHistory,
       labSaveCount,
       lastSprintSummary,
+      learnerProfile,
       mistakeRecoveryCompletions,
       mistakeReflections,
       portfolioFeaturedIds,
@@ -10308,6 +10365,7 @@ function App() {
     labRunHistory,
     labSaveCount,
     lastSprintSummary,
+    learnerProfile,
     mistakeRecoveryCompletions,
     mistakeReflections,
     portfolioFeaturedIds,
@@ -13516,6 +13574,19 @@ function App() {
       return;
     }
 
+    const normalizedEmail = authEmail.trim().slice(0, 120);
+    if (authMode === 'create') {
+      setLearnerProfile({
+        displayName: authName.trim().slice(0, 60) || 'Zylo Learner',
+        email: normalizedEmail,
+      });
+    } else if (normalizedEmail) {
+      setLearnerProfile((profile) => ({
+        ...profile,
+        email: normalizedEmail,
+      }));
+    }
+
     setIsAuthenticated(true);
     showToast(
       authMode === 'create'
@@ -13924,7 +13995,7 @@ function App() {
         </nav>
 
         <button
-          aria-label="Open profile and progress"
+          aria-label={`Open ${learnerDisplayName} profile and progress`}
           aria-current={
             activePage === 'progress' || activePage === 'insights'
               ? 'page'
@@ -13939,10 +14010,17 @@ function App() {
           title="Profile and progress"
           type="button"
         >
-          <div className="avatar">ZW</div>
+          <div className="avatar" aria-hidden="true">
+            {learnerInitials}
+          </div>
           <div>
-            <strong>Level {currentLevel}</strong>
-            <span>{practiceAccuracy === null ? 'Core Foundations' : `${practiceAccuracy}% accuracy`}</span>
+            <strong title={learnerDisplayName}>{learnerDisplayName}</strong>
+            <span>
+              Level {currentLevel}
+              {practiceAccuracy === null
+                ? ' · Core Foundations'
+                : ` · ${practiceAccuracy}% accuracy`}
+            </span>
           </div>
         </button>
 
@@ -14787,6 +14865,8 @@ function App() {
             dailyMissionCompletedCount={dailyMissionCompletedCount}
             dailyXp={dailyXp}
             earnedXp={earnedXp}
+            learnerInitials={learnerInitials}
+            learnerName={learnerDisplayName}
             levelProgress={levelProgress}
             onBack={handleBackFromProgress}
             onOpenInsights={handleOpenInsights}
@@ -15219,31 +15299,33 @@ function App() {
           })}
         </section>
 
-        <section
-          className={`recommendedActionBand ${recommendedAction.tone}`}
-          aria-labelledby="recommended-action-title"
-        >
-          <span className="recommendedActionIcon">
-            <RecommendedActionIcon size={24} />
-          </span>
-          <div className="recommendedActionCopy">
-            <p className="eyebrow">{recommendedAction.eyebrow}</p>
-            <h2 id="recommended-action-title">{recommendedAction.title}</h2>
-            <p>{recommendedAction.description}</p>
-          </div>
-          <div className="recommendedActionSignal">
-            <strong>{recommendedAction.signal}</strong>
-            <span>{recommendedAction.signalLabel}</span>
-          </div>
-          <button
-            className="primaryButton"
-            onClick={recommendedAction.run}
-            type="button"
+        {recommendedAction.tone !== 'adaptive' && (
+          <section
+            className={`recommendedActionBand ${recommendedAction.tone}`}
+            aria-labelledby="recommended-action-title"
           >
-            {recommendedAction.buttonLabel}
-            <ArrowRight size={17} />
-          </button>
-        </section>
+            <span className="recommendedActionIcon">
+              <RecommendedActionIcon size={24} />
+            </span>
+            <div className="recommendedActionCopy">
+              <p className="eyebrow">{recommendedAction.eyebrow}</p>
+              <h2 id="recommended-action-title">{recommendedAction.title}</h2>
+              <p>{recommendedAction.description}</p>
+            </div>
+            <div className="recommendedActionSignal">
+              <strong>{recommendedAction.signal}</strong>
+              <span>{recommendedAction.signalLabel}</span>
+            </div>
+            <button
+              className="primaryButton"
+              onClick={recommendedAction.run}
+              type="button"
+            >
+              {recommendedAction.buttonLabel}
+              <ArrowRight size={17} />
+            </button>
+          </section>
+        )}
 
         <RecentLearning
           items={recentLearningItems}
@@ -16926,6 +17008,8 @@ function App() {
           highContrastEnabled={highContrastEnabled}
           isAppInstalled={isAppInstalled}
           lastSavedAt={lastSavedAt}
+          learnerInitials={learnerInitials}
+          learnerProfile={learnerProfile}
           maxHearts={MAX_HEARTS}
           nextHeartInMs={nextHeartInMs}
           notificationReadKeys={readNotificationKeys}
@@ -16936,6 +17020,7 @@ function App() {
           onDeviceAlertsEnabledChange={handleDeviceAlertsEnabledChange}
           onHighContrastEnabledChange={setHighContrastEnabled}
           onInstallApp={handleInstallApp}
+          onLearnerProfileChange={setLearnerProfile}
           onMarkAllNotificationsRead={handleMarkAllNotificationsRead}
           onNotificationAction={handleNotificationAction}
           onNotificationReadChange={handleNotificationReadChange}
@@ -19006,6 +19091,8 @@ type ProgressCenterPageProps = {
   dailyMissionCompletedCount: number;
   dailyXp: number;
   earnedXp: number;
+  learnerInitials: string;
+  learnerName: string;
   levelProgress: number;
   onBack: () => void;
   onOpenInsights: () => void;
@@ -19029,6 +19116,8 @@ function ProgressCenterPage({
   dailyMissionCompletedCount,
   dailyXp,
   earnedXp,
+  learnerInitials,
+  learnerName,
   levelProgress,
   onBack,
   onOpenInsights,
@@ -19078,11 +19167,16 @@ function ProgressCenterPage({
         </div>
       </header>
 
-      <section className="levelHeroBand" aria-label={`Level ${currentLevel} progress`}>
+      <section
+        className="levelHeroBand"
+        aria-label={`${learnerName}, Level ${currentLevel} progress`}
+      >
         <div className="levelHeroIdentity">
-          <span className="levelAvatar">ZW</span>
+          <span className="levelAvatar" aria-hidden="true">
+            {learnerInitials}
+          </span>
           <div>
-            <span>Current level</span>
+            <span>{learnerName}</span>
             <strong>Level {currentLevel}</strong>
             <small>{tunedCareerRole}</small>
           </div>
@@ -22503,6 +22597,8 @@ type OverlayPanelProps = {
   highContrastEnabled: boolean;
   isAppInstalled: boolean;
   lastSavedAt: number | null;
+  learnerInitials: string;
+  learnerProfile: LearnerProfile;
   maxHearts: number;
   nextHeartInMs: number;
   notificationReadKeys: string[];
@@ -22513,6 +22609,7 @@ type OverlayPanelProps = {
   onDeviceAlertsEnabledChange: (enabled: boolean) => void;
   onHighContrastEnabledChange: (enabled: boolean) => void;
   onInstallApp: () => void;
+  onLearnerProfileChange: (profile: LearnerProfile) => void;
   onMarkAllNotificationsRead: () => void;
   onNotificationAction: (notification: AppNotification) => void;
   onNotificationReadChange: (
@@ -22551,6 +22648,8 @@ function OverlayPanel({
   highContrastEnabled,
   isAppInstalled,
   lastSavedAt,
+  learnerInitials,
+  learnerProfile,
   maxHearts,
   nextHeartInMs,
   notificationReadKeys,
@@ -22561,6 +22660,7 @@ function OverlayPanel({
   onDeviceAlertsEnabledChange,
   onHighContrastEnabledChange,
   onInstallApp,
+  onLearnerProfileChange,
   onMarkAllNotificationsRead,
   onNotificationAction,
   onNotificationReadChange,
@@ -22634,6 +22734,8 @@ function OverlayPanel({
   }, []);
 
   useEffect(() => {
+    panelRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+
     const focusFrame = window.requestAnimationFrame(() => {
       closeButtonRef.current?.focus({ preventScroll: true });
     });
@@ -23047,6 +23149,52 @@ function OverlayPanel({
                       ? 'Local saving is unavailable'
                       : formatSavedAt(lastSavedAt)}
                 </small>
+              </div>
+            </div>
+            <div className="settingsSectionHeader">
+              <span>
+                <User size={18} />
+              </span>
+              <div>
+                <strong>Learner profile</strong>
+                <small>Your identity across ZyloXP</small>
+              </div>
+            </div>
+            <div className="settingsProfileCard">
+              <span className="settingsProfileAvatar" aria-hidden="true">
+                {learnerInitials}
+              </span>
+              <div className="settingsProfileFields">
+                <label>
+                  <span>Display name</span>
+                  <input
+                    autoComplete="name"
+                    maxLength={60}
+                    onChange={(event) =>
+                      onLearnerProfileChange({
+                        ...learnerProfile,
+                        displayName: event.target.value,
+                      })
+                    }
+                    type="text"
+                    value={learnerProfile.displayName}
+                  />
+                </label>
+                <label>
+                  <span>Email</span>
+                  <input
+                    autoComplete="email"
+                    maxLength={120}
+                    onChange={(event) =>
+                      onLearnerProfileChange({
+                        ...learnerProfile,
+                        email: event.target.value,
+                      })
+                    }
+                    type="email"
+                    value={learnerProfile.email}
+                  />
+                </label>
               </div>
             </div>
             <div className="settingsSectionHeader">

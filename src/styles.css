@@ -4385,6 +4385,81 @@ body,
   font-weight: 700;
 }
 
+.settingsProfileCard {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid var(--zylo-border);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.settingsProfileAvatar {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid #58cba9;
+  border-radius: 8px;
+  color: #ffffff;
+  background: #17aa80;
+  box-shadow: 0 3px 0 #087e60;
+  font-size: 1rem;
+  font-weight: 950;
+}
+
+.settingsProfileFields {
+  display: grid;
+  gap: 9px;
+  min-width: 0;
+}
+
+.settingsProfileFields label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.settingsProfileFields label > span {
+  color: var(--zylo-muted);
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.settingsProfileFields input {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--zylo-border);
+  border-radius: 6px;
+  color: var(--zylo-ink);
+  background: var(--zylo-panel-soft);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.settingsProfileFields input:focus-visible {
+  border-color: var(--zylo-blue);
+  outline: 3px solid rgba(25, 169, 216, 0.18);
+}
+
+@media (max-width: 420px) {
+  .settingsProfileCard {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 9px;
+    padding: 10px;
+  }
+
+  .settingsProfileAvatar {
+    width: 42px;
+    height: 42px;
+  }
+}
+
 .toggleSetting span {
   display: grid;
   gap: 2px;
