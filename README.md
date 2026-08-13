@@ -1,83 +1,115 @@
 # ZyloXP
 
-An interactive electrical engineering learning platform that combines bite-size lessons, live circuit labs, progress mechanics, and career-aligned skill paths.
+Learn electrical engineering by moving between short lessons, adaptive practice, interactive bench labs, concept visualizations, and career evidence—all in an installable, local-first web app.
 
-**[Live Demo](https://zhezaywang.github.io/ZyloXP/)** · **[Question Bank Documentation](electrical_engineering_question_bank_250000/README.md)**
+**[Open the live app](https://zhezaywang.github.io/ZyloXP/)** · **[Explore the question bank](electrical_engineering_question_bank_250000/README.md)**
 
+[![Deploy to GitHub Pages](https://github.com/zhezaywang/ZyloXP/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/zhezaywang/ZyloXP/actions/workflows/deploy-pages.yml)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
-[![Question Bank](https://img.shields.io/badge/question_bank-250%2C000-39A96B)](electrical_engineering_question_bank_250000/README.md)
+[![Question Bank](https://img.shields.io/badge/checked_questions-250%2C000-0A8F86)](electrical_engineering_question_bank_250000/README.md)
 
-![ZyloXP learner dashboard](docs/zyloxp-dashboard.png)
+![ZyloXP engineering foundations dashboard](docs/zyloxp-dashboard.jpg)
 
-## Why I built it
+ZyloXP connects the full learning loop: understand a relationship, answer a checked prompt, test it on an interactive bench, capture what changed, and apply the result to real engineering work.
 
-Most engineering learning tools separate theory, practice, and career context. ZyloXP explores a single learning loop where students can study a concept, test it in an interactive circuit lab, receive immediate feedback, and understand how the skill maps to real engineering roles.
+## What you can do
 
-## Highlights
+- **Learn and plan:** daily missions, XP, streaks, skill paths, Focus Room, custom Study Routes, a Weekly Planner, and progress insights.
+- **Practice deliberately:** confidence-rated questions, Smart Review, Mistake Lab, adaptive Power Sprints, visual problem inspection, and checkpoint exams.
+- **Work at the bench:** 13 interactive lab scenarios with calibration missions, fault diagnosis, saved bench runs, and a resistor-network Circuit Workbench.
+- **Explore the EE Atlas:** 28 interactive concept models across eight domains, plus seven playable engineering challenges.
+- **Build an engineering notebook:** a Study List, Field Journal, formula library and recall rounds, saved questions, and reusable bench setups.
+- **Use practical tools:** calculators for Ohm's law, DC power, resistor bands, loaded dividers, LED limiting, RC timing, AC reactance, and unit conversion.
+- **Connect learning to work:** eight career tracks, readiness signals, guided engineering projects, and a portfolio studio.
+- **Keep progress portable:** browser-local autosave, validated JSON backup and restore, installable PWA support, offline shell caching, and an optional local PIN privacy lock.
 
-- Built a responsive learning experience for desktop, tablet, and mobile browsers with five connected views: Learn, Practice, Labs, Careers, and Question Bank.
-- Implemented real-time Ohm's law calculations, searchable curriculum paths, six-choice lesson feedback, XP and streak mechanics, and career-match recommendations.
-- Generated and validated **250,000 unique multiple-choice questions** across **20 electrical engineering topics** and **25 difficulty levels**.
-- Created **12,500 SVG diagrams** with matching editable LaTeX/TikZ sources and question-to-asset cross-references.
-- Added automated validation for unique IDs and stems, balanced answer positions, complete required fields, topic distribution, and diagram integrity.
+## Inside the product
+
+| Interactive engineering labs | Engineering notebook |
+| --- | --- |
+| ![Live Ohm's law bench with circuit controls and ammeter](docs/zyloxp-labs.jpg) | ![Formula library inside the ZyloXP engineering notebook](docs/zyloxp-notebook.jpg) |
+
+The seven primary workspaces—Learn, Practice, Labs, EE Atlas, Careers, Question Bank, and Notebook—share progress, recent activity, study targets, and saved artifacts. Hash-based routes make every workspace refresh-safe on GitHub Pages.
+
+## Question bank
+
+The project is backed by a validated electrical-engineering content package containing:
+
+- **250,000** generated and deterministically checked questions
+- **20** electrical engineering topics
+- **25** organizational levels per topic
+- **100** governing formula templates
+- **12,500** SVG instructional diagrams with matching LaTeX/TikZ sources
+- **0** answer-recomputation failures and **0** image-validation failures in the latest reports
+
+The 25 levels organize the collection; they are not psychometrically calibrated ability measures. The deployed app uses representative checked prompts and topic metadata. This repository includes a 50,000-row stratified review workbook, while the canonical 250,000-row CSV is intentionally excluded because it exceeds GitHub's per-file size limit.
+
+See the [question bank documentation](electrical_engineering_question_bank_250000/README.md) and [latest validation summary](electrical_engineering_question_bank_250000/validation_summary.json) for the schema, assumptions, coverage, and rebuild process.
+
+## Local-first by design
+
+ZyloXP runs entirely in the browser and stores learner state locally. There is no hosted user account or remote progress service in this version. The optional six-digit device PIN is a privacy lock for the current browser session; it does not encrypt learning data or replace server-side authentication.
+
+The app can be installed as a PWA and caches its application shell for offline reopening. Progress can be exported to a validated JSON backup and restored on another browser.
 
 ## Technology
 
 | Area | Tools and concepts |
 | --- | --- |
-| Front end | React 19, TypeScript, Vite, semantic HTML |
-| Interface | Responsive CSS, CSS Grid, Flexbox, Lucide icons, accessible labels |
-| Data | CSV, JSON, XLSX, typed curriculum models |
-| Engineering content | Electrical engineering, SVG, LaTeX/TikZ, circuit diagrams |
-| Quality | TypeScript checks, production builds, dataset validation |
+| Front end | React 19, TypeScript, Vite, lazy-loaded feature modules |
+| Interface | Responsive CSS, semantic HTML, accessible labels, reduced-motion and contrast preferences |
+| Learning state | Browser storage, versioned persistence, JSON backup and restore |
+| Engineering content | Typed curriculum models, SVG, LaTeX/TikZ, interactive circuit and signal visualizations |
+| PWA and security | Service worker, web app manifest, Content Security Policy, local Web Crypto PIN verifier |
+| Delivery | GitHub Actions and GitHub Pages |
 
-## Architecture
+## Project map
 
 ```text
 src/
-├── App.tsx        # Dashboard, lesson player, circuit lab, and career views
-├── data.ts        # Typed curriculum, question, lab, and career seed data
-├── main.tsx       # React entry point
-└── styles.css     # Responsive application styling
+├── App.tsx                       # Application shell, routing, and shared learning state
+├── data.ts                      # Curriculum, labs, questions, and career tracks
+├── ElectricalAtlas.tsx          # Interactive concept atlas and engineering games
+├── EngineeringToolkit.tsx       # Practical engineering calculators
+├── FormulaNotebookWorkspace.tsx # Formula library and quick-recall flow
+├── NotebookLibrary.tsx          # Study List, notes, questions, and bench records
+├── QuestionVisualStage.tsx      # Question diagrams and visual inspection tools
+└── ...                          # Focus, planning, review, exams, insights, and portfolios
 
-public/diagrams/   # App-facing circuit assets
+public/
+├── diagrams/                    # App-facing reference diagrams
+├── question-bank/images/        # Representative checked question visuals
+├── manifest.webmanifest         # Installable PWA metadata
+└── sw.js                        # Offline application-shell cache
+
 electrical_engineering_question_bank_250000/
-├── images/        # 12,500 generated SVG diagrams
-├── latex_sources/ # Editable LaTeX/TikZ diagram sources
-├── *.csv / *.json # Import-ready metadata and manifests
-└── *.xlsx         # Complete 250,000-question workbook
+├── images/                      # 12,500 generated SVG diagrams
+├── latex_sources/               # 12,500 editable LaTeX/TikZ sources
+├── *.csv / *.json               # Metadata, formulas, manifests, and validation
+└── *.xlsx                       # 50,000-row stratified review workbook
 ```
 
 ## Run locally
 
-Requirements: Node.js 22.13+ and pnpm 11.
+Requirements: Node.js 22.13 or newer and pnpm 11.
 
 ```bash
 git clone https://github.com/zhezaywang/ZyloXP.git
 cd ZyloXP
-pnpm install
+pnpm install --frozen-lockfile
 pnpm run dev
 ```
 
-Then open `http://localhost:5173`.
+Open `http://localhost:5173`.
 
 ## Verify the project
 
 ```bash
 pnpm run typecheck
 pnpm run build
+pnpm run preview
 ```
 
-The dataset validation results are documented in [`validation_summary.json`](electrical_engineering_question_bank_250000/validation_summary.json). The generated 111 MB question CSV is excluded because it exceeds GitHub's per-file limit; the complete dataset is included in the XLSX workbook.
-
-## Resume summary
-
-**ZyloXP — Electrical Engineering Learning Platform**
-
-React, TypeScript, Vite, responsive web design, data modeling, SVG, LaTeX/TikZ
-
-- Developed a responsive, Duolingo-inspired platform with interactive lessons, skill progression, circuit simulations, and career-path recommendations.
-- Built and validated a 250,000-question electrical engineering dataset across 20 topics and 25 difficulty levels.
-- Generated and cross-referenced 12,500 scalable circuit diagrams with editable LaTeX/TikZ sources.
+The production build is deployed automatically from `main` through the [GitHub Pages workflow](.github/workflows/deploy-pages.yml).

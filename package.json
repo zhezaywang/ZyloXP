@@ -2,6 +2,8 @@
   "name": "zylo-xp",
   "private": true,
   "version": "0.1.0",
+  "description": "Interactive electrical-engineering learning with adaptive practice, live labs, an EE atlas, career paths, and a validated 250K-question bank.",
+  "homepage": "https://zhezaywang.github.io/ZyloXP/",
   "type": "module",
   "packageManager": "pnpm@11.0.7",
   "scripts": {

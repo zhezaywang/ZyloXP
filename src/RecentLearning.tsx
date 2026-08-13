@@ -189,6 +189,7 @@ export function RecentLearning({
           return (
             <button
               className="recentLearningItem"
+              data-kind={item.kind.toLowerCase()}
               key={item.id}
               onClick={() => onOpen(item)}
               type="button"

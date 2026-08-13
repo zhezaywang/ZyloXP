@@ -76,7 +76,11 @@ import type {
   PointerEvent as ReactPointerEvent,
 } from 'react';
 import type { CircuitDesign } from './CircuitWorkbench';
-import { EngineeringToolkit } from './EngineeringToolkit';
+import type {
+  DailyMissionId,
+  DailyMissionView,
+  WeeklyActivityDay,
+} from './DailyMissionBoard';
 import {
   electricalConcepts,
   engineeringGames,
@@ -97,6 +101,11 @@ import type { PortfolioEvidence } from './EvidencePortfolio';
 import { stageFieldJournalDraft } from './fieldJournalDraft';
 import type { FieldJournalDraftSeed } from './fieldJournalDraft';
 import {
+  FIELD_JOURNAL_STORAGE_KEY,
+  readFieldNotes,
+} from './fieldNotes';
+import type { FieldNote } from './fieldNotes';
+import {
   formatFocusTimer,
   getFocusElapsedMs,
   getFocusRemainingMs,
@@ -112,22 +121,57 @@ import type {
 } from './focusSession';
 import type { LabRunSnapshot } from './LabBenchLog';
 import { calculateLabMetrics } from './labMetrics';
+import type {
+  FormulaConfidence,
+  FormulaEntry,
+  FormulaReviewState,
+  NotebookFilter,
+} from './FormulaNotebookWorkspace';
+import {
+  LocalAppLockScreen,
+  LocalSecuritySettings,
+} from './LocalAppSecurity';
+import {
+  LOCAL_APP_LOCK_COMMAND_STORAGE_KEY,
+  LOCAL_APP_LOCK_STORAGE_KEY,
+  broadcastLocalAppLock,
+  clearLocalAppLockActivity,
+  createLocalAppLockConfig,
+  isLocalAppLockExpired,
+  markLocalAppLockActivity,
+  readLocalAppLockActivity,
+  readLocalAppLockConfig,
+  removeLocalAppLockConfig,
+  saveLocalAppLockConfig,
+  verifyLocalAppLockPinWithProtection,
+} from './localAppLock';
+import type {
+  LocalAppLockConfig,
+  LocalAppLockVerificationResult,
+} from './localAppLock';
 import { resolvePublicAssetPath } from './publicAsset';
 import {
   getSearchResultScore,
   normalizeSearchText,
 } from './searchRanking';
 import type { LabSimulationValues } from './labMetrics';
-import { useVisualInspector } from './useVisualInspector';
-import {
-  BenchRunLibrary,
-  NotebookLibraryTabs,
-  SavedQuestionLibrary,
-} from './NotebookLibrary';
 import type {
   NotebookLibraryView,
   SavedQuestionLibraryItem,
 } from './NotebookLibrary';
+import {
+  STUDY_LIST_STORAGE_KEY,
+  addStudyListResource,
+  getStudyListItemKey,
+  isStudyListKind,
+  normalizeStudyListItems,
+  readStudyListItems,
+  saveStudyListItems,
+} from './studyList';
+import type {
+  StudyListItem,
+  StudyListResource,
+} from './studyList';
 import {
   RecentLearning,
   readRecentLearningItems,
@@ -186,7 +230,6 @@ import type {
   WeeklyPlanConfig,
   WeeklyPlanDay,
 } from './WeeklyPlanner';
-import { ZyTutor } from './ZyTutor';
 import type { ZyTutorAction, ZyTutorContext } from './ZyTutor';
 import { APP_UPDATE_READY_EVENT } from './appEvents';
 import { buildAppHash, parseAppHash } from './appRouting';
@@ -213,6 +256,52 @@ function createPreloadableLazy<
   };
 }
 
+const {
+  Component: EngineeringToolkit,
+  preload: preloadEngineeringToolkit,
+} = createPreloadableLazy(
+  () => import('./EngineeringToolkit'),
+  (module) => module.EngineeringToolkit,
+);
+const { Component: ZyTutor, preload: preloadZyTutor } =
+  createPreloadableLazy(
+    () => import('./ZyTutor'),
+    (module) => module.ZyTutor,
+  );
+const {
+  Component: NotebookLibraryTabs,
+  preload: preloadNotebookLibrary,
+} = createPreloadableLazy(
+  () => import('./NotebookLibrary'),
+  (module) => module.NotebookLibraryTabs,
+);
+const { Component: SavedQuestionLibrary } = createPreloadableLazy(
+  () => import('./NotebookLibrary'),
+  (module) => module.SavedQuestionLibrary,
+);
+const { Component: BenchRunLibrary } = createPreloadableLazy(
+  () => import('./NotebookLibrary'),
+  (module) => module.BenchRunLibrary,
+);
+const { Component: StudyListWorkspace } = createPreloadableLazy(
+  () => import('./NotebookLibrary'),
+  (module) => module.StudyListWorkspace,
+);
+const {
+  Component: FormulaNotebookWorkspace,
+  preload: preloadFormulaNotebookWorkspace,
+} = createPreloadableLazy(
+  () => import('./FormulaNotebookWorkspace'),
+  (module) => module.FormulaNotebookWorkspace,
+);
+const {
+  Component: DailyMissionBoard,
+  preload: preloadDailyMissionBoard,
+} = createPreloadableLazy(
+  () => import('./DailyMissionBoard'),
+  (module) => module.DailyMissionBoard,
+);
+
 const CircuitWorkbench = lazy(() =>
   import('./CircuitWorkbench').then((module) => ({
     default: module.CircuitWorkbench,
@@ -224,10 +313,6 @@ const {
 } = createPreloadableLazy(
   () => import('./ElectricalAtlas'),
   (module) => module.ElectricalAtlas,
-);
-const { Component: QuestionAtlasCompanion } = createPreloadableLazy(
-  () => import('./ElectricalAtlas'),
-  (module) => module.QuestionAtlasCompanion,
 );
 const CheckpointExam = lazy(() =>
   import('./CheckpointExam').then((module) => ({
@@ -288,11 +373,11 @@ const ProgressBackup = lazy(() =>
   })),
 );
 const {
-  Component: QuestionSchematic,
-  preload: preloadQuestionSchematic,
+  Component: QuestionVisualStage,
+  preload: preloadQuestionVisualStage,
 } = createPreloadableLazy(
-  () => import('./QuestionSchematic'),
-  (module) => module.QuestionSchematic,
+  () => import('./QuestionVisualStage'),
+  (module) => module.QuestionVisualStage,
 );
 const SkillMap = lazy(() =>
   import('./SkillMap').then((module) => ({
@@ -359,6 +444,50 @@ function DeferredPanelFallback() {
   );
 }
 
+function DailyMissionBoardFallback() {
+  return (
+    <section
+      aria-busy="true"
+      aria-label="Loading Daily Charge"
+      className="dailyMissionBoard dailyMissionBoardFallback"
+      role="status"
+    >
+      <header>
+        <div>
+          <p className="eyebrow">Daily Charge</p>
+          <h2>Building today's momentum</h2>
+        </div>
+        <RefreshCw aria-hidden="true" size={18} />
+      </header>
+      <div aria-hidden="true" className="dailyMissionFallbackGrid">
+        <span />
+        <span />
+        <span />
+      </div>
+    </section>
+  );
+}
+
+function QuestionVisualStageFallback({ label }: { label: string }) {
+  return (
+    <section
+      aria-busy="true"
+      aria-label={`Loading ${label}`}
+      className="questionVisualStage questionVisualStageFallback"
+      role="status"
+    >
+      <header className="visualStageHeader">
+        <div>
+          <span>Engineering visual</span>
+          <strong>{label}</strong>
+        </div>
+        <RefreshCw aria-hidden="true" size={17} />
+      </header>
+      <div aria-hidden="true" className="questionVisualFallbackCanvas" />
+    </section>
+  );
+}
+
 type AuthMode = 'login' | 'create' | 'reset';
 type EntryView = 'intro' | 'auth';
 type SocialProvider = 'Apple' | 'Google';
@@ -392,6 +521,8 @@ type SearchResultKind =
   | 'Concept'
   | 'Game'
   | 'Tool'
+  | 'Note'
+  | 'Bench Run'
   | 'Skill'
   | 'Lab'
   | 'Career'
@@ -453,11 +584,13 @@ const SEARCH_KIND_PRIORITY: Record<SearchResultKind, number> = {
   Concept: 1,
   Game: 2,
   Tool: 3,
-  Skill: 4,
-  Lab: 5,
-  Formula: 6,
-  Career: 7,
-  Question: 8,
+  Note: 4,
+  'Bench Run': 5,
+  Skill: 6,
+  Lab: 7,
+  Formula: 8,
+  Career: 9,
+  Question: 10,
 };
 
 const SEARCH_RESULT_KINDS = Object.keys(
@@ -469,6 +602,8 @@ const SEARCH_KIND_ICONS = {
   Concept: Atom,
   Game: Gamepad2,
   Tool: SlidersHorizontal,
+  Note: NotebookPen,
+  'Bench Run': History,
   Skill: BrainCircuit,
   Lab: FlaskConical,
   Career: GraduationCap,
@@ -548,12 +683,22 @@ function readRecentSearchResults() {
   }
 }
 
+function formatSearchArtifactDate(timestamp: number) {
+  return new Intl.DateTimeFormat(undefined, {
+    day: 'numeric',
+    month: 'short',
+  }).format(timestamp);
+}
+
 function preloadAppSection(section: AppSection) {
   let preload: Promise<void> | null = null;
 
   switch (section) {
+    case 'learn':
+      preload = preloadDailyMissionBoard();
+      break;
     case 'practice':
-      preload = preloadQuestionSchematic();
+      preload = preloadQuestionVisualStage();
       break;
     case 'labs':
       preload = Promise.all([
@@ -568,7 +713,11 @@ function preloadAppSection(section: AppSection) {
       preload = preloadEvidencePortfolio();
       break;
     case 'notebook':
-      preload = preloadFieldJournal();
+      preload = Promise.all([
+        preloadFieldJournal(),
+        preloadFormulaNotebookWorkspace(),
+        preloadNotebookLibrary(),
+      ]).then(() => undefined);
       break;
     default:
       break;
@@ -590,8 +739,12 @@ function preloadSearchResult(result: SearchResult) {
 
   if (result.kind === 'Concept' || result.kind === 'Game') {
     preload = preloadElectricalAtlas();
+  } else if (result.kind === 'Note') {
+    preload = preloadFieldJournal();
+  } else if (result.kind === 'Bench Run') {
+    preload = preloadLabVisualStage();
   } else if (result.kind === 'Question' || result.kind === 'Skill') {
-    preload = preloadQuestionSchematic();
+    preload = preloadQuestionVisualStage();
   } else if (result.kind === 'Lab') {
     preload = preloadLabVisualStage();
   } else if (result.kind === 'Career') {
@@ -623,7 +776,7 @@ function preloadSearchResult(result: SearchResult) {
         preload = import('./StudyRoutePlanner');
         break;
       case 'toolkit':
-        preload = null;
+        preload = preloadEngineeringToolkit();
         break;
       case 'weekly-plan':
         preload = import('./WeeklyPlanner');
@@ -728,25 +881,6 @@ type DailyActivityRecord = {
 };
 
 type DailyActivityHistory = Record<string, DailyActivityRecord>;
-
-type DailyMissionId = 'challenge' | 'questions' | 'xp';
-
-type DailyMissionView = {
-  actionLabel: string;
-  current: number;
-  detail: string;
-  icon: typeof Target;
-  id: DailyMissionId;
-  target: number;
-  title: string;
-  unit: string;
-};
-
-type WeeklyActivityDay = DailyActivityRecord & {
-  dateKey: string;
-  dayLabel: string;
-  isToday: boolean;
-};
 
 type Achievement = {
   description: string;
@@ -867,9 +1001,6 @@ type CareerReadiness = {
 type BankCollectionId = 'circuits' | 'power' | 'hardware' | 'signals';
 type BankTopicState = 'mastered' | 'new' | 'practiced' | 'review';
 type BankTopicFilter = 'all' | BankTopicState;
-type FormulaConfidence = 'learning' | 'ready';
-type FormulaSource = 'lab' | 'question';
-type NotebookFilter = 'all' | 'learning' | 'ready' | 'saved';
 type LabCatalogProgress = 'complete' | 'new' | 'started';
 type LabCatalogFilter = 'all' | LabCatalogProgress;
 type PracticePathState = 'continue' | 'locked' | 'strong';
@@ -883,28 +1014,6 @@ type BankCollection = {
   label: string;
   skillId: string;
   topics: string[];
-};
-
-type FormulaEntry = {
-  assumptions: string;
-  collectionId: BankCollectionId;
-  context: string;
-  difficulty: number | null;
-  formula: string;
-  id: string;
-  source: FormulaSource;
-  sourceId: string;
-  subtitle: string;
-  title: string;
-};
-
-type FormulaReviewState = {
-  completed: boolean;
-  entryIds: string[];
-  position: number;
-  readyCount: number;
-  revealed: boolean;
-  reviewedCount: number;
 };
 
 type BankTopicMastery = {
@@ -994,8 +1103,9 @@ const AUTH_SESSION_KEY = 'zyloxp-session-v1';
 const LEARNER_STORAGE_KEY = 'zyloxp-learner-state-v1';
 const SAVED_LAB_STORAGE_KEY = 'zyloxp-saved-lab-v1';
 const SAVE_META_STORAGE_KEY = 'zyloxp-save-meta-v1';
-const FIELD_JOURNAL_STORAGE_KEY = 'zyloxp-field-journal-v1';
 const NOTEBOOK_LIBRARY_VIEW_STORAGE_KEY = 'zyloxp-notebook-library-view-v1';
+const QUESTION_SCRATCHPAD_STORAGE_KEY = 'zyloxp-question-scratchpads-v1';
+const QUESTION_SCRATCHPAD_LIMIT = 600;
 const XP_PER_LEVEL = 400;
 const SPRINT_LENGTH = 5;
 const MAX_SESSION_LENGTH = 10;
@@ -1016,38 +1126,57 @@ const REVIEW_INTERVALS_MS = [
   14 * 24 * 60 * 60 * 1000,
 ] as const;
 
-function readStoredFieldNoteCount() {
+function readQuestionScratchpad(questionId: string) {
   if (typeof window === 'undefined') {
-    return 0;
+    return '';
   }
 
   try {
-    const parsedNotes = JSON.parse(
-      window.localStorage.getItem(FIELD_JOURNAL_STORAGE_KEY) ?? '[]',
+    const storedScratchpads = JSON.parse(
+      window.localStorage.getItem(QUESTION_SCRATCHPAD_STORAGE_KEY) ?? '{}',
     ) as unknown;
 
-    if (!Array.isArray(parsedNotes)) {
-      return 0;
+    if (!storedScratchpads || typeof storedScratchpads !== 'object') {
+      return '';
     }
 
-    return Math.min(
-      parsedNotes.filter((storedNote) => {
-        if (!storedNote || typeof storedNote !== 'object') {
-          return false;
-        }
+    const scratchpad = (storedScratchpads as Record<string, unknown>)[questionId];
+    return typeof scratchpad === 'string'
+      ? scratchpad.slice(0, QUESTION_SCRATCHPAD_LIMIT)
+      : '';
+  } catch {
+    return '';
+  }
+}
 
-        const note = storedNote as { body?: unknown; title?: unknown };
-        return (
-          typeof note.title === 'string' &&
-          note.title.trim().length > 0 &&
-          typeof note.body === 'string' &&
-          note.body.trim().length > 0
-        );
-      }).length,
-      40,
+function saveQuestionScratchpad(questionId: string, scratchpad: string) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    const parsedScratchpads = JSON.parse(
+      window.localStorage.getItem(QUESTION_SCRATCHPAD_STORAGE_KEY) ?? '{}',
+    ) as unknown;
+    const storedScratchpads =
+      parsedScratchpads && typeof parsedScratchpads === 'object'
+        ? (parsedScratchpads as Record<string, unknown>)
+        : {};
+    const nextScratchpads = Object.fromEntries(
+      Object.entries({
+        ...storedScratchpads,
+        [questionId]: scratchpad.slice(0, QUESTION_SCRATCHPAD_LIMIT),
+      })
+        .filter(([, value]) => typeof value === 'string' && value.trim())
+        .slice(-80),
+    );
+
+    window.localStorage.setItem(
+      QUESTION_SCRATCHPAD_STORAGE_KEY,
+      JSON.stringify(nextScratchpads),
     );
   } catch {
-    return 0;
+    // Scratchpad persistence is optional; the in-memory note remains available.
   }
 }
 
@@ -1061,7 +1190,8 @@ function readStoredNotebookLibraryView(): NotebookLibraryView | null {
       NOTEBOOK_LIBRARY_VIEW_STORAGE_KEY,
     );
 
-    return storedView === 'notes' ||
+    return storedView === 'study-list' ||
+      storedView === 'notes' ||
       storedView === 'formulas' ||
       storedView === 'questions' ||
       storedView === 'bench'
@@ -5434,7 +5564,7 @@ const sectionDescriptions: Record<AppSection, string> = {
   bank:
     'Browse verified topics and launch a focused diagnostic from the question collection.',
   notebook:
-    'Organize notes, formulas, saved questions, and repeatable lab setups in one learning library.',
+    'Organize your Study List, notes, formulas, saved questions, and repeatable lab setups in one learning library.',
 };
 
 const skillStatusClass: Record<SkillNode['status'], string> = {
@@ -5596,6 +5726,26 @@ function readStoredRememberSession() {
   } catch {
     return false;
   }
+}
+
+function formatAppLockVerificationFailure(
+  result: LocalAppLockVerificationResult,
+) {
+  const remainingMs = result.blockedUntil - Date.now();
+  if (remainingMs > 0) {
+    const seconds = Math.max(1, Math.ceil(remainingMs / 1000));
+    const duration =
+      seconds >= 60
+        ? `${Math.ceil(seconds / 60)} ${
+            Math.ceil(seconds / 60) === 1 ? 'minute' : 'minutes'
+          }`
+        : `${seconds} ${seconds === 1 ? 'second' : 'seconds'}`;
+    return `Retry protection is active. Try again in ${duration}.`;
+  }
+
+  return `The current PIN is wrong. ${result.attemptsRemaining} ${
+    result.attemptsRemaining === 1 ? 'attempt remains' : 'attempts remain'
+  } before a delay.`;
 }
 
 function normalizeLearnerProfile(value: unknown): LearnerProfile {
@@ -7130,6 +7280,12 @@ function App() {
       ? initialRoute.resourceId
       : null;
   const [isAuthenticated, setIsAuthenticated] = useState(readStoredSession);
+  const [appLockConfig, setAppLockConfig] =
+    useState<LocalAppLockConfig | null>(readLocalAppLockConfig);
+  const [isAppLocked, setIsAppLocked] = useState(() => {
+    const storedConfig = readLocalAppLockConfig();
+    return storedConfig ? isLocalAppLockExpired(storedConfig) : false;
+  });
   const [isOnline, setIsOnline] = useState(readOnlineStatus);
   const [isAppInstalled, setIsAppInstalled] = useState(readStandaloneStatus);
   const [deviceAlertPermission, setDeviceAlertPermission] =
@@ -7273,8 +7429,15 @@ function App() {
   const [labCatalogFilter, setLabCatalogFilter] =
     useState<LabCatalogFilter>('all');
   const [labCatalogQuery, setLabCatalogQuery] = useState('');
-  const [fieldNoteCount, setFieldNoteCount] = useState(
-    readStoredFieldNoteCount,
+  const [fieldNotes, setFieldNotes] = useState<FieldNote[]>(readFieldNotes);
+  const [focusedFieldNoteId, setFocusedFieldNoteId] = useState<string | null>(
+    null,
+  );
+  const [pendingFieldJournalDraft, setPendingFieldJournalDraft] =
+    useState<FieldJournalDraftSeed | null>(null);
+  const fieldNoteCount = fieldNotes.length;
+  const [studyListItems, setStudyListItems] = useState<StudyListItem[]>(
+    readStudyListItems,
   );
   const [notebookLibraryView, setNotebookLibraryView] =
     useState<NotebookLibraryView>(() =>
@@ -9069,6 +9232,13 @@ function App() {
         title: 'Study Route',
       },
       {
+        id: 'study-list',
+        kind: 'Tool',
+        keywords: 'queue save collect organize next learning targets',
+        subtitle: 'Collect and order your next learning targets',
+        title: 'Study List',
+      },
+      {
         id: 'review-plan',
         kind: 'Tool',
         keywords: 'smart review due retrieval spaced repetition',
@@ -9120,8 +9290,9 @@ function App() {
       {
         id: 'toolkit',
         kind: 'Tool',
-        keywords: 'calculator convert references equations',
-        subtitle: 'Calculator and engineering references',
+        keywords:
+          'calculator convert references equations resistor color bands voltage divider led current limiter rc timing cutoff filter',
+        subtitle: 'Circuit calculators, component sizing, and conversions',
         title: 'Engineering Toolkit',
       },
       {
@@ -9145,6 +9316,41 @@ function App() {
         subtitle: 'Start a five-question adaptive challenge',
         title: 'Power Sprint',
       },
+      ...fieldNotes.map((note) => ({
+        id: note.id,
+        kind: 'Note' as const,
+        keywords: [
+          note.body,
+          note.category,
+          note.pinned ? 'pinned important' : '',
+          'field journal personal note',
+        ].join(' '),
+        subtitle: `${
+          note.category[0].toUpperCase() + note.category.slice(1)
+        } note${note.pinned ? ' · Pinned' : ''}`,
+        title: note.title,
+      })),
+      ...labRunHistory.map((run) => {
+        const lab = labScenarios.find((candidate) => candidate.id === run.labId);
+
+        return {
+          id: run.id,
+          kind: 'Bench Run' as const,
+          keywords: [
+            run.output,
+            lab?.topic ?? '',
+            lab?.formula ?? '',
+            Object.entries(run.values)
+              .map(([key, value]) => `${key} ${value}`)
+              .join(' '),
+            'saved setup restore experiment instrument',
+          ].join(' '),
+          subtitle: `${run.output} · Saved ${formatSearchArtifactDate(
+            run.savedAt,
+          )}`,
+          title: lab?.title ?? 'Saved lab run',
+        };
+      }),
       ...skillNodes.map((skill) => ({
         id: skill.id,
         kind: 'Skill' as const,
@@ -9199,8 +9405,98 @@ function App() {
         title: question.subtopic,
       })),
     ],
-    [careerReadinessByRole],
+    [careerReadinessByRole, fieldNotes, labRunHistory],
   );
+  const studyListCatalog = useMemo<StudyListResource[]>(
+    () =>
+      searchIndex.flatMap((result) =>
+        isStudyListKind(result.kind)
+          ? [
+              {
+                id: result.id,
+                kind: result.kind,
+                subtitle: result.subtitle,
+                title: result.title,
+              },
+            ]
+          : [],
+      ),
+    [searchIndex],
+  );
+  const currentStudyListResource = useMemo<StudyListResource | null>(() => {
+    let id: string | null = null;
+    let kind: StudyListResource['kind'] | null = null;
+
+    if (activePage === 'lesson') {
+      id = currentQuestion.id;
+      kind = 'Question';
+    } else if (activePage === 'lab' || activePage === 'workbench') {
+      id = activeLab.id;
+      kind = 'Lab';
+    } else if (activePage === 'concept' && activeAtlasId) {
+      id = activeAtlasId;
+      kind = 'Concept';
+    } else if (activePage === 'game' && activeAtlasId) {
+      id = activeAtlasId;
+      kind = 'Game';
+    } else if (
+      activePage === 'career' ||
+      activePage === 'career-project' ||
+      activePage === 'portfolio'
+    ) {
+      id = selectedCareer.role;
+      kind = 'Career';
+    } else if (activePage === 'skill-map') {
+      id = activeSkillMapNode.id;
+      kind = 'Skill';
+    }
+
+    return id && kind
+      ? studyListCatalog.find(
+          (resource) => resource.id === id && resource.kind === kind,
+        ) ?? null
+      : null;
+  }, [
+    activeAtlasId,
+    activeLab.id,
+    activePage,
+    activeSkillMapNode.id,
+    currentQuestion.id,
+    selectedCareer.role,
+    studyListCatalog,
+  ]);
+  const currentStudyListItem = currentStudyListResource
+    ? studyListItems.find(
+        (item) =>
+          getStudyListItemKey(item) ===
+          getStudyListItemKey(currentStudyListResource),
+      ) ?? null
+    : null;
+  const activeStudyListItems = studyListItems.filter(
+    (item) => item.completedAt === null,
+  );
+  const currentStudyListQueueIndex = currentStudyListResource
+    ? activeStudyListItems.findIndex(
+        (item) =>
+          getStudyListItemKey(item) ===
+          getStudyListItemKey(currentStudyListResource),
+      )
+    : -1;
+  const nextStudyListItem = (() => {
+    if (activeStudyListItems.length === 0) {
+      return null;
+    }
+
+    if (currentStudyListQueueIndex < 0) {
+      return activeStudyListItems[0];
+    }
+
+    return activeStudyListItems.length > 1
+      ? activeStudyListItems[
+          (currentStudyListQueueIndex + 1) % activeStudyListItems.length
+        ]
+      : null;
+  })();
   const rankedSearchResults = useMemo<SearchResult[]>(() => {
     const normalizedQuery = normalizeSearchText(query);
 
@@ -9357,6 +9653,12 @@ function App() {
     weeklyPlanProgress.questions,
     weeklyPlanProgress.xp,
   ]);
+  const activityIndicatorCount =
+    unreadNotificationCount > 0
+      ? unreadNotificationCount
+      : activeSessionResults.length;
+  const activityIndicatorIsQueue =
+    unreadNotificationCount === 0 && activeSessionResults.length > 0;
   const quickSearchResults = useMemo<SearchResult[]>(() => {
     const recommendedResult: SearchResult = {
       id: 'power-sprint',
@@ -9378,9 +9680,15 @@ function App() {
         title: 'Weekly Plan',
       },
       {
+        id: 'study-list',
+        kind: 'Tool',
+        subtitle: 'Collect and order your next learning targets',
+        title: 'Study List',
+      },
+      {
         id: 'toolkit',
         kind: 'Tool',
-        subtitle: 'Calculator, conversions, and references',
+        subtitle: 'Calculators, resistor tools, and conversions',
         title: 'Engineering Toolkit',
       },
       {
@@ -9400,6 +9708,20 @@ function App() {
       ...defaultResults,
     ]
       .filter((result) => {
+        if (
+          result.kind === 'Note' &&
+          !fieldNotes.some((note) => note.id === result.id)
+        ) {
+          return false;
+        }
+
+        if (
+          result.kind === 'Bench Run' &&
+          !labRunHistory.some((run) => run.id === result.id)
+        ) {
+          return false;
+        }
+
         const key = `${result.kind}:${result.id}`;
         if (seenResults.has(key)) {
           return false;
@@ -9410,6 +9732,8 @@ function App() {
       .slice(0, 6);
   }, [
     activeSessionResults,
+    fieldNotes,
+    labRunHistory,
     recentLearningSearchResults,
     recentSearchResults,
   ]);
@@ -9539,6 +9863,35 @@ function App() {
       // Recent activity remains available for this session.
     }
   }, [recentLearningItems]);
+
+  useEffect(() => {
+    try {
+      saveStudyListItems(studyListItems);
+    } catch {
+      // The Study List remains available for this session.
+    }
+  }, [studyListItems]);
+
+  useEffect(() => {
+    function handleStudyListStorage(event: StorageEvent) {
+      if (event.key !== STUDY_LIST_STORAGE_KEY) {
+        return;
+      }
+
+      try {
+        setStudyListItems(
+          event.newValue
+            ? normalizeStudyListItems(JSON.parse(event.newValue) as unknown)
+            : [],
+        );
+      } catch {
+        // Ignore malformed updates from another tab and keep the current queue.
+      }
+    }
+
+    window.addEventListener('storage', handleStudyListStorage);
+    return () => window.removeEventListener('storage', handleStudyListStorage);
+  }, []);
 
   useEffect(() => {
     try {
@@ -10073,6 +10426,18 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const handleFieldJournalStorageChange = (event: StorageEvent) => {
+      if (event.key === FIELD_JOURNAL_STORAGE_KEY) {
+        setFieldNotes(readFieldNotes());
+      }
+    };
+
+    window.addEventListener('storage', handleFieldJournalStorageChange);
+    return () =>
+      window.removeEventListener('storage', handleFieldJournalStorageChange);
+  }, []);
+
+  useEffect(() => {
     if (deviceAlertPermission === 'unsupported') {
       return;
     }
@@ -10157,6 +10522,92 @@ function App() {
       // Sign-out still succeeds in memory.
     }
   }, [isAuthenticated, rememberSession]);
+
+  useEffect(() => {
+    const syncAppLock = (event: StorageEvent) => {
+      if (event.key === LOCAL_APP_LOCK_STORAGE_KEY) {
+        const nextConfig = readLocalAppLockConfig();
+        setAppLockConfig(nextConfig);
+        if (!nextConfig) {
+          setIsAppLocked(false);
+        }
+        return;
+      }
+
+      if (event.key === LOCAL_APP_LOCK_COMMAND_STORAGE_KEY) {
+        const nextConfig = readLocalAppLockConfig();
+        setAppLockConfig(nextConfig);
+        if (nextConfig) {
+          clearLocalAppLockActivity();
+          setOverlay(null);
+          setIsAppLocked(true);
+        }
+      }
+    };
+
+    window.addEventListener('storage', syncAppLock);
+    return () => window.removeEventListener('storage', syncAppLock);
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated || !appLockConfig || isAppLocked) {
+      return;
+    }
+
+    const timeoutMs = appLockConfig.timeoutMinutes * 60_000;
+    let lastActivity = readLocalAppLockActivity() ?? Date.now();
+    let lockTimer = 0;
+
+    const lockSession = () => {
+      clearLocalAppLockActivity();
+      setOverlay(null);
+      setIsAppLocked(true);
+    };
+    const scheduleLock = () => {
+      window.clearTimeout(lockTimer);
+      const remainingMs = Math.max(0, timeoutMs - (Date.now() - lastActivity));
+      lockTimer = window.setTimeout(lockSession, remainingMs);
+    };
+    const recordActivity = () => {
+      lastActivity = Date.now();
+      markLocalAppLockActivity(lastActivity);
+      scheduleLock();
+    };
+    const checkVisibility = () => {
+      if (
+        document.visibilityState !== 'visible' &&
+        appLockConfig.lockOnHidden
+      ) {
+        lockSession();
+        return;
+      }
+      if (document.visibilityState !== 'visible') {
+        return;
+      }
+      if (Date.now() - lastActivity >= timeoutMs) {
+        lockSession();
+      } else {
+        scheduleLock();
+      }
+    };
+
+    markLocalAppLockActivity(lastActivity);
+    scheduleLock();
+    window.addEventListener('keydown', recordActivity);
+    window.addEventListener('pointerdown', recordActivity);
+    window.addEventListener('touchstart', recordActivity, { passive: true });
+    window.addEventListener('wheel', recordActivity, { passive: true });
+    document.addEventListener('visibilitychange', checkVisibility);
+
+    return () => {
+      window.clearTimeout(lockTimer);
+      window.removeEventListener('keydown', recordActivity);
+      window.removeEventListener('pointerdown', recordActivity);
+      window.removeEventListener('touchstart', recordActivity);
+      window.removeEventListener('wheel', recordActivity);
+      document.removeEventListener('visibilitychange', checkVisibility);
+    };
+  }, [appLockConfig, isAppLocked, isAuthenticated]);
 
   useEffect(() => {
     const updateActivityDate = () => {
@@ -10455,6 +10906,183 @@ function App() {
 
   function showToast(message: string, action?: ToastAction) {
     setToast({ action, message });
+  }
+
+  function handleAddStudyListItem(resource: StudyListResource) {
+    setStudyListItems((items) => addStudyListResource(items, resource));
+    showToast(`${resource.title} added to your Study List.`);
+  }
+
+  function handleRemoveStudyListItem(item: StudyListItem) {
+    const itemKey = getStudyListItemKey(item);
+    const itemIndex = studyListItems.findIndex(
+      (candidate) => getStudyListItemKey(candidate) === itemKey,
+    );
+
+    setStudyListItems((items) =>
+      items.filter(
+        (candidate) => getStudyListItemKey(candidate) !== itemKey,
+      ),
+    );
+    showToast(`${item.title} removed from your Study List.`, {
+      label: 'Undo',
+      run: () =>
+        setStudyListItems((items) => {
+          if (
+            items.some(
+              (candidate) => getStudyListItemKey(candidate) === itemKey,
+            )
+          ) {
+            return items;
+          }
+
+          const nextItems = [...items];
+          nextItems.splice(
+            Math.max(0, Math.min(itemIndex, items.length)),
+            0,
+            item,
+          );
+          return nextItems;
+        }),
+    });
+  }
+
+  function handleMoveStudyListItem(
+    item: StudyListItem,
+    direction: -1 | 1,
+  ) {
+    setStudyListItems((items) => {
+      const currentIndex = items.findIndex(
+        (candidate) =>
+          getStudyListItemKey(candidate) === getStudyListItemKey(item),
+      );
+      const targetIndex = currentIndex + direction;
+
+      if (
+        currentIndex < 0 ||
+        targetIndex < 0 ||
+        targetIndex >= items.length
+      ) {
+        return items;
+      }
+
+      const nextItems = [...items];
+      [nextItems[currentIndex], nextItems[targetIndex]] = [
+        nextItems[targetIndex],
+        nextItems[currentIndex],
+      ];
+      return nextItems;
+    });
+  }
+
+  function handleClearCompletedStudyListItems() {
+    const itemsBeforeClear = studyListItems;
+    const completedItems = studyListItems.filter(
+      (item) => item.completedAt !== null,
+    );
+
+    if (completedItems.length === 0) {
+      return;
+    }
+
+    setStudyListItems((items) =>
+      items.filter((item) => item.completedAt === null),
+    );
+    showToast(
+      `${completedItems.length} completed ${
+        completedItems.length === 1 ? 'item' : 'items'
+      } cleared.`,
+      {
+        label: 'Undo',
+        run: () =>
+          setStudyListItems((items) => {
+            const currentItems = new Map(
+              items.map((item) => [getStudyListItemKey(item), item]),
+            );
+            const previousKeys = new Set(
+              itemsBeforeClear.map(getStudyListItemKey),
+            );
+
+            return [
+              ...itemsBeforeClear.map(
+                (item) =>
+                  currentItems.get(getStudyListItemKey(item)) ?? item,
+              ),
+              ...items.filter(
+                (item) => !previousKeys.has(getStudyListItemKey(item)),
+              ),
+            ];
+          }),
+      },
+    );
+  }
+
+  function handleToggleStudyListItemComplete(item: StudyListItem) {
+    const itemKey = getStudyListItemKey(item);
+    const completing = item.completedAt === null;
+
+    setStudyListItems((items) =>
+      items.map((candidate) =>
+        getStudyListItemKey(candidate) === itemKey
+          ? {
+              ...candidate,
+              completedAt: completing ? Date.now() : null,
+            }
+          : candidate,
+      ),
+    );
+    showToast(
+      completing
+        ? `${item.title} marked complete.`
+        : `${item.title} returned to your active queue.`,
+    );
+  }
+
+  function markStudyListResourceComplete(
+    kind: StudyListResource['kind'],
+    resourceId: string,
+  ) {
+    const itemKey = getStudyListItemKey({ id: resourceId, kind });
+
+    setStudyListItems((items) => {
+      const itemIndex = items.findIndex(
+        (item) =>
+          getStudyListItemKey(item) === itemKey && item.completedAt === null,
+      );
+
+      if (itemIndex < 0) {
+        return items;
+      }
+
+      const nextItems = [...items];
+      nextItems[itemIndex] = {
+        ...nextItems[itemIndex],
+        completedAt: Date.now(),
+      };
+      return nextItems;
+    });
+  }
+
+  function handleToggleCurrentStudyListItem() {
+    if (!currentStudyListResource) {
+      return;
+    }
+
+    if (currentStudyListItem) {
+      handleRemoveStudyListItem(currentStudyListItem);
+      return;
+    }
+
+    handleAddStudyListItem(currentStudyListResource);
+  }
+
+  function handleOpenStudyListItem(item: StudyListItem) {
+    handleSearchResultSelect({
+      id: item.id,
+      kind: item.kind,
+      subtitle: item.subtitle,
+      title: item.title,
+    });
   }
 
   async function handleInstallApp() {
@@ -10885,6 +11513,8 @@ function App() {
   }
 
   function handleSectionChange(section: AppSection) {
+    setFocusedFieldNoteId(null);
+
     if (section === activeSection && activePage === 'overview') {
       setOverlay(null);
       window.scrollTo({
@@ -10989,18 +11619,16 @@ function App() {
   }
 
   function handleOpenFieldJournal(seed: FieldJournalDraftSeed) {
-    const draftStaged = stageFieldJournalDraft(seed);
+    stageFieldJournalDraft(seed);
+    setPendingFieldJournalDraft(seed);
+    setFocusedFieldNoteId(null);
     setNotebookFilter('all');
     setNotebookQuery('');
     setNotebookLibraryView('notes');
     setActiveSection('notebook');
     setActivePage('overview');
     setOverlay(null);
-    showToast(
-      draftStaged
-        ? `${seed.title} opened in your Field Journal.`
-        : 'Field Journal opened. Select New note to begin.',
-    );
+    showToast(`${seed.title} opened in your Field Journal.`);
   }
 
   function handleSkillSelect(skill: SkillNode) {
@@ -11780,6 +12408,7 @@ function App() {
   }
 
   function handleOpenTutor() {
+    void preloadZyTutor().catch(() => undefined);
     setOverlay(null);
     setTutorOpen(true);
   }
@@ -12803,6 +13432,8 @@ function App() {
       }
     }
 
+    markStudyListResourceComplete('Career', selectedCareer.role);
+
     showToast(
       isFirstCompletion
         ? `Project review complete. ${score}% evidence score and +${activeCareerProject.xp} XP.`
@@ -12884,6 +13515,16 @@ function App() {
       if (soundEnabled) {
         playFeedbackTone('correct');
       }
+    }
+
+    const completedMissionIds = new Set(completedLabMissionIds);
+    completedMissionIds.add(activeLabMission.id);
+    if (
+      activeLabMissions.every((mission) =>
+        completedMissionIds.has(mission.id),
+      )
+    ) {
+      markStudyListResourceComplete('Lab', activeLab.id);
     }
 
     setLabMissionFeedback({
@@ -13084,6 +13725,25 @@ function App() {
   }
 
   function handleSearchResultSelect(result: SearchResult) {
+    const fieldNote =
+      result.kind === 'Note'
+        ? fieldNotes.find((note) => note.id === result.id) ?? null
+        : null;
+    const benchRun =
+      result.kind === 'Bench Run'
+        ? labRunHistory.find((run) => run.id === result.id) ?? null
+        : null;
+
+    if (result.kind === 'Note' && !fieldNote) {
+      showToast('That Field Journal note is no longer available.');
+      return;
+    }
+
+    if (result.kind === 'Bench Run' && !benchRun) {
+      showToast('That saved Bench Run is no longer available.');
+      return;
+    }
+
     if (!result.transient) {
       setRecentSearchResults((currentResults) =>
         [
@@ -13108,6 +13768,22 @@ function App() {
       return;
     }
 
+    if (fieldNote) {
+      setFocusedFieldNoteId(fieldNote.id);
+      setNotebookFilter('all');
+      setNotebookQuery('');
+      setNotebookLibraryView('notes');
+      setActiveSection('notebook');
+      setActivePage('overview');
+      showToast(`${fieldNote.title} opened in your Field Journal.`);
+      return;
+    }
+
+    if (benchRun) {
+      handleOpenNotebookLabRun(benchRun);
+      return;
+    }
+
     if (result.kind === 'Section') {
       handleSectionChange(result.id as AppSection);
       showToast(`${result.title} opened.`);
@@ -13121,6 +13797,13 @@ function App() {
           return;
         case 'study-route':
           handleOpenStudyRoute();
+          return;
+        case 'study-list':
+          setFocusedFieldNoteId(null);
+          setNotebookLibraryView('study-list');
+          setActiveSection('notebook');
+          setActivePage('overview');
+          showToast('Study List opened.');
           return;
         case 'review-plan':
           handleOpenReviewPlan();
@@ -13194,6 +13877,7 @@ function App() {
       const formulaEntry = FORMULA_LIBRARY.find(
         (entry) => entry.id === result.id,
       );
+      setFocusedFieldNoteId(null);
       setNotebookFilter('all');
       setNotebookQuery(formulaEntry?.title ?? '');
       setNotebookLibraryView('formulas');
@@ -13361,11 +14045,22 @@ function App() {
     }
 
     if (optionIndex === currentQuestion.correctIndex) {
+      const nextSkillProgress = Math.min(
+        100,
+        (skillProgress[activeSkill.id] ?? activeSkill.progress) + 4,
+      );
       setEarnedXp((xp) => xp + currentQuestion.xp);
       setSkillProgress((progress) => ({
         ...progress,
-        [activeSkill.id]: Math.min(100, (progress[activeSkill.id] ?? activeSkill.progress) + 4),
+        [activeSkill.id]: Math.min(
+          100,
+          (progress[activeSkill.id] ?? activeSkill.progress) + 4,
+        ),
       }));
+      markStudyListResourceComplete('Question', currentQuestion.id);
+      if (nextSkillProgress >= 100) {
+        markStudyListResourceComplete('Skill', activeSkill.id);
+      }
       return;
     }
 
@@ -13540,6 +14235,156 @@ function App() {
     setSelectedOption(null);
   }
 
+  async function handleEnableAppLock(
+    pin: string,
+    timeoutMinutes: number,
+    lockOnHidden: boolean,
+  ) {
+    try {
+      const config = await createLocalAppLockConfig(
+        pin,
+        timeoutMinutes,
+        lockOnHidden,
+      );
+      saveLocalAppLockConfig(config);
+      markLocalAppLockActivity();
+      setAppLockConfig(config);
+      setIsAppLocked(false);
+      broadcastLocalAppLock();
+      return {
+        message:
+          'Device lock enabled with protected retries. Only the salted verifier was stored.',
+        ok: true,
+      };
+    } catch {
+      return {
+        message: 'The device lock could not be enabled in this browser.',
+        ok: false,
+      };
+    }
+  }
+
+  async function handleChangeAppLockPin(currentPin: string, nextPin: string) {
+    if (!appLockConfig) {
+      return { message: 'The device lock is not enabled.', ok: false };
+    }
+
+    const verification = await verifyLocalAppLockPinWithProtection(
+      currentPin,
+      appLockConfig,
+    );
+    if (!verification.ok) {
+      return {
+        message: formatAppLockVerificationFailure(verification),
+        ok: false,
+      };
+    }
+
+    try {
+      const nextConfig = await createLocalAppLockConfig(
+        nextPin,
+        appLockConfig.timeoutMinutes,
+        appLockConfig.lockOnHidden,
+      );
+      saveLocalAppLockConfig(nextConfig);
+      markLocalAppLockActivity();
+      setAppLockConfig(nextConfig);
+      broadcastLocalAppLock();
+      return { message: 'Device PIN updated.', ok: true };
+    } catch {
+      return { message: 'The new PIN could not be stored.', ok: false };
+    }
+  }
+
+  async function handleDisableAppLock(currentPin: string) {
+    if (!appLockConfig) {
+      return { message: 'The device lock is already off.', ok: true };
+    }
+
+    const verification = await verifyLocalAppLockPinWithProtection(
+      currentPin,
+      appLockConfig,
+    );
+    if (!verification.ok) {
+      return {
+        message: formatAppLockVerificationFailure(verification),
+        ok: false,
+      };
+    }
+
+    try {
+      removeLocalAppLockConfig();
+      setAppLockConfig(null);
+      setIsAppLocked(false);
+      return { message: 'Device lock removed.', ok: true };
+    } catch {
+      return { message: 'The device lock could not be removed.', ok: false };
+    }
+  }
+
+  function handleAppLockTimeoutChange(timeoutMinutes: number) {
+    if (!appLockConfig) {
+      return;
+    }
+
+    const nextConfig = { ...appLockConfig, timeoutMinutes };
+    try {
+      saveLocalAppLockConfig(nextConfig);
+      markLocalAppLockActivity();
+      setAppLockConfig(nextConfig);
+    } catch {
+      showToast('Auto-lock timing could not be saved in this browser.');
+    }
+  }
+
+  function handleAppLockHiddenChange(lockOnHidden: boolean) {
+    if (!appLockConfig) {
+      return;
+    }
+
+    const nextConfig = { ...appLockConfig, lockOnHidden };
+    try {
+      saveLocalAppLockConfig(nextConfig);
+      markLocalAppLockActivity();
+      setAppLockConfig(nextConfig);
+    } catch {
+      showToast('Background-lock preference could not be saved.');
+    }
+  }
+
+  function handleLockAppNow() {
+    if (!appLockConfig) {
+      return;
+    }
+
+    clearLocalAppLockActivity();
+    broadcastLocalAppLock();
+    setOverlay(null);
+    setIsAppLocked(true);
+  }
+
+  async function handleUnlockApp(pin: string) {
+    if (!appLockConfig) {
+      setIsAppLocked(false);
+      return {
+        attemptsRemaining: 5,
+        blockedUntil: 0,
+        failedAttempts: 0,
+        ok: true,
+      };
+    }
+
+    const verification = await verifyLocalAppLockPinWithProtection(
+      pin,
+      appLockConfig,
+    );
+    if (verification.ok) {
+      markLocalAppLockActivity();
+      setIsAppLocked(false);
+    }
+    return verification;
+  }
+
   function handleAuthModeChange(mode: AuthMode) {
     setAuthMode(mode);
     setAuthNotice('');
@@ -13601,6 +14446,8 @@ function App() {
   }
 
   function handleSignOut() {
+    clearLocalAppLockActivity();
+    setIsAppLocked(Boolean(appLockConfig));
     setIsAuthenticated(false);
     setEntryView('auth');
     setAuthMode('login');
@@ -13636,6 +14483,15 @@ function App() {
         onSubmit={handleAuthSubmit}
         password={authPassword}
         rememberSession={rememberSession}
+      />
+    );
+  }
+
+  if (isAppLocked && appLockConfig) {
+    return (
+      <LocalAppLockScreen
+        onSignOut={handleSignOut}
+        onUnlock={handleUnlockApp}
       />
     );
   }
@@ -13939,6 +14795,7 @@ function App() {
         data-contrast={highContrastEnabled ? 'strong' : 'soft'}
         data-focus-view={focusViewActive ? 'active' : 'inactive'}
         data-motion={reducedMotionEnabled ? 'reduced' : 'full'}
+        data-section={activeSection}
       >
       <a
         className="skipLink"
@@ -14103,6 +14960,7 @@ function App() {
                 aria-controls="zylo-search-results"
                 aria-expanded={searchOpen}
                 aria-haspopup="listbox"
+                aria-keyshortcuts="Meta+K Control+K /"
                 aria-label="Search ZyloXP"
                 onChange={(event) => {
                   setQuery(event.target.value);
@@ -14220,12 +15078,12 @@ function App() {
                       </button>
                     ))
                   ) : (
-                    <div className="searchEmpty">
-                      <strong>No matches yet</strong>
-                      <span>
-                        Try a section, tool, topic, lab, role, or formula.
-                      </span>
-                    </div>
+                      <div className="searchEmpty">
+                        <strong>No matches yet</strong>
+                        <span>
+                          Try a topic, note, bench run, lab, role, or formula.
+                        </span>
+                      </div>
                   )}
                 </div>
               </div>
@@ -14308,6 +15166,12 @@ function App() {
               aria-label="Open Engineering Toolkit"
               className="iconButton toolkitLaunchButton"
               onClick={() => setOverlay('toolkit')}
+              onFocus={() =>
+                void preloadEngineeringToolkit().catch(() => undefined)
+              }
+              onPointerEnter={() =>
+                void preloadEngineeringToolkit().catch(() => undefined)
+              }
               title="Engineering Toolkit"
               type="button"
             >
@@ -14317,6 +15181,10 @@ function App() {
               aria-label="Open Zy Tutor"
               className="iconButton tutorLaunchButton"
               onClick={handleOpenTutor}
+              onFocus={() => void preloadZyTutor().catch(() => undefined)}
+              onPointerEnter={() =>
+                void preloadZyTutor().catch(() => undefined)
+              }
               title="Ask Zy"
               type="button"
             >
@@ -14354,21 +15222,32 @@ function App() {
             </button>
             <button
               aria-label={`Open activity${
+                activeSessionResults.length > 0
+                  ? `, ${activeSessionResults.length} active learning ${
+                      activeSessionResults.length === 1 ? 'thread' : 'threads'
+                    }`
+                  : ''
+              }${
                 unreadNotificationCount > 0
                   ? `, ${unreadNotificationCount} unread updates`
                   : ''
               }`}
               className={`iconButton notificationButton ${
-                unreadNotificationCount > 0 ? 'hasItems' : ''
+                activityIndicatorCount > 0 ? 'hasItems' : ''
               }`}
               onClick={() => setOverlay('notifications')}
               title="Activity"
               type="button"
             >
               <Bell size={18} />
-              {unreadNotificationCount > 0 && (
-                <span className="notificationBadge">
-                  {Math.min(9, unreadNotificationCount)}
+              {activityIndicatorCount > 0 && (
+                <span
+                  aria-hidden="true"
+                  className={`notificationBadge ${
+                    activityIndicatorIsQueue ? 'queue' : ''
+                  }`}
+                >
+                  {Math.min(9, activityIndicatorCount)}
                 </span>
               )}
             </button>
@@ -14394,6 +15273,90 @@ function App() {
             />
           </span>
         </header>
+
+        {currentStudyListResource && (
+          <section
+            aria-label="Current learning item"
+            className={`learningContextBar ${
+              currentStudyListItem?.completedAt ? 'complete' : ''
+            }`}
+          >
+            <div className="learningContextCopy">
+              <span>{currentStudyListResource.kind}</span>
+              <div>
+                <strong title={currentStudyListResource.title}>
+                  {currentStudyListResource.title}
+                </strong>
+                <small title={currentStudyListResource.subtitle}>
+                  {currentStudyListResource.subtitle}
+                </small>
+              </div>
+            </div>
+            <div className="learningContextActions">
+              <span
+                aria-live="polite"
+                className="learningContextStatus"
+                data-state={
+                  currentStudyListItem?.completedAt
+                    ? 'complete'
+                    : currentStudyListItem
+                      ? 'queued'
+                      : 'available'
+                }
+              >
+                {currentStudyListItem?.completedAt ? (
+                  <CheckCircle2 aria-hidden="true" size={15} />
+                ) : currentStudyListItem ? (
+                  <BookmarkCheck aria-hidden="true" size={15} />
+                ) : (
+                  <Bookmark aria-hidden="true" size={15} />
+                )}
+                <span>
+                  {currentStudyListItem?.completedAt
+                    ? 'Completed'
+                    : currentStudyListQueueIndex >= 0
+                      ? `Queued ${currentStudyListQueueIndex + 1} of ${
+                          activeStudyListItems.length
+                        }`
+                      : `${activeStudyListItems.length} queued`}
+                </span>
+              </span>
+              <button
+                aria-label={`${
+                  currentStudyListItem ? 'Remove' : 'Add'
+                } ${currentStudyListResource.title} ${
+                  currentStudyListItem ? 'from' : 'to'
+                } Study List`}
+                aria-pressed={Boolean(currentStudyListItem)}
+                className={`secondaryButton learningContextSave ${
+                  currentStudyListItem ? 'saved' : ''
+                }`}
+                onClick={handleToggleCurrentStudyListItem}
+                type="button"
+              >
+                {currentStudyListItem ? (
+                  <BookmarkCheck aria-hidden="true" size={16} />
+                ) : (
+                  <Bookmark aria-hidden="true" size={16} />
+                )}
+                <span>
+                  {currentStudyListItem ? 'Remove' : 'Add to Study List'}
+                </span>
+              </button>
+              {nextStudyListItem && (
+                <button
+                  aria-label={`Open next queued item: ${nextStudyListItem.title}`}
+                  className="iconButton learningContextNext"
+                  onClick={() => handleOpenStudyListItem(nextStudyListItem)}
+                  title={`Next: ${nextStudyListItem.title}`}
+                  type="button"
+                >
+                  <ArrowRight aria-hidden="true" size={17} />
+                </button>
+              )}
+            </div>
+          </section>
+        )}
 
         {!isOnline && (
           <div aria-live="polite" className="connectionBanner" role="status">
@@ -14519,6 +15482,14 @@ function App() {
             <ElectricalAtlas
               activeId={activeAtlasId}
               onBack={handleBackToAtlas}
+              onCompleteConcept={(conceptId) =>
+                markStudyListResourceComplete('Concept', conceptId)
+              }
+              onCompleteGame={(gameId, score) => {
+                if (score >= 80) {
+                  markStudyListResourceComplete('Game', gameId);
+                }
+              }}
               onOpenConcept={handleAtlasConceptSelect}
               onOpenGame={handleAtlasGameSelect}
               onOpenLab={handleLabSelect}
@@ -14936,9 +15907,9 @@ function App() {
             onNextPrompt={handleNextPrompt}
             onOpenAtlasConcept={handleAtlasConceptSelect}
             onOpenAtlasGame={handleAtlasGameSelect}
-            onOpenJournal={() =>
+            onOpenJournal={(scratchpad) =>
               handleOpenFieldJournal({
-                body: `${currentQuestion.formula}\nReasoning: `,
+                body: `${currentQuestion.formula}\nReasoning: ${scratchpad?.trim() ?? ''}`,
                 category: 'formula',
                 title: `${currentQuestion.subtopic} reasoning`,
               })
@@ -15203,6 +16174,16 @@ function App() {
               </div>
             </button>
           </div>
+
+          <div aria-hidden="true" className="heroSignalRail">
+            <span className="heroSignalTrace" />
+            <span className="heroSignalNode heroSignalNodeStart" />
+            <span className="heroSignalNode heroSignalNodeQuarter" />
+            <span className="heroSignalNode heroSignalNodeMid" />
+            <span className="heroSignalNode heroSignalNodeEnd" />
+            <span className="heroSignalPulse" />
+            <span className="heroSignalTerminal" />
+          </div>
         </section>
 
         <nav className="sectionTabs" aria-label="Workspace sections">
@@ -15347,6 +16328,11 @@ function App() {
                 <strong>Study tools</strong>
                 <small>Focus · Routes · Recovery · Checkpoints · Practice</small>
               </span>
+            </span>
+            <span aria-hidden="true" className="studyToolSignal">
+              <i />
+              <i />
+              <i />
             </span>
             <span className="studyToolToggleMeta">
               <small>{studyToolsExpanded ? 'Hide' : '9 activities'}</small>
@@ -15675,19 +16661,22 @@ function App() {
           )}
         </div>
 
-        <DailyMissionBoard
-          completedCount={dailyMissionCompletedCount}
-          currentStreak={currentStreak}
-          dailyGoal={dailyGoal}
-          missions={dailyMissions}
-          onClaimReward={handleClaimDailyMissionReward}
-          onOpenMission={handleOpenDailyMission}
-          onOpenWeeklyPlan={handleOpenWeeklyPlan}
-          rewardClaimed={dailyMissionRewardClaimed}
-          weeklyActivity={weeklyActivity}
-          weeklyPlan={currentWeeklyPlan}
-          weeklyPlanComplete={weeklyPlanComplete}
-        />
+        <Suspense fallback={<DailyMissionBoardFallback />}>
+          <DailyMissionBoard
+            completedCount={dailyMissionCompletedCount}
+            currentStreak={currentStreak}
+            dailyGoal={dailyGoal}
+            hasWeeklyPlan={currentWeeklyPlan !== null}
+            missions={dailyMissions}
+            onClaimReward={handleClaimDailyMissionReward}
+            onOpenMission={handleOpenDailyMission}
+            onOpenWeeklyPlan={handleOpenWeeklyPlan}
+            rewardClaimed={dailyMissionRewardClaimed}
+            rewardXp={DAILY_MISSION_REWARD_XP}
+            weeklyActivity={weeklyActivity}
+            weeklyPlanComplete={weeklyPlanComplete}
+          />
+        </Suspense>
 
         <section className="adaptiveFocusBand" aria-label="Adaptive focus recommendation">
           <span className="adaptiveFocusIcon">
@@ -16294,6 +17283,7 @@ function App() {
                     <button
                       aria-label={`Open ${entry.lab.title}. ${entry.completedMissions} of ${entry.totalMissions} missions and ${entry.completedFaults} of ${entry.totalFaults} faults complete.`}
                       className="labCard"
+                      data-progress={entry.progress}
                       key={entry.lab.id}
                       onClick={() => handleLabSelect(entry.lab.id)}
                       type="button"
@@ -16316,12 +17306,18 @@ function App() {
                         {entry.completedMissions}/{entry.totalMissions} missions ·{' '}
                         {entry.completedFaults}/{entry.totalFaults} faults
                       </em>
+                      <span
+                        aria-hidden="true"
+                        className="labCardSignalBus"
+                        data-progress={entry.progress}
+                      />
                     </button>
                   ))}
                   {showWorkbenchCatalogEntry && (
                     <button
                       aria-label={`Open Circuit Workbench. ${savedCircuitDesigns.length} of 6 designs saved.`}
                       className="labCard workbenchCard"
+                      data-progress={workbenchCatalogProgress}
                       onClick={handleOpenCircuitWorkbench}
                       type="button"
                     >
@@ -16344,6 +17340,11 @@ function App() {
                       <em data-progress={workbenchCatalogProgress}>
                         {savedCircuitDesigns.length}/6 saved · live power check
                       </em>
+                      <span
+                        aria-hidden="true"
+                        className="labCardSignalBus"
+                        data-progress={workbenchCatalogProgress}
+                      />
                     </button>
                   )}
                   {visibleLabCatalogCount === 0 && (
@@ -16534,11 +17535,34 @@ function App() {
                   benchRunCount={labRunHistory.length}
                   formulaCount={savedFormulaIds.length}
                   noteCount={fieldNoteCount}
-                  onChange={setNotebookLibraryView}
+                  onChange={(view) => {
+                    setNotebookLibraryView(view);
+                    if (view !== 'notes') {
+                      setFocusedFieldNoteId(null);
+                    }
+                  }}
                   questionCount={savedQuestionLibraryItems.length}
+                  studyListCount={studyListItems.length}
                 />
+                {notebookLibraryView === 'study-list' && (
+                  <StudyListWorkspace
+                    catalog={studyListCatalog}
+                    items={studyListItems}
+                    onAdd={handleAddStudyListItem}
+                    onClearCompleted={handleClearCompletedStudyListItems}
+                    onMove={handleMoveStudyListItem}
+                    onOpen={handleOpenStudyListItem}
+                    onRemove={handleRemoveStudyListItem}
+                    onToggleComplete={handleToggleStudyListItemComplete}
+                  />
+                )}
                 {notebookLibraryView === 'notes' && (
-                  <FieldJournal onNoteCountChange={setFieldNoteCount} />
+                  <FieldJournal
+                    draftSeed={pendingFieldJournalDraft}
+                    focusedNoteId={focusedFieldNoteId}
+                    onDraftConsumed={() => setPendingFieldJournalDraft(null)}
+                    onNotesChange={setFieldNotes}
+                  />
                 )}
                 {notebookLibraryView === 'formulas' && (
                   <FormulaNotebookWorkspace
@@ -16548,6 +17572,7 @@ function App() {
                     formulaConfidence={formulaConfidence}
                     formulaReviewCompletions={formulaReviewCompletions}
                     learningCount={learningFormulaCount}
+                    library={FORMULA_LIBRARY}
                     onEndReview={handleEndFormulaReview}
                     onFilterChange={setNotebookFilter}
                     onOpenSource={handleOpenFormulaSource}
@@ -16558,6 +17583,7 @@ function App() {
                     onToggleSaved={handleToggleFormula}
                     query={notebookQuery}
                     readyCount={readyFormulaCount}
+                    recallXp={FORMULA_RECALL_XP}
                     reviewState={formulaReviewState}
                     rewardedFormulaIds={formulaReadyRewardedIds}
                     savedFormulaIds={savedFormulaIds}
@@ -16998,6 +18024,7 @@ function App() {
           activeSection={activeSection}
           activeSessionCount={activeSessionResults.length}
           activityResults={quickSearchResults}
+          appLockConfig={appLockConfig}
           dailyMissionCompletedCount={dailyMissionCompletedCount}
           dailyMissionTotal={dailyMissions.length}
           dailyGoal={dailyGoal}
@@ -17015,12 +18042,18 @@ function App() {
           notificationReadKeys={readNotificationKeys}
           notifications={liveNotifications}
           onActivityResultSelect={handleSearchResultSelect}
+          onAppLockDisable={handleDisableAppLock}
+          onAppLockEnable={handleEnableAppLock}
+          onAppLockHiddenChange={handleAppLockHiddenChange}
+          onAppLockPinChange={handleChangeAppLockPin}
+          onAppLockTimeoutChange={handleAppLockTimeoutChange}
           onClose={() => setOverlay(null)}
           onDailyGoalChange={setDailyGoal}
           onDeviceAlertsEnabledChange={handleDeviceAlertsEnabledChange}
           onHighContrastEnabledChange={setHighContrastEnabled}
           onInstallApp={handleInstallApp}
           onLearnerProfileChange={setLearnerProfile}
+          onLockAppNow={handleLockAppNow}
           onMarkAllNotificationsRead={handleMarkAllNotificationsRead}
           onNotificationAction={handleNotificationAction}
           onNotificationReadChange={handleNotificationReadChange}
@@ -17029,6 +18062,7 @@ function App() {
           onPracticeWithHeartsChange={setPracticeWithHearts}
           onReadingSizeChange={setReadingSize}
           onReducedMotionEnabledChange={setReducedMotionEnabled}
+          onSaveToolkitCalculation={handleOpenFieldJournal}
           onSectionChange={handleSectionChange}
           onSignOut={handleSignOut}
           onSoundEnabledChange={setSoundEnabled}
@@ -17071,895 +18105,6 @@ function App() {
       </Suspense>
       </div>
     </ZyTutorLaunchContext.Provider>
-  );
-}
-
-type FormulaNotebookWorkspaceProps = {
-  domainCount: number;
-  entries: FormulaEntry[];
-  filter: NotebookFilter;
-  formulaConfidence: Record<string, FormulaConfidence>;
-  formulaReviewCompletions: number;
-  learningCount: number;
-  onEndReview: () => void;
-  onFilterChange: (filter: NotebookFilter) => void;
-  onOpenSource: (entry: FormulaEntry) => void;
-  onQueryChange: (query: string) => void;
-  onRate: (confidence: FormulaConfidence) => void;
-  onReveal: () => void;
-  onStartReview: () => void;
-  onToggleSaved: (entryId: string) => void;
-  query: string;
-  readyCount: number;
-  reviewState: FormulaReviewState | null;
-  rewardedFormulaIds: string[];
-  savedFormulaIds: string[];
-};
-
-function FormulaNotebookWorkspace({
-  domainCount,
-  entries,
-  filter,
-  formulaConfidence,
-  formulaReviewCompletions,
-  learningCount,
-  onEndReview,
-  onFilterChange,
-  onOpenSource,
-  onQueryChange,
-  onRate,
-  onReveal,
-  onStartReview,
-  onToggleSaved,
-  query,
-  readyCount,
-  reviewState,
-  rewardedFormulaIds,
-  savedFormulaIds,
-}: FormulaNotebookWorkspaceProps) {
-  const savedEntries = FORMULA_LIBRARY.filter((entry) =>
-    savedFormulaIds.includes(entry.id),
-  );
-  const currentReviewEntry = reviewState
-    ? FORMULA_LIBRARY.find(
-        (entry) => entry.id === reviewState.entryIds[reviewState.position],
-      )
-    : null;
-  const notebookFilters: {
-    count: number;
-    id: NotebookFilter;
-    label: string;
-  }[] = [
-    {
-      count: FORMULA_LIBRARY.length,
-      id: 'all',
-      label: 'All formulas',
-    },
-    {
-      count: savedEntries.length,
-      id: 'saved',
-      label: 'Saved',
-    },
-    {
-      count: learningCount,
-      id: 'learning',
-      label: 'Learning',
-    },
-    {
-      count: readyCount,
-      id: 'ready',
-      label: 'Ready',
-    },
-  ];
-
-  return (
-    <section
-      className="formulaNotebookWorkspace"
-      aria-labelledby="formula-notebook-title"
-    >
-      <header className="formulaNotebookHeader">
-        <span className="formulaNotebookMark">
-          <NotebookTabs size={24} />
-        </span>
-        <div>
-          <p className="eyebrow">Engineering Notebook</p>
-          <h2 id="formula-notebook-title">
-            {reviewState ? 'Quick recall' : 'Your formula library'}
-          </h2>
-          <p>
-            {reviewState
-              ? 'Recall the relationship before revealing it, then rate your confidence.'
-              : 'Keep useful relationships, assumptions, and source problems together.'}
-          </p>
-        </div>
-        <div className="formulaNotebookHeaderActions">
-          <span>
-            <strong>{savedEntries.length}</strong>
-            saved
-          </span>
-          <button
-            className={reviewState ? 'secondaryButton' : 'primaryButton'}
-            onClick={reviewState ? onEndReview : onStartReview}
-            type="button"
-          >
-            {reviewState ? (
-              <>
-                <ArrowLeft size={17} />
-                Back to library
-              </>
-            ) : (
-              <>
-                <BrainCircuit size={17} />
-                Start quick recall
-              </>
-            )}
-          </button>
-        </div>
-      </header>
-
-      {reviewState ? (
-        reviewState.completed ? (
-          <section className="formulaRecallComplete" aria-live="polite">
-            <span>
-              <CheckCircle2 size={30} />
-            </span>
-            <p className="eyebrow">Recall complete</p>
-            <h3>That round is in the books.</h3>
-            <p>
-              You marked {reviewState.readyCount} of {reviewState.reviewedCount}{' '}
-              formulas ready. Learning cards will lead your next round.
-            </p>
-            <div className="formulaRecallResults">
-              <div>
-                <strong>{reviewState.reviewedCount}</strong>
-                <span>reviewed</span>
-              </div>
-              <div>
-                <strong>{reviewState.readyCount}</strong>
-                <span>ready</span>
-              </div>
-              <div>
-                <strong>
-                  {reviewState.reviewedCount - reviewState.readyCount}
-                </strong>
-                <span>learning</span>
-              </div>
-            </div>
-            <div className="formulaRecallCompleteActions">
-              <button
-                className="secondaryButton"
-                onClick={onEndReview}
-                type="button"
-              >
-                <NotebookTabs size={17} />
-                Browse library
-              </button>
-              <button
-                className="primaryButton"
-                onClick={onStartReview}
-                type="button"
-              >
-                <RefreshCw size={17} />
-                Review again
-              </button>
-            </div>
-          </section>
-        ) : currentReviewEntry ? (
-          <section className="formulaRecallStage" aria-live="polite">
-            <header>
-              <div>
-                <span>
-                  Card {reviewState.position + 1} of{' '}
-                  {reviewState.entryIds.length}
-                </span>
-                <strong>
-                  {reviewState.reviewedCount} checked ·{' '}
-                  {reviewState.readyCount} ready
-                </strong>
-              </div>
-              <div
-                className="formulaRecallProgress"
-                aria-label={`${Math.round(
-                  ((reviewState.position + Number(reviewState.revealed)) /
-                    reviewState.entryIds.length) *
-                    100,
-                )}% through recall round`}
-              >
-                <span
-                  style={{
-                    width: `${
-                      ((reviewState.position + Number(reviewState.revealed)) /
-                        reviewState.entryIds.length) *
-                      100
-                    }%`,
-                  }}
-                />
-              </div>
-            </header>
-
-            <div className="formulaRecallPrompt">
-              <span className="formulaSourceBadge">
-                {currentReviewEntry.source === 'lab' ? (
-                  <FlaskConical size={15} />
-                ) : (
-                  <Target size={15} />
-                )}
-                {currentReviewEntry.source === 'lab' ? 'Lab' : 'Question'} ·{' '}
-                {currentReviewEntry.subtitle}
-              </span>
-              <h3>{currentReviewEntry.title}</h3>
-              <p>{currentReviewEntry.context}</p>
-
-              <div
-                className={`formulaRecallAnswer ${
-                  reviewState.revealed ? 'revealed' : ''
-                }`}
-              >
-                {reviewState.revealed ? (
-                  <>
-                    <span>Governing relationship</span>
-                    <strong>{currentReviewEntry.formula}</strong>
-                    <p>
-                      <span>Use when</span>
-                      {currentReviewEntry.assumptions}
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <BrainCircuit size={28} />
-                    <strong>Build the relationship from memory.</strong>
-                    <span>
-                      Say it aloud or write it down before you reveal the card.
-                    </span>
-                  </>
-                )}
-              </div>
-
-              {reviewState.revealed ? (
-                <div className="formulaRecallRatings">
-                  <button
-                    className="secondaryButton"
-                    onClick={() => onRate('learning')}
-                    type="button"
-                  >
-                    <RotateCcw size={18} />
-                    Review again
-                  </button>
-                  <button
-                    className="primaryButton"
-                    onClick={() => onRate('ready')}
-                    type="button"
-                  >
-                    <CheckCircle2 size={18} />
-                    I know this
-                    {!rewardedFormulaIds.includes(currentReviewEntry.id) && (
-                      <span>+{FORMULA_RECALL_XP} XP</span>
-                    )}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  className="primaryButton formulaRevealButton"
-                  onClick={onReveal}
-                  type="button"
-                >
-                  Reveal formula
-                  <Eye size={18} />
-                </button>
-              )}
-            </div>
-          </section>
-        ) : (
-          <section className="formulaNotebookEmpty">
-            <NotebookTabs size={25} />
-            <strong>This recall card is no longer available.</strong>
-            <button onClick={onEndReview} type="button">
-              Return to library
-            </button>
-          </section>
-        )
-      ) : (
-        <>
-          <section className="formulaNotebookStats" aria-label="Notebook summary">
-            <article>
-              <span>
-                <BookmarkCheck size={18} />
-                Saved
-              </span>
-              <strong>{savedEntries.length}</strong>
-              <small>relationships kept</small>
-            </article>
-            <article>
-              <span>
-                <CircleGauge size={18} />
-                Learning
-              </span>
-              <strong>{learningCount}</strong>
-              <small>lead the next recall</small>
-            </article>
-            <article>
-              <span>
-                <CheckCircle2 size={18} />
-                Ready
-              </span>
-              <strong>{readyCount}</strong>
-              <small>recalled confidently</small>
-            </article>
-            <article>
-              <span>
-                <Sparkles size={18} />
-                Coverage
-              </span>
-              <strong>{domainCount}</strong>
-              <small>{domainCount === 1 ? 'domain' : 'domains'} represented</small>
-            </article>
-          </section>
-
-          <div className="formulaNotebookToolbar">
-            <label className="formulaNotebookSearch">
-              <Search size={18} />
-              <input
-                aria-label="Search formula notebook"
-                onChange={(event) => onQueryChange(event.currentTarget.value)}
-                placeholder="Search relationships, topics, or assumptions"
-                type="search"
-                value={query}
-              />
-            </label>
-
-            <nav aria-label="Filter formula notebook">
-              {notebookFilters.map((notebookFilter) => (
-                <button
-                  aria-pressed={filter === notebookFilter.id}
-                  className={filter === notebookFilter.id ? 'active' : ''}
-                  key={notebookFilter.id}
-                  onClick={() => onFilterChange(notebookFilter.id)}
-                  type="button"
-                >
-                  {notebookFilter.label}
-                  <span>{notebookFilter.count}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
-
-          <div className="formulaNotebookGrid">
-            <div className="formulaCardGrid" aria-live="polite">
-              {entries.map((entry) => {
-                const isSaved = savedFormulaIds.includes(entry.id);
-                const confidence = formulaConfidence[entry.id] ?? 'learning';
-
-                return (
-                  <article
-                    className={`formulaCard ${isSaved ? 'saved' : ''}`}
-                    key={entry.id}
-                  >
-                    <header>
-                      <span className="formulaSourceBadge">
-                        {entry.source === 'lab' ? (
-                          <FlaskConical size={14} />
-                        ) : (
-                          <Target size={14} />
-                        )}
-                        {entry.source === 'lab' ? 'Lab' : 'Question'}
-                      </span>
-                      <button
-                        aria-label={
-                          isSaved
-                            ? `Remove ${entry.title} from notebook`
-                            : `Save ${entry.title} to notebook`
-                        }
-                        aria-pressed={isSaved}
-                        className={isSaved ? 'saved' : ''}
-                        onClick={() => onToggleSaved(entry.id)}
-                        title={isSaved ? 'Remove formula' : 'Save formula'}
-                        type="button"
-                      >
-                        {isSaved ? (
-                          <BookmarkCheck size={18} />
-                        ) : (
-                          <Bookmark size={18} />
-                        )}
-                      </button>
-                    </header>
-
-                    <div className="formulaCardTitle">
-                      <span>{entry.subtitle}</span>
-                      <h3>{entry.title}</h3>
-                    </div>
-
-                    <div className="formulaRelationship">
-                      <span>Relationship</span>
-                      <strong>{entry.formula}</strong>
-                    </div>
-
-                    <p className="formulaAssumption">
-                      <span>Use when</span>
-                      {entry.assumptions}
-                    </p>
-
-                    <footer>
-                      <span
-                        className={`formulaConfidence ${
-                          isSaved ? confidence : 'available'
-                        }`}
-                      >
-                        {isSaved ? (
-                          confidence === 'ready' ? (
-                            <CheckCircle2 size={14} />
-                          ) : (
-                            <CircleGauge size={14} />
-                          )
-                        ) : (
-                          <Sparkles size={14} />
-                        )}
-                        {isSaved
-                          ? confidence === 'ready'
-                            ? 'Ready'
-                            : 'Learning'
-                          : 'Available'}
-                      </span>
-                      <button
-                        onClick={() => onOpenSource(entry)}
-                        type="button"
-                      >
-                        Open {entry.source}
-                        <ArrowRight size={15} />
-                      </button>
-                    </footer>
-                  </article>
-                );
-              })}
-
-              {entries.length === 0 && (
-                <div className="formulaNotebookEmpty">
-                  <Search size={24} />
-                  <strong>No formulas match this view.</strong>
-                  <span>Try another filter or a broader search.</span>
-                  <button
-                    onClick={() => {
-                      onFilterChange('all');
-                      onQueryChange('');
-                    }}
-                    type="button"
-                  >
-                    Clear filters
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <aside className="formulaReviewQueue" aria-label="Quick recall queue">
-              <header>
-                <span>
-                  <BrainCircuit size={20} />
-                </span>
-                <div>
-                  <p className="eyebrow">Quick recall</p>
-                  <h3>Next five cards</h3>
-                </div>
-              </header>
-              <p>
-                Learning cards come first, followed by formulas already marked
-                ready.
-              </p>
-
-              {savedEntries.length > 0 ? (
-                <div>
-                  {[...savedEntries]
-                    .sort((left, right) => {
-                      const leftConfidence =
-                        formulaConfidence[left.id] ?? 'learning';
-                      const rightConfidence =
-                        formulaConfidence[right.id] ?? 'learning';
-
-                      return (
-                        Number(leftConfidence === 'ready') -
-                          Number(rightConfidence === 'ready') ||
-                        left.title.localeCompare(right.title)
-                      );
-                    })
-                    .slice(0, 5)
-                    .map((entry, index) => {
-                      const confidence =
-                        formulaConfidence[entry.id] ?? 'learning';
-
-                      return (
-                        <button
-                          key={entry.id}
-                          onClick={() => onOpenSource(entry)}
-                          type="button"
-                        >
-                          <span>{index + 1}</span>
-                          <div>
-                            <strong>{entry.title}</strong>
-                            <small>
-                              {confidence === 'ready'
-                                ? 'Ready'
-                                : 'Learning'}{' '}
-                              · {entry.formula}
-                            </small>
-                          </div>
-                          <ChevronRight size={16} />
-                        </button>
-                      );
-                    })}
-                </div>
-              ) : (
-                <div className="formulaQueueEmpty">
-                  <Bookmark size={20} />
-                  <strong>No cards saved yet</strong>
-                  <span>Use the bookmark icon in the library to add one.</span>
-                </div>
-              )}
-
-              <button
-                className="primaryButton fullWidth"
-                onClick={onStartReview}
-                type="button"
-              >
-                <BrainCircuit size={17} />
-                {savedEntries.length === 0
-                  ? 'Build recall queue'
-                  : `Start ${Math.min(5, savedEntries.length)}-card recall`}
-              </button>
-              <small>
-                {formulaReviewCompletions === 0
-                  ? 'Your first round unlocks Formula Fluent.'
-                  : `${formulaReviewCompletions} recall ${
-                      formulaReviewCompletions === 1 ? 'round' : 'rounds'
-                    } completed.`}
-              </small>
-            </aside>
-          </div>
-        </>
-      )}
-    </section>
-  );
-}
-
-type DailyMissionBoardProps = {
-  completedCount: number;
-  currentStreak: number;
-  dailyGoal: number;
-  missions: DailyMissionView[];
-  onClaimReward: () => void;
-  onOpenMission: (missionId: DailyMissionId) => void;
-  onOpenWeeklyPlan: () => void;
-  rewardClaimed: boolean;
-  weeklyActivity: WeeklyActivityDay[];
-  weeklyPlan: WeeklyPlan | null;
-  weeklyPlanComplete: boolean;
-};
-
-function DailyMissionBoard({
-  completedCount,
-  currentStreak,
-  dailyGoal,
-  missions,
-  onClaimReward,
-  onOpenMission,
-  onOpenWeeklyPlan,
-  rewardClaimed,
-  weeklyActivity,
-  weeklyPlan,
-  weeklyPlanComplete,
-}: DailyMissionBoardProps) {
-  const allComplete = completedCount === missions.length;
-  const activeDays = weeklyActivity.filter((activity) =>
-    hasDailyActivity(activity),
-  ).length;
-  const getMomentumValue = (activity: DailyActivityRecord) =>
-    Math.max(activity.focusMinutes, Math.ceil(activity.xp / 10));
-  const weeklyMomentumMaximum = Math.max(
-    dailyGoal,
-    ...weeklyActivity.map(getMomentumValue),
-  );
-
-  return (
-    <section className="dailyMissionBoard" aria-labelledby="daily-mission-title">
-      <header>
-        <div>
-          <p className="eyebrow">Daily Charge</p>
-          <h2 id="daily-mission-title">Build today's momentum</h2>
-        </div>
-        <span className={`dailyMissionStatus ${allComplete ? 'complete' : ''}`}>
-          {allComplete ? <CheckCircle2 size={17} /> : <CircleGauge size={17} />}
-          {completedCount}/{missions.length} complete
-        </span>
-      </header>
-
-      <div className="dailyMissionBody">
-        <div className="dailyMissionList">
-          {missions.map((mission) => {
-            const Icon = mission.icon;
-            const complete = mission.current >= mission.target;
-            const progress = Math.min(100, (mission.current / mission.target) * 100);
-
-            return (
-              <button
-                aria-label={`${mission.title}. ${Math.min(mission.current, mission.target)} of ${mission.target} ${mission.unit}. ${mission.actionLabel}.`}
-                className={`dailyMissionItem ${complete ? 'complete' : ''}`}
-                key={mission.id}
-                onClick={() => onOpenMission(mission.id)}
-                title={mission.actionLabel}
-                type="button"
-              >
-                <span className="dailyMissionIcon">
-                  <Icon size={19} />
-                </span>
-                <div className="dailyMissionCopy">
-                  <div>
-                    <strong>{mission.title}</strong>
-                    <span>{mission.detail}</span>
-                  </div>
-                  <div
-                    aria-label={`${Math.round(progress)}% complete`}
-                    className="dailyMissionMeter"
-                  >
-                    <span style={{ width: `${progress}%` }} />
-                  </div>
-                </div>
-                <div className="dailyMissionCount">
-                  <strong>
-                    {Math.min(mission.current, mission.target)}/{mission.target}
-                  </strong>
-                  <span>{mission.unit}</span>
-                </div>
-                {complete ? <Check size={18} /> : <ArrowRight size={18} />}
-              </button>
-            );
-          })}
-        </div>
-
-        <aside className={`dailyRewardPanel ${allComplete ? 'ready' : ''}`}>
-          <span className="dailyRewardIcon">
-            {rewardClaimed ? <CheckCircle2 size={25} /> : <Award size={25} />}
-          </span>
-          <div>
-            <span>Daily reward</span>
-            <strong>+{DAILY_MISSION_REWARD_XP} XP</strong>
-            <small>
-              {rewardClaimed
-                ? 'Charge secured for today'
-                : allComplete
-                  ? 'Your reward is ready'
-                  : 'Complete all three missions'}
-            </small>
-          </div>
-          <button
-            className="primaryButton"
-            disabled={!allComplete || rewardClaimed}
-            onClick={onClaimReward}
-            type="button"
-          >
-            {rewardClaimed ? (
-              <>
-                <Check size={17} />
-                Reward claimed
-              </>
-            ) : allComplete ? (
-              <>
-                <Award size={17} />
-                Claim +{DAILY_MISSION_REWARD_XP} XP
-              </>
-            ) : (
-              `${missions.length - completedCount} ${
-                missions.length - completedCount === 1 ? 'mission' : 'missions'
-              } left`
-            )}
-          </button>
-        </aside>
-      </div>
-
-      <footer className="weeklyMomentum">
-        <div className="weeklyMomentumSummary">
-          <div>
-            <span>7-day momentum</span>
-            <strong>{currentStreak}-day streak</strong>
-          </div>
-          <div className="weeklyMomentumActions">
-            <span>{activeDays}/7 active days</span>
-            <button onClick={onOpenWeeklyPlan} type="button">
-              <CalendarDays size={15} />
-              {weeklyPlan
-                ? weeklyPlanComplete
-                  ? 'Week complete'
-                  : 'View weekly plan'
-                : 'Plan this week'}
-              <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
-        <div
-          aria-label={`${activeDays} active days in the last seven days`}
-          className="weeklyMomentumChart"
-          role="img"
-        >
-          {weeklyActivity.map((activity) => {
-            const momentumValue = getMomentumValue(activity);
-            const barHeight =
-              momentumValue === 0
-                ? 7
-                : Math.max(
-                    16,
-                    Math.round((momentumValue / weeklyMomentumMaximum) * 100),
-                  );
-
-            return (
-              <div
-                aria-label={`${activity.dayLabel}: ${activity.focusMinutes} focus minutes and ${activity.xp} XP`}
-                className={`${hasDailyActivity(activity) ? 'active' : ''} ${
-                  activity.isToday ? 'today' : ''
-                }`}
-                key={activity.dateKey}
-                title={`${activity.dayLabel}: ${activity.focusMinutes} focus min, ${activity.xp} XP`}
-              >
-                <span className="weeklyMomentumTrack">
-                  <span style={{ height: `${barHeight}%` }} />
-                </span>
-                <small>{activity.dayLabel}</small>
-              </div>
-            );
-          })}
-        </div>
-      </footer>
-    </section>
-  );
-}
-
-type QuestionVisualStageProps = {
-  onOpenAtlasConcept: (conceptId: string) => void;
-  onOpenAtlasGame: (gameId: string) => void;
-  question: LessonQuestion;
-  revealed: boolean;
-};
-
-function QuestionVisualStage({
-  onOpenAtlasConcept,
-  onOpenAtlasGame,
-  question,
-  revealed,
-}: QuestionVisualStageProps) {
-  const [mode, setMode] = useState<'concept' | 'schematic' | 'source'>(
-    'schematic',
-  );
-  const [isPowered, setIsPowered] = useState(true);
-  const { expanded, toggleExpanded } = useVisualInspector(question.id);
-  const atlasConcept = getQuestionAtlasConcept(question.topic);
-  const result = revealed ? question.options[question.correctIndex] : '—';
-  const target = question.formula.split('=')[0]?.trim() || 'result';
-
-  return (
-    <section
-      aria-label={
-        expanded
-          ? `${question.subtopic} expanded engineering visual`
-          : 'Interactive question visual'
-      }
-      aria-modal={expanded ? true : undefined}
-      className={`questionVisualStage ${
-        expanded ? 'visualStageExpanded' : ''
-      }`}
-      role={expanded ? 'dialog' : undefined}
-    >
-      <header className="visualStageHeader">
-        <div>
-          <span>Engineering visual</span>
-          <strong>
-            {mode === 'concept' && atlasConcept
-              ? atlasConcept.interactiveLabel
-              : question.visualLabel}
-          </strong>
-        </div>
-
-        <div className="visualStageActions">
-          <div className="visualModeSwitch" aria-label="Question visual mode">
-            <button
-              className={mode === 'schematic' ? 'active' : ''}
-              onClick={() => setMode('schematic')}
-              type="button"
-            >
-              <Activity size={14} />
-              Schematic
-            </button>
-            {atlasConcept && (
-              <button
-                className={mode === 'concept' ? 'active' : ''}
-                onClick={() => setMode('concept')}
-                type="button"
-              >
-                <Atom size={14} />
-                Concept
-              </button>
-            )}
-            <button
-              className={mode === 'source' ? 'active' : ''}
-              onClick={() => setMode('source')}
-              type="button"
-            >
-              <ImageIcon size={14} />
-              Reference
-            </button>
-          </div>
-
-          <button
-            aria-label={isPowered ? 'Pause diagram animation' : 'Play diagram animation'}
-            aria-pressed={isPowered}
-            className={`visualPowerButton ${isPowered ? 'active' : ''}`}
-            disabled={mode !== 'schematic'}
-            onClick={() => setIsPowered((powered) => !powered)}
-            title={isPowered ? 'Pause diagram animation' : 'Play diagram animation'}
-            type="button"
-          >
-            {isPowered ? <Pause size={15} /> : <Play size={15} />}
-          </button>
-          <button
-            aria-expanded={expanded}
-            aria-label={
-              expanded
-                ? 'Close expanded question visual'
-                : 'Expand question visual'
-            }
-            className={`visualInspectButton ${expanded ? 'active' : ''}`}
-            onClick={toggleExpanded}
-            title={expanded ? 'Close expanded visual' : 'Inspect visual'}
-            type="button"
-          >
-            {expanded ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-          </button>
-        </div>
-      </header>
-
-      <div className="visualInspectViewport">
-        {mode === 'schematic' ? (
-          <div
-            className={`visualSchematicCanvas visual-${question.visualKind} ${
-              isPowered ? 'powered' : 'paused'
-            }`}
-          >
-            <QuestionSchematic
-              powered={isPowered}
-              question={question}
-              revealed={revealed}
-            />
-
-            <div className="visualMeterReadout" aria-live="polite">
-              <span>{revealed ? 'Calculated result' : 'Solve for'}</span>
-              <strong>{revealed ? result : target}</strong>
-            </div>
-          </div>
-        ) : mode === 'concept' && atlasConcept ? (
-          <Suspense fallback={<DeferredPanelFallback />}>
-            <QuestionAtlasCompanion
-              conceptId={atlasConcept.id}
-              onOpenConcept={onOpenAtlasConcept}
-              onOpenGame={onOpenAtlasGame}
-              revealed={revealed}
-            />
-          </Suspense>
-        ) : (
-          <div className="verifiedDiagramView">
-            <img
-              src={resolvePublicAssetPath(question.diagram)}
-              alt={question.diagramAlt}
-            />
-            <span>
-              <CheckCircle2 size={14} />
-              Verified engineering diagram
-            </span>
-          </div>
-        )}
-      </div>
-
-      <footer className="visualFormulaBar">
-        <span>
-          <Activity size={14} />
-          Governing relation
-        </span>
-        <strong>{question.formula}</strong>
-      </footer>
-    </section>
   );
 }
 
@@ -18232,7 +18377,7 @@ type LessonFocusPageProps = {
   onNextPrompt: () => void;
   onOpenAtlasConcept: (conceptId: string) => void;
   onOpenAtlasGame: (gameId: string) => void;
-  onOpenJournal: () => void;
+  onOpenJournal: (scratchpad?: string) => void;
   onOpenHearts: () => void;
   onPracticeModeChange: (mode: PracticeMode) => void;
   onToggleBookmark: () => void;
@@ -18289,6 +18434,11 @@ function LessonFocusPage({
   totalQuestions,
 }: LessonFocusPageProps) {
   const [hintStep, setHintStep] = useState(0);
+  const [eliminatedOptions, setEliminatedOptions] = useState<number[]>([]);
+  const [scratchpad, setScratchpad] = useState(() =>
+    readQuestionScratchpad(currentQuestion.id),
+  );
+  const [scratchpadOpen, setScratchpadOpen] = useState(false);
   const nextPromptButtonRef = useRef<HTMLButtonElement>(null);
   const isOutOfHearts = heartsEnabled && heartsRemaining === 0;
   const heartCountdown = formatHeartCountdown(nextHeartInMs);
@@ -18352,7 +18502,24 @@ function LessonFocusPage({
 
   useEffect(() => {
     setHintStep(0);
+    setEliminatedOptions([]);
+    setScratchpad(readQuestionScratchpad(currentQuestion.id));
+    setScratchpadOpen(false);
   }, [currentQuestion.id]);
+
+  function handleScratchpadChange(value: string) {
+    const nextScratchpad = value.slice(0, QUESTION_SCRATCHPAD_LIMIT);
+    setScratchpad(nextScratchpad);
+    saveQuestionScratchpad(currentQuestion.id, nextScratchpad);
+  }
+
+  function handleToggleEliminatedOption(optionIndex: number) {
+    setEliminatedOptions((currentOptions) =>
+      currentOptions.includes(optionIndex)
+        ? currentOptions.filter((index) => index !== optionIndex)
+        : [...currentOptions, optionIndex],
+    );
+  }
 
   useEffect(() => {
     function handleLessonKeyDown(event: KeyboardEvent) {
@@ -18409,6 +18576,7 @@ function LessonFocusPage({
       if (
         selectedOption === null &&
         !isOutOfHearts &&
+        !eliminatedOptions.includes(optionIndex) &&
         optionIndex >= 0 &&
         optionIndex < currentQuestion.options.length
       ) {
@@ -18421,6 +18589,7 @@ function LessonFocusPage({
     return () => window.removeEventListener('keydown', handleLessonKeyDown);
   }, [
     currentQuestion.options.length,
+    eliminatedOptions,
     hintStep,
     isOutOfHearts,
     onAnswer,
@@ -18586,6 +18755,71 @@ function LessonFocusPage({
             )}
           </div>
 
+          <div className="questionWorkTools">
+            <button
+              aria-expanded={scratchpadOpen}
+              className={scratchpadOpen ? 'active' : ''}
+              onClick={() => setScratchpadOpen((isOpen) => !isOpen)}
+              type="button"
+            >
+              <NotebookPen size={17} />
+              <span>Scratchpad</span>
+              {scratchpad.trim() && <em>Saved</em>}
+            </button>
+            {selectedOption === null && eliminatedOptions.length > 0 && (
+              <button
+                onClick={() => setEliminatedOptions([])}
+                type="button"
+              >
+                <RotateCcw size={16} />
+                <span>Restore {eliminatedOptions.length}</span>
+              </button>
+            )}
+          </div>
+
+          {scratchpadOpen && (
+            <section className="questionScratchpad" aria-label="Question scratchpad">
+              <header>
+                <span>
+                  <NotebookPen size={17} />
+                  <strong>Scratchpad</strong>
+                </span>
+                <button
+                  aria-label="Clear scratchpad"
+                  disabled={!scratchpad}
+                  onClick={() => handleScratchpadChange('')}
+                  title="Clear scratchpad"
+                  type="button"
+                >
+                  <XCircle size={16} />
+                </button>
+              </header>
+              <textarea
+                aria-label="Scratchpad notes"
+                maxLength={QUESTION_SCRATCHPAD_LIMIT}
+                onChange={(event) =>
+                  handleScratchpadChange(event.currentTarget.value)
+                }
+                placeholder="Equations and reasoning"
+                rows={4}
+                value={scratchpad}
+              />
+              <footer>
+                <span>
+                  {scratchpad.length}/{QUESTION_SCRATCHPAD_LIMIT}
+                </span>
+                <button
+                  disabled={!scratchpad.trim()}
+                  onClick={() => onOpenJournal(scratchpad)}
+                  type="button"
+                >
+                  <NotebookTabs size={16} />
+                  Save as field note
+                </button>
+              </footer>
+            </section>
+          )}
+
           {selectedOption === null && (
             <div className={`hintRail ${hintStep > 0 ? 'open' : ''}`}>
               <div className="hintRailHeader">
@@ -18701,22 +18935,38 @@ function LessonFocusPage({
               const isAnswer = optionIndex === currentQuestion.correctIndex;
               const showCorrect = selectedOption !== null && isAnswer;
               const showWrong = wasSelected && !isAnswer;
+              const isEliminated = eliminatedOptions.includes(optionIndex);
 
               return (
-                <button
-                  aria-keyshortcuts={`${String.fromCharCode(65 + optionIndex)} ${
-                    optionIndex + 1
-                  }`}
-                  aria-label={`Option ${String.fromCharCode(65 + optionIndex)}: ${option}`}
-                  className={`answerButton ${showCorrect ? 'correct' : ''} ${showWrong ? 'wrong' : ''}`}
-                  disabled={isOutOfHearts || selectedOption !== null}
+                <div
+                  className={`answerChoiceRow ${isEliminated ? 'eliminated' : ''}`}
                   key={option}
-                  onClick={() => onAnswer(optionIndex)}
-                  type="button"
                 >
-                  <span>{String.fromCharCode(65 + optionIndex)}</span>
-                  {option}
-                </button>
+                  <button
+                    aria-keyshortcuts={`${String.fromCharCode(65 + optionIndex)} ${
+                      optionIndex + 1
+                    }`}
+                    aria-label={`Option ${String.fromCharCode(65 + optionIndex)}: ${option}`}
+                    className={`answerButton ${showCorrect ? 'correct' : ''} ${showWrong ? 'wrong' : ''}`}
+                    disabled={isOutOfHearts || selectedOption !== null || isEliminated}
+                    onClick={() => onAnswer(optionIndex)}
+                    type="button"
+                  >
+                    <span>{String.fromCharCode(65 + optionIndex)}</span>
+                    {option}
+                  </button>
+                  <button
+                    aria-label={`${isEliminated ? 'Restore' : 'Eliminate'} option ${String.fromCharCode(65 + optionIndex)}`}
+                    aria-pressed={isEliminated}
+                    className="optionEliminateButton"
+                    disabled={selectedOption !== null}
+                    onClick={() => handleToggleEliminatedOption(optionIndex)}
+                    title={`${isEliminated ? 'Restore' : 'Eliminate'} option ${String.fromCharCode(65 + optionIndex)}`}
+                    type="button"
+                  >
+                    {isEliminated ? <Eye size={16} /> : <EyeOff size={16} />}
+                  </button>
+                </div>
               );
             })}
           </div>
@@ -18815,13 +19065,19 @@ function LessonFocusPage({
             mood={guideMood}
           />
 
-          <QuestionVisualStage
-            key={currentQuestion.id}
-            onOpenAtlasConcept={onOpenAtlasConcept}
-            onOpenAtlasGame={onOpenAtlasGame}
-            question={currentQuestion}
-            revealed={selectedOption !== null}
-          />
+          <Suspense
+            fallback={
+              <QuestionVisualStageFallback label={currentQuestion.visualLabel} />
+            }
+          >
+            <QuestionVisualStage
+              key={currentQuestion.id}
+              onOpenAtlasConcept={onOpenAtlasConcept}
+              onOpenAtlasGame={onOpenAtlasGame}
+              question={currentQuestion}
+              revealed={selectedOption !== null}
+            />
+          </Suspense>
 
           <div className="questStrip">
             <div>
@@ -18862,7 +19118,7 @@ function LessonFocusPage({
 
           <button
             className="secondaryButton fullWidth journalCaptureButton"
-            onClick={onOpenJournal}
+            onClick={() => onOpenJournal(scratchpad)}
             type="button"
           >
             <NotebookPen size={18} />
@@ -22587,6 +22843,7 @@ type OverlayPanelProps = {
   activeSection: AppSection;
   activeSessionCount: number;
   activityResults: SearchResult[];
+  appLockConfig: LocalAppLockConfig | null;
   dailyMissionCompletedCount: number;
   dailyMissionTotal: number;
   dailyGoal: number;
@@ -22604,12 +22861,27 @@ type OverlayPanelProps = {
   notificationReadKeys: string[];
   notifications: AppNotification[];
   onActivityResultSelect: (result: SearchResult) => void;
+  onAppLockPinChange: (
+    currentPin: string,
+    nextPin: string,
+  ) => Promise<{ message: string; ok: boolean }>;
+  onAppLockDisable: (
+    currentPin: string,
+  ) => Promise<{ message: string; ok: boolean }>;
+  onAppLockEnable: (
+    pin: string,
+    timeoutMinutes: number,
+    lockOnHidden: boolean,
+  ) => Promise<{ message: string; ok: boolean }>;
+  onAppLockHiddenChange: (enabled: boolean) => void;
+  onAppLockTimeoutChange: (timeoutMinutes: number) => void;
   onClose: () => void;
   onDailyGoalChange: (goal: number) => void;
   onDeviceAlertsEnabledChange: (enabled: boolean) => void;
   onHighContrastEnabledChange: (enabled: boolean) => void;
   onInstallApp: () => void;
   onLearnerProfileChange: (profile: LearnerProfile) => void;
+  onLockAppNow: () => void;
   onMarkAllNotificationsRead: () => void;
   onNotificationAction: (notification: AppNotification) => void;
   onNotificationReadChange: (
@@ -22621,6 +22893,7 @@ type OverlayPanelProps = {
   onPracticeWithHeartsChange: (enabled: boolean) => void;
   onReadingSizeChange: (size: ReadingSize) => void;
   onReducedMotionEnabledChange: (enabled: boolean) => void;
+  onSaveToolkitCalculation: (seed: FieldJournalDraftSeed) => void;
   onSectionChange: (section: AppSection) => void;
   onSignOut: () => void;
   onSoundEnabledChange: (enabled: boolean) => void;
@@ -22638,6 +22911,7 @@ function OverlayPanel({
   activeSection,
   activeSessionCount,
   activityResults,
+  appLockConfig,
   dailyMissionCompletedCount,
   dailyMissionTotal,
   dailyGoal,
@@ -22655,12 +22929,18 @@ function OverlayPanel({
   notificationReadKeys,
   notifications,
   onActivityResultSelect,
+  onAppLockPinChange,
+  onAppLockDisable,
+  onAppLockEnable,
+  onAppLockHiddenChange,
+  onAppLockTimeoutChange,
   onClose,
   onDailyGoalChange,
   onDeviceAlertsEnabledChange,
   onHighContrastEnabledChange,
   onInstallApp,
   onLearnerProfileChange,
+  onLockAppNow,
   onMarkAllNotificationsRead,
   onNotificationAction,
   onNotificationReadChange,
@@ -22669,6 +22949,7 @@ function OverlayPanel({
   onPracticeWithHeartsChange,
   onReadingSizeChange,
   onReducedMotionEnabledChange,
+  onSaveToolkitCalculation,
   onSectionChange,
   onSignOut,
   onSoundEnabledChange,
@@ -23050,7 +23331,9 @@ function OverlayPanel({
 
         {overlay === 'toolkit' && (
           <Suspense fallback={<DeferredPanelFallback />}>
-            <EngineeringToolkit />
+            <EngineeringToolkit
+              onSaveCalculation={onSaveToolkitCalculation}
+            />
           </Suspense>
         )}
 
@@ -23298,6 +23581,24 @@ function OverlayPanel({
                 type="checkbox"
               />
             </label>
+            <div className="settingsSectionHeader">
+              <span>
+                <ShieldCheck size={18} />
+              </span>
+              <div>
+                <strong>Privacy and security</strong>
+                <small>Protect this browser session when you step away</small>
+              </div>
+            </div>
+            <LocalSecuritySettings
+              config={appLockConfig}
+              onChangePin={onAppLockPinChange}
+              onDisable={onAppLockDisable}
+              onEnable={onAppLockEnable}
+              onLockOnHiddenChange={onAppLockHiddenChange}
+              onLockNow={onLockAppNow}
+              onTimeoutChange={onAppLockTimeoutChange}
+            />
             {deviceAlertPermission !== 'unsupported' && (
               <>
                 <div className="settingsSectionHeader">
@@ -23411,7 +23712,16 @@ function OverlayPanel({
               <BarChart3 size={18} />
               Progress
             </button>
-            <button onClick={() => onOverlayChange('toolkit')} type="button">
+            <button
+              onClick={() => onOverlayChange('toolkit')}
+              onFocus={() =>
+                void preloadEngineeringToolkit().catch(() => undefined)
+              }
+              onPointerEnter={() =>
+                void preloadEngineeringToolkit().catch(() => undefined)
+              }
+              type="button"
+            >
               <Calculator size={18} />
               Engineering Toolkit
             </button>

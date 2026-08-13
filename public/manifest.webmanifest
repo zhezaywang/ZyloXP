@@ -1,7 +1,7 @@
 {
   "name": "ZyloXP",
   "short_name": "ZyloXP",
-  "description": "Interactive technical learning, practical labs, and career-linked progress.",
+  "description": "Learn electrical engineering through adaptive practice, interactive labs, visual concepts, and career-linked progress.",
   "id": "./",
   "start_url": "./#/learn",
   "scope": "./",
@@ -56,6 +56,28 @@
       "name": "Labs",
       "short_name": "Labs",
       "url": "./#/labs",
+      "icons": [
+        {
+          "src": "./zylo-app-icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "EE Atlas",
+      "short_name": "Atlas",
+      "url": "./#/atlas",
+      "icons": [
+        {
+          "src": "./zylo-app-icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Notebook",
+      "short_name": "Notebook",
+      "url": "./#/notebook",
       "icons": [
         {
           "src": "./zylo-app-icon-192.png",

@@ -21,28 +21,23 @@ import {
   type FormEvent,
 } from 'react';
 import {
-  isFieldNoteCategory,
   readPendingFieldJournalDraft,
 } from './fieldJournalDraft';
 import type {
   FieldJournalDraft as FieldNoteDraft,
+  FieldJournalDraftSeed,
   FieldNoteCategory,
 } from './fieldJournalDraft';
-
-type FieldNote = {
-  body: string;
-  category: FieldNoteCategory;
-  createdAt: number;
-  id: string;
-  pinned: boolean;
-  title: string;
-  updatedAt: number;
-};
+import {
+  FIELD_JOURNAL_STORAGE_KEY,
+  MAX_FIELD_NOTES,
+  readFieldNotes,
+  sortFieldNotes,
+} from './fieldNotes';
+import type { FieldNote } from './fieldNotes';
 
 type JournalFilter = 'all' | FieldNoteCategory;
 
-const FIELD_JOURNAL_STORAGE_KEY = 'zyloxp-field-journal-v1';
-const MAX_FIELD_NOTES = 40;
 const EMPTY_DRAFT: FieldNoteDraft = {
   body: '',
   category: 'idea',
@@ -59,87 +54,6 @@ const CATEGORY_OPTIONS: Array<{
   { icon: FlaskConical, id: 'lab', label: 'Lab' },
   { icon: Briefcase, id: 'career', label: 'Career' },
 ];
-
-function sortFieldNotes(notes: FieldNote[]) {
-  return [...notes].sort(
-    (first, second) =>
-      Number(second.pinned) - Number(first.pinned) ||
-      second.updatedAt - first.updatedAt,
-  );
-}
-
-function readFieldNotes(): FieldNote[] {
-  if (typeof window === 'undefined') {
-    return [];
-  }
-
-  try {
-    const storedNotes = window.localStorage.getItem(FIELD_JOURNAL_STORAGE_KEY);
-    if (!storedNotes) {
-      return [];
-    }
-
-    const parsedNotes = JSON.parse(storedNotes) as unknown;
-    if (!Array.isArray(parsedNotes)) {
-      return [];
-    }
-
-    return sortFieldNotes(
-      parsedNotes
-        .flatMap((storedNote, index) => {
-          if (!storedNote || typeof storedNote !== 'object') {
-            return [];
-          }
-
-          const note = storedNote as Partial<FieldNote>;
-          if (
-            typeof note.title !== 'string' ||
-            typeof note.body !== 'string' ||
-            !isFieldNoteCategory(note.category)
-          ) {
-            return [];
-          }
-
-          const title = note.title.trim().slice(0, 80);
-          const body = note.body.trim().slice(0, 1200);
-          if (!title || !body) {
-            return [];
-          }
-
-          const createdAt =
-            typeof note.createdAt === 'number' &&
-            Number.isFinite(note.createdAt) &&
-            note.createdAt > 0
-              ? note.createdAt
-              : Date.now();
-          const updatedAt =
-            typeof note.updatedAt === 'number' &&
-            Number.isFinite(note.updatedAt) &&
-            note.updatedAt > 0
-              ? Math.max(createdAt, note.updatedAt)
-              : createdAt;
-
-          return [
-            {
-              body,
-              category: note.category,
-              createdAt,
-              id:
-                typeof note.id === 'string' && note.id.trim()
-                  ? note.id.slice(0, 100)
-                  : `field-note-${createdAt}-${index}`,
-              pinned: note.pinned === true,
-              title,
-              updatedAt,
-            },
-          ];
-        })
-        .slice(0, MAX_FIELD_NOTES),
-    );
-  } catch {
-    return [];
-  }
-}
 
 function formatNoteTime(timestamp: number) {
   const date = new Date(timestamp);
@@ -168,9 +82,15 @@ function formatNoteTime(timestamp: number) {
 }
 
 export function FieldJournal({
-  onNoteCountChange,
+  draftSeed = null,
+  focusedNoteId = null,
+  onDraftConsumed,
+  onNotesChange,
 }: {
-  onNoteCountChange?: (count: number) => void;
+  draftSeed?: FieldJournalDraftSeed | null;
+  focusedNoteId?: string | null;
+  onDraftConsumed?: () => void;
+  onNotesChange?: (notes: FieldNote[]) => void;
 }) {
   const [notes, setNotes] = useState<FieldNote[]>(readFieldNotes);
   const [pendingDraft] = useState<FieldNoteDraft | null>(
@@ -185,6 +105,7 @@ export function FieldJournal({
   const [editorOpen, setEditorOpen] = useState(Boolean(pendingDraft));
   const [deletedNote, setDeletedNote] = useState<FieldNote | null>(null);
   const editorRef = useRef<HTMLFormElement | null>(null);
+  const noteRefs = useRef(new Map<string, HTMLElement>());
 
   const filteredNotes = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -213,8 +134,53 @@ export function FieldJournal({
   }, [notes]);
 
   useEffect(() => {
-    onNoteCountChange?.(notes.length);
-  }, [notes.length, onNoteCountChange]);
+    onNotesChange?.(notes);
+  }, [notes, onNotesChange]);
+
+  useEffect(() => {
+    if (!draftSeed) {
+      return;
+    }
+
+    setDraft({
+      body: draftSeed.body ?? '',
+      category: draftSeed.category,
+      title: draftSeed.title,
+    });
+    setEditingNoteId(null);
+    setEditorOpen(true);
+    onDraftConsumed?.();
+
+    const frameId = window.requestAnimationFrame(() => {
+      editorRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [draftSeed, onDraftConsumed]);
+
+  useEffect(() => {
+    if (!focusedNoteId) {
+      return;
+    }
+
+    const focusedNote = notes.find((note) => note.id === focusedNoteId);
+    if (!focusedNote) {
+      return;
+    }
+
+    setFilter('all');
+    setQuery(focusedNote.title);
+    const frameId = window.requestAnimationFrame(() => {
+      const target = noteRefs.current.get(focusedNoteId);
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target?.focus({ preventScroll: true });
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [focusedNoteId, notes]);
 
   function resetEditor() {
     setDraft(EMPTY_DRAFT);
@@ -518,7 +484,20 @@ export function FieldJournal({
             const CategoryIcon = category.icon;
 
             return (
-              <article className={`fieldNote ${note.category}`} key={note.id}>
+              <article
+                className={`fieldNote ${note.category} ${
+                  note.id === focusedNoteId ? 'focused' : ''
+                }`}
+                key={note.id}
+                ref={(node) => {
+                  if (node) {
+                    noteRefs.current.set(note.id, node);
+                  } else {
+                    noteRefs.current.delete(note.id);
+                  }
+                }}
+                tabIndex={note.id === focusedNoteId ? -1 : undefined}
+              >
                 <header>
                   <span className="fieldNoteCategory">
                     <CategoryIcon size={14} />

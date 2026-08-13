@@ -37,6 +37,11 @@ const BACKUP_GROUPS = [
     key: 'zyloxp-field-journal-v1',
     label: 'Field Journal',
   },
+  {
+    expected: 'array',
+    key: 'zyloxp-study-list-v1',
+    label: 'Study List',
+  },
 ] as const;
 
 type BackupStorageKey = (typeof BACKUP_GROUPS)[number]['key'];

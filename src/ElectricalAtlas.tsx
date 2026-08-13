@@ -55,6 +55,8 @@ type AtlasView = 'concept' | 'game' | 'overview';
 type ElectricalAtlasProps = {
   activeId: string | null;
   onBack: () => void;
+  onCompleteConcept: (conceptId: string) => void;
+  onCompleteGame: (gameId: string, score: number) => void;
   onOpenConcept: (conceptId: string) => void;
   onOpenGame: (gameId: string) => void;
   onOpenLab: (labId: string) => void;
@@ -3691,6 +3693,8 @@ function GamePage({
 export function ElectricalAtlas({
   activeId,
   onBack,
+  onCompleteConcept,
+  onCompleteGame,
   onOpenConcept,
   onOpenGame,
   onOpenLab,
@@ -3758,6 +3762,7 @@ export function ElectricalAtlas({
         completedIds: [conceptId, ...currentProgress.completedIds],
       });
     });
+    onCompleteConcept(conceptId);
   }
 
   function recordScore(gameId: string, score: number) {
@@ -3773,6 +3778,7 @@ export function ElectricalAtlas({
       }
       return nextScores;
     });
+    onCompleteGame(gameId, score);
   }
 
   if (view === 'concept' && concept) {
