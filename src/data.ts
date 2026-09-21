@@ -286,7 +286,7 @@ function formatEngineeringNotation(value: string) {
     .replace(/\bsqrt\(2\)/gi, '√2')
     .replace(/\bsqrt\(3\)/gi, '√3')
     .replace(/\bkohm\b/gi, 'kΩ')
-    .replace(/\bohm\b/gi, 'Ω')
+    .replace(/\bohm\b(?!['’]s\b)/gi, 'Ω')
     .replace(/\buF\b/g, 'µF')
     .replace(/\buA\b/g, 'µA')
     .replace(/\buC\b/g, 'µC')

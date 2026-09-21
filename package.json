@@ -2,13 +2,22 @@
   "name": "zylo-xp",
   "private": true,
   "version": "0.1.0",
-  "description": "Interactive electrical-engineering learning with adaptive practice, live labs, an EE atlas, career paths, and a validated 250K-question bank.",
+  "description": "A browser-based electrical engineering workbench with circuit labs, PCB layout, and practice.",
   "homepage": "https://zhezaywang.github.io/ZyloXP/",
   "type": "module",
   "packageManager": "pnpm@11.0.7",
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "dev": "vite",
+    "test:pcb": "node --experimental-strip-types --test tests/pcbStorage.test.mjs",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "test:e2e": "playwright test",
+    "verify": "pnpm run test && pnpm run build && pnpm run test:e2e",
+    "screenshots": "pnpm run build && node tools/capture-previews.mjs",
     "sync:bank": "python3 tools/sync_question_bank.py",
+    "security:check": "pnpm audit --prod --audit-level=high && pnpm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "build": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit && vite build",
     "preview": "vite preview"
@@ -19,11 +28,12 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "vite": "^6.0.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
   }
 }

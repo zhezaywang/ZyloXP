@@ -1,0 +1,7 @@
+* text=auto
+*.jpg binary
+*.png binary
+*.xlsx binary
+electrical_engineering_question_bank_250000/images/** linguist-generated=true
+electrical_engineering_question_bank_250000/latex_sources/** linguist-generated=true
+public/question-bank/images/** linguist-generated=true

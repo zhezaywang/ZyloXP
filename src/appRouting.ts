@@ -10,6 +10,7 @@ export type AppPage =
   | 'career-project'
   | 'portfolio'
   | 'workbench'
+  | 'pcb-designer'
   | 'progress'
   | 'insights'
   | 'focus-room'
@@ -75,6 +76,13 @@ export function parseAppHash(hash: string): AppRoute {
   }
 
   if (section === 'labs') {
+    if (detail === 'pcb') {
+      return {
+        page: 'pcb-designer',
+        resourceId: null,
+        section: 'labs',
+      };
+    }
     if (detail === 'workbench') {
       return {
         page: 'workbench',
@@ -186,6 +194,8 @@ export function buildAppHash(route: AppRoute) {
       return resource ? `#/labs/${resource}` : '#/labs';
     case 'workbench':
       return resource ? `#/labs/workbench/${resource}` : '#/labs/workbench';
+    case 'pcb-designer':
+      return '#/labs/pcb';
     case 'career':
       return resource ? `#/careers/${resource}` : '#/careers';
     case 'career-project':

@@ -28,6 +28,10 @@ export class AppErrorBoundary extends Component<
   }
 
   private handleRetry = () => {
+    if (/dynamically imported module|loading chunk|module script|importing a module/i.test(this.state.error?.message ?? '')) {
+      window.location.reload();
+      return;
+    }
     this.setState((state) => ({
       error: null,
       retryKey: state.retryKey + 1,

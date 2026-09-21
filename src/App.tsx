@@ -1,6 +1,5 @@
 import {
   Activity,
-  Apple,
   ArrowLeft,
   ArrowRight,
   ArrowUp,
@@ -232,6 +231,14 @@ import type {
 } from './WeeklyPlanner';
 import type { ZyTutorAction, ZyTutorContext } from './ZyTutor';
 import { APP_UPDATE_READY_EVENT } from './appEvents';
+import {
+  AUTH_SESSION_REVOCATION_KEY,
+  AUTH_SESSION_STORAGE_KEY,
+  clearStoredAuthSession,
+  readStoredAuthSession,
+  revokeStoredAuthSession,
+  saveStoredAuthSession,
+} from './authSession';
 import { buildAppHash, parseAppHash } from './appRouting';
 import type { AppPage as ActivePage, AppRoute } from './appRouting';
 
@@ -246,7 +253,10 @@ function createPreloadableLazy<
   const load = () => {
     componentPromise ??= importer().then((module) => ({
       default: selectComponent(module),
-    }));
+    })).catch((error: unknown) => {
+      componentPromise = null;
+      throw error;
+    });
     return componentPromise;
   };
 
@@ -306,6 +316,13 @@ const CircuitWorkbench = lazy(() =>
   import('./CircuitWorkbench').then((module) => ({
     default: module.CircuitWorkbench,
   })),
+);
+const {
+  Component: PcbDesigner,
+  preload: preloadPcbDesigner,
+} = createPreloadableLazy(
+  () => import('./PcbDesigner'),
+  (module) => module.PcbDesigner,
 );
 const {
   Component: ElectricalAtlas,
@@ -488,9 +505,8 @@ function QuestionVisualStageFallback({ label }: { label: string }) {
   );
 }
 
-type AuthMode = 'login' | 'create' | 'reset';
+type AuthMode = 'login' | 'create';
 type EntryView = 'intro' | 'auth';
-type SocialProvider = 'Apple' | 'Google';
 type OverlayType =
   | 'notifications'
   | 'hearts'
@@ -759,6 +775,9 @@ function preloadSearchResult(result: SearchResult) {
         break;
       case 'circuit-workbench':
         preload = import('./CircuitWorkbench');
+        break;
+      case 'pcb-designer':
+        preload = preloadPcbDesigner();
         break;
       case 'focus-room':
         preload = import('./FocusRoom');
@@ -1099,7 +1118,6 @@ type SavedLabState = {
   values: LabSimulationValues;
 };
 
-const AUTH_SESSION_KEY = 'zyloxp-session-v1';
 const LEARNER_STORAGE_KEY = 'zyloxp-learner-state-v1';
 const SAVED_LAB_STORAGE_KEY = 'zyloxp-saved-lab-v1';
 const SAVE_META_STORAGE_KEY = 'zyloxp-save-meta-v1';
@@ -5584,46 +5602,43 @@ const onboardingSteps: Array<{
   title: string;
 }> = [
   {
-    eyebrow: 'ZyloXP',
-    title: 'Learn engineering like a daily game.',
+    eyebrow: 'Learning path',
+    title: 'Know what to learn next.',
     description:
-      'ZyloXP turns technical careers into short lessons, XP, streaks, and skill paths. Start with core engineering foundations, then grow into more fields over time.',
-    diagram: '/question-bank/images/IMG-0001.svg',
-    metric: `${bankSummary.totalQuestions.toLocaleString()} prompts ready`,
+      'A focused path keeps lessons, practice, labs, and progress in one place without burying the next useful step.',
+    diagram: '/landing/zyloxp-dashboard.jpg',
+    metric: 'Adaptive daily path',
     guide: [
-      'I turn big technical ideas into one clear mission at a time.',
-      'Your streak grows when you practice, test, and revisit a skill.',
+      'Zy keeps the next lesson close to the skill that needs attention.',
     ],
     mood: 'idle',
-    points: ['Short skill bites', 'XP, hearts, and streaks', 'Beginner-friendly foundations'],
+    points: ['Short focused lessons', 'Visible mastery signals', 'Daily momentum'],
   },
   {
-    eyebrow: 'Practice + Labs',
-    title: 'Move from answers to intuition.',
+    eyebrow: 'Interactive labs',
+    title: 'Turn equations into intuition.',
     description:
-      'Answer quick prompts, then open lab mode to see the same idea with diagrams, sliders, and engineering checks.',
-    diagram: '/question-bank/images/IMG-1876.svg',
-    metric: `${bankSummary.svgDiagrams.toLocaleString()} visual diagrams`,
+      'Change voltage, resistance, timing, and control values on a live bench, then see the circuit respond immediately.',
+    diagram: '/landing/zyloxp-labs.jpg',
+    metric: 'Live circuit feedback',
     guide: [
-      'Change one lab value at a time and watch the relationship respond.',
-      'A diagram becomes useful when you can predict what changes next.',
+      'Change one value, make a prediction, and check the instrument response.',
     ],
     mood: 'focus',
-    points: ["Ohm's law bench", 'RC timing practice', 'Power and signal concepts'],
+    points: ['Realistic instruments', 'Guided missions', 'Cause-and-effect controls'],
   },
   {
-    eyebrow: 'Career Map',
-    title: 'Connect every skill to a real role.',
+    eyebrow: 'Engineering notebook',
+    title: 'Keep what finally clicks.',
     description:
-      'Your progress points toward tracks like embedded systems, electronics design, power systems, and hardware testing.',
-    diagram: '/question-bank/images/IMG-3751.svg',
-    metric: 'Career-linked XP',
+      'Save formulas, questions, lab runs, and working observations in a notebook designed for technical recall.',
+    diagram: '/landing/zyloxp-notebook.jpg',
+    metric: 'One connected workspace',
     guide: [
-      'Every completed skill strengthens a real career signal.',
-      'I will keep your next step close to the work you want to do.',
+      'A useful note keeps the assumption, formula, and bench result together.',
     ],
-    mood: 'celebrate',
-    points: ['Role-matched lessons', 'Skill signals', 'Next-step recommendations'],
+    mood: 'focus',
+    points: ['Formula recall', 'Saved questions', 'Repeatable bench setups'],
   },
 ];
 
@@ -5697,35 +5712,11 @@ const sectionGuideContent: Record<
 };
 
 function readStoredSession() {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-
-  try {
-    if (window.localStorage.getItem(AUTH_SESSION_KEY) === 'active') {
-      return true;
-    }
-  } catch {
-    // Session storage may still be available when persistent storage is blocked.
-  }
-
-  try {
-    return window.sessionStorage.getItem(AUTH_SESSION_KEY) === 'active';
-  } catch {
-    return false;
-  }
+  return readStoredAuthSession() !== null;
 }
 
 function readStoredRememberSession() {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-
-  try {
-    return window.localStorage.getItem(AUTH_SESSION_KEY) === 'active';
-  } catch {
-    return false;
-  }
+  return readStoredAuthSession()?.persistent === true;
 }
 
 function formatAppLockVerificationFailure(
@@ -7199,6 +7190,8 @@ function getActiveViewLabel({
       return `${activeLab.title} lab`;
     case 'workbench':
       return `${activeLab.title} workbench`;
+    case 'pcb-designer':
+      return 'PCB Designer';
     case 'career':
       return selectedCareer.role;
     case 'career-project':
@@ -7303,7 +7296,6 @@ function App() {
   const [authMode, setAuthMode] = useState<AuthMode>('login');
   const [authName, setAuthName] = useState('');
   const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
   const [authNotice, setAuthNotice] = useState('');
   const [learnerProfile, setLearnerProfile] = useState(
     initialLearnerState.learnerProfile,
@@ -7321,7 +7313,8 @@ function App() {
   const focusViewAvailable =
     activePage === 'lesson' ||
     activePage === 'lab' ||
-    activePage === 'workbench';
+    activePage === 'workbench' ||
+    activePage === 'pcb-designer';
   const focusViewActive = focusViewAvailable && focusViewEnabled;
   const [learningToolOrigin, setLearningToolOrigin] = useState<
     'insights' | 'overview'
@@ -7542,6 +7535,16 @@ function App() {
   const [workbenchSaveCount, setWorkbenchSaveCount] = useState(
     initialLearnerState.workbenchSaveCount,
   );
+  const [pcbDesignSaveCount, setPcbDesignSaveCount] = useState(() => {
+    try {
+      const savedDesigns = JSON.parse(
+        window.localStorage.getItem('zyloxp-pcb-designs-v1') ?? '[]',
+      ) as unknown;
+      return Array.isArray(savedDesigns) ? Math.min(6, savedDesigns.length) : 0;
+    } catch {
+      return 0;
+    }
+  });
   const [lastSprintSummary, setLastSprintSummary] = useState<SprintSummary | null>(
     initialLearnerState.lastSprintSummary,
   );
@@ -7939,6 +7942,12 @@ function App() {
       : savedCircuitDesigns.length > 0
         ? 'started'
         : 'new';
+  const pcbCatalogProgress: LabCatalogProgress =
+    pcbDesignSaveCount >= 6
+      ? 'complete'
+      : pcbDesignSaveCount > 0
+        ? 'started'
+        : 'new';
   const normalizedLabCatalogQuery = normalizeSearchText(labCatalogQuery);
   const visibleLabCatalogEntries = useMemo(
     () =>
@@ -7963,6 +7972,14 @@ function App() {
       labCatalogFilter === workbenchCatalogProgress) &&
     (!normalizedLabCatalogQuery ||
       workbenchSearchText.includes(normalizedLabCatalogQuery));
+  const pcbDesignerSearchText = normalizeSearchText(
+    'PCB Designer board layout footprints copper routing top bottom layers design rule check DRC signal integrity manufacturing',
+  );
+  const showPcbCatalogEntry =
+    (labCatalogFilter === 'all' ||
+      labCatalogFilter === pcbCatalogProgress) &&
+    (!normalizedLabCatalogQuery ||
+      pcbDesignerSearchText.includes(normalizedLabCatalogQuery));
   const labCatalogProgressCounts = labCatalogEntries.reduce<
     Record<LabCatalogProgress, number>
   >(
@@ -7973,9 +7990,12 @@ function App() {
     { complete: 0, new: 0, started: 0 },
   );
   labCatalogProgressCounts[workbenchCatalogProgress] += 1;
-  const labCatalogTotalCount = labCatalogEntries.length + 1;
+  labCatalogProgressCounts[pcbCatalogProgress] += 1;
+  const labCatalogTotalCount = labCatalogEntries.length + 2;
   const visibleLabCatalogCount =
-    visibleLabCatalogEntries.length + (showWorkbenchCatalogEntry ? 1 : 0);
+    visibleLabCatalogEntries.length +
+    (showWorkbenchCatalogEntry ? 1 : 0) +
+    (showPcbCatalogEntry ? 1 : 0);
   const isCorrect = selectedOption === currentQuestion.correctIndex;
   const questProgress = Math.min(100, (completedPrompts / 3) * 100);
   const guideContent = sectionGuideContent[activeSection];
@@ -8684,6 +8704,12 @@ function App() {
             : activeLab.title,
       };
       resourceId = activeLab.id;
+    } else if (activePage === 'pcb-designer') {
+      candidate = {
+        kind: 'Lab',
+        subtitle: 'Continue your board layout',
+        title: 'PCB Designer',
+      };
     } else if (activePage === 'concept') {
       const concept = getElectricalConcept(activeAtlasId);
       if (concept) {
@@ -8730,7 +8756,7 @@ function App() {
       resourceId = selectedCareer.role;
     }
 
-    if (!candidate || !resourceId) {
+    if (!candidate || (!resourceId && activePage !== 'pcb-designer')) {
       return null;
     }
 
@@ -8774,10 +8800,8 @@ function App() {
     : entryView === 'intro'
       ? 'Get Started'
       : authMode === 'create'
-        ? 'Create Account'
-        : authMode === 'reset'
-          ? 'Reset Password'
-          : 'Sign In';
+        ? 'Set Up Profile'
+        : 'Local Profile';
   const routeFocusKey = isAuthenticated
     ? [
         activePage,
@@ -9303,6 +9327,14 @@ function App() {
         title: 'Circuit Workbench',
       },
       {
+        id: 'pcb-designer',
+        kind: 'Tool',
+        keywords:
+          'pcb printed circuit board layout footprints copper traces routing layers drc manufacturing signal integrity',
+        subtitle: 'Place footprints, route copper, and run design-rule checks',
+        title: 'PCB Designer',
+      },
+      {
         id: 'saved-practice',
         kind: 'Tool',
         keywords: 'bookmarks saved questions practice',
@@ -9696,6 +9728,12 @@ function App() {
         kind: 'Tool',
         subtitle: 'Build and validate resistor networks',
         title: 'Circuit Workbench',
+      },
+      {
+        id: 'pcb-designer',
+        kind: 'Tool',
+        subtitle: 'Lay out a board and route copper',
+        title: 'PCB Designer',
       },
     ];
     const seenResults = new Set<string>();
@@ -10477,51 +10515,80 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated && rememberSession) {
-      let persisted = false;
-      try {
-        window.localStorage.setItem(AUTH_SESSION_KEY, 'active');
-        persisted = true;
-      } catch {
-        // The active tab can still hold a session when persistence is blocked.
-      }
-      try {
-        if (persisted) {
-          window.sessionStorage.removeItem(AUTH_SESSION_KEY);
-        } else {
-          window.sessionStorage.setItem(AUTH_SESSION_KEY, 'active');
-        }
-      } catch {
-        // The authenticated render remains usable without browser storage.
-      }
-      return;
-    }
-
     if (isAuthenticated) {
-      try {
-        window.sessionStorage.setItem(AUTH_SESSION_KEY, 'active');
-      } catch {
-        // The demo remains usable for the current render without browser storage.
+      const storedSession = readStoredAuthSession();
+      if (storedSession?.persistent === rememberSession) {
+        return;
       }
+
       try {
-        window.localStorage.removeItem(AUTH_SESSION_KEY);
+        saveStoredAuthSession(rememberSession);
       } catch {
-        // Persistent storage may be blocked independently.
+        // The active render remains usable when browser storage is unavailable.
       }
       return;
     }
 
-    try {
-      window.localStorage.removeItem(AUTH_SESSION_KEY);
-    } catch {
-      // Sign-out still succeeds in memory.
-    }
-    try {
-      window.sessionStorage.removeItem(AUTH_SESSION_KEY);
-    } catch {
-      // Sign-out still succeeds in memory.
-    }
+    clearStoredAuthSession();
   }, [isAuthenticated, rememberSession]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    const expireSession = (notice: string) => {
+      clearStoredAuthSession();
+      clearLocalAppLockActivity();
+      setIsAppLocked(Boolean(appLockConfig));
+      setIsAuthenticated(false);
+      setEntryView('auth');
+      setAuthMode('login');
+      setFocusViewEnabled(false);
+      setOverlay(null);
+      setToast(null);
+      setAuthNotice(notice);
+    };
+    const verifySession = () => {
+      if (!readStoredAuthSession()) {
+        expireSession('Your workspace session expired. Reopen your local profile to continue.');
+      }
+    };
+    const handleSessionStorageChange = (event: StorageEvent) => {
+      if (event.key === AUTH_SESSION_REVOCATION_KEY) {
+        expireSession('This ZyloXP session was signed out in another tab.');
+        return;
+      }
+
+      if (
+        event.key === AUTH_SESSION_STORAGE_KEY &&
+        event.newValue === null &&
+        !readStoredAuthSession()
+      ) {
+        expireSession('This ZyloXP session ended in another tab.');
+      }
+    };
+    const handlePageResume = () => {
+      if (document.visibilityState === 'visible') {
+        verifySession();
+      }
+    };
+
+    verifySession();
+    const sessionCheckInterval = window.setInterval(verifySession, 30_000);
+    window.addEventListener('focus', verifySession);
+    window.addEventListener('pageshow', verifySession);
+    window.addEventListener('storage', handleSessionStorageChange);
+    document.addEventListener('visibilitychange', handlePageResume);
+
+    return () => {
+      window.clearInterval(sessionCheckInterval);
+      window.removeEventListener('focus', verifySession);
+      window.removeEventListener('pageshow', verifySession);
+      window.removeEventListener('storage', handleSessionStorageChange);
+      document.removeEventListener('visibilitychange', handlePageResume);
+    };
+  }, [appLockConfig, isAuthenticated]);
 
   useEffect(() => {
     const syncAppLock = (event: StorageEvent) => {
@@ -11603,6 +11670,7 @@ function App() {
         handleBackFromPortfolio();
         return;
       case 'workbench':
+      case 'pcb-designer':
       case 'lab':
         handleBackToLabs();
         return;
@@ -11632,16 +11700,14 @@ function App() {
   }
 
   function handleSkillSelect(skill: SkillNode) {
-    setActiveSkillId(skill.id);
-    setActiveBankDiagnosticId(null);
-    setSelectedOption(null);
-
     if (skill.status === 'Locked') {
-      setActiveSection('learn');
-      setActivePage('overview');
       showToast(`${skill.title} is locked. Finish earlier units to power this node.`);
       return;
     }
+
+    setActiveSkillId(skill.id);
+    setActiveBankDiagnosticId(null);
+    setSelectedOption(null);
 
     const [questionIndex] = getAdaptiveQuestionIndices(skill.id, questionMastery);
     setSprintState(null);
@@ -13079,6 +13145,12 @@ function App() {
     setOverlay(null);
   }
 
+  function handleOpenPcbDesigner() {
+    setActiveSection('labs');
+    setActivePage('pcb-designer');
+    setOverlay(null);
+  }
+
   function handleSaveCircuitDesign(design: CircuitDesign) {
     const isFirstDesign = workbenchSaveCount === 0;
     const savedAt = Date.now();
@@ -13834,6 +13906,9 @@ function App() {
         case 'circuit-workbench':
           handleOpenCircuitWorkbench();
           return;
+        case 'pcb-designer':
+          handleOpenPcbDesigner();
+          return;
         case 'saved-practice':
           handlePracticeModeChange('saved');
           return;
@@ -14388,14 +14463,12 @@ function App() {
   function handleAuthModeChange(mode: AuthMode) {
     setAuthMode(mode);
     setAuthNotice('');
-
-    if (mode === 'reset') {
-      setAuthPassword('');
-    }
   }
 
   function handleOpenAuth(mode: AuthMode) {
     handleAuthModeChange(mode);
+    setAuthName(learnerProfile.displayName);
+    setAuthEmail(learnerProfile.email);
     if (mode === 'create') {
       setRememberSession(true);
     }
@@ -14408,44 +14481,29 @@ function App() {
     setAuthNotice('');
   }
 
-  function handleAuthSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (authMode === 'reset') {
-      const destination = authEmail.trim() || 'your email';
-      setAuthNotice(`Password reset link sent to ${destination}.`);
-      setAuthMode('login');
-      setAuthPassword('');
-      return;
-    }
-
-    const normalizedEmail = authEmail.trim().slice(0, 120);
-    if (authMode === 'create') {
-      setLearnerProfile({
-        displayName: authName.trim().slice(0, 60) || 'Zylo Learner',
-        email: normalizedEmail,
-      });
-    } else if (normalizedEmail) {
-      setLearnerProfile((profile) => ({
-        ...profile,
-        email: normalizedEmail,
-      }));
-    }
-
+  function handleContinueLocal() {
+    setRememberSession(false);
+    setAuthNotice('');
+    setLearnerProfile((profile) => ({
+      ...profile,
+      displayName: profile.displayName.trim() || 'Zylo Learner',
+    }));
     setIsAuthenticated(true);
-    showToast(
-      authMode === 'create'
-        ? 'Account created. Welcome to ZyloXP.'
-        : 'Welcome back. Your path is ready.',
-    );
+    showToast('Welcome to ZyloXP. Your progress stays on this device.');
   }
 
-  function handleSocialAuth(provider: SocialProvider) {
+  function handleAuthSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLearnerProfile({
+      displayName: authName.trim().slice(0, 60) || 'Zylo Learner',
+      email: authEmail.trim().slice(0, 120),
+    });
     setIsAuthenticated(true);
-    showToast(`Signed in with ${provider}. Your path is ready.`);
+    showToast('Local profile saved. Your progress stays on this device.');
   }
 
   function handleSignOut() {
+    revokeStoredAuthSession();
     clearLocalAppLockActivity();
     setIsAppLocked(Boolean(appLockConfig));
     setIsAuthenticated(false);
@@ -14453,7 +14511,6 @@ function App() {
     setAuthMode('login');
     setFocusViewEnabled(false);
     setOverlay(null);
-    setAuthPassword('');
     setToast(null);
   }
 
@@ -14461,6 +14518,7 @@ function App() {
     if (entryView === 'intro') {
       return (
         <GetStartedScreen
+          onContinueLocal={handleContinueLocal}
           onCreateAccount={() => handleOpenAuth('create')}
           onSignIn={() => handleOpenAuth('login')}
         />
@@ -14477,11 +14535,8 @@ function App() {
         onBackToIntro={handleBackToIntro}
         onModeChange={handleAuthModeChange}
         onNameChange={setAuthName}
-        onPasswordChange={setAuthPassword}
         onRememberSessionChange={setRememberSession}
-        onSocialAuth={handleSocialAuth}
         onSubmit={handleAuthSubmit}
-        password={authPassword}
         rememberSession={rememberSession}
       />
     );
@@ -14686,6 +14741,8 @@ function App() {
           label: 'Open Lab',
           run: () => handleLabSelect(activeLab.id),
         };
+      case 'pcb-designer':
+        return null;
       case 'career':
         return {
           label: 'Start Career Sprint',
@@ -15493,6 +15550,7 @@ function App() {
               onOpenConcept={handleAtlasConceptSelect}
               onOpenGame={handleAtlasGameSelect}
               onOpenLab={handleLabSelect}
+              onOpenPcbDesigner={handleOpenPcbDesigner}
               view={
                 activePage === 'concept'
                   ? 'concept'
@@ -15947,6 +16005,10 @@ function App() {
             readiness={selectedCareerReadiness.score}
             rewardXp={PORTFOLIO_READY_XP}
             role={selectedCareer.role}
+          />
+        ) : activePage === 'pcb-designer' ? (
+          <PcbDesigner
+            onSaved={setPcbDesignSaveCount}
           />
         ) : activePage === 'workbench' ? (
           <CircuitWorkbench
@@ -17347,6 +17409,52 @@ function App() {
                       />
                     </button>
                   )}
+                  {showPcbCatalogEntry && (
+                    <button
+                      aria-label={`Open PCB Designer. ${pcbDesignSaveCount} of 6 boards saved.`}
+                      className="labCard pcbDesignerCard"
+                      data-progress={pcbCatalogProgress}
+                      onClick={handleOpenPcbDesigner}
+                      onFocus={() =>
+                        void preloadPcbDesigner().catch(() => undefined)
+                      }
+                      onPointerEnter={() =>
+                        void preloadPcbDesigner().catch(() => undefined)
+                      }
+                      type="button"
+                    >
+                      <div className="labCardVisual pcbPreview" aria-hidden="true">
+                        <svg viewBox="0 0 320 150">
+                          <rect className="pcbPreviewBoard" height="124" rx="9" width="286" x="17" y="13" />
+                          <path className="pcbPreviewTopTrace" d="M48 76H104V45H170V92H268" />
+                          <path className="pcbPreviewBottomTrace" d="M76 112H142V76H226V42H276" />
+                          <rect className="pcbPreviewChip" height="54" rx="5" width="64" x="138" y="49" />
+                          <rect className="pcbPreviewPort" height="42" rx="4" width="40" x="27" y="55" />
+                          {[48, 106, 124, 216, 250, 276].map((x, index) => (
+                            <circle cx={x} cy={index % 2 === 0 ? 43 : 111} key={`${x}-${index}`} r="7" />
+                          ))}
+                          <text textAnchor="middle" x="170" y="82">MCU</text>
+                        </svg>
+                        <span className="labCardLiveBadge build">
+                          <Route size={13} />
+                          Design
+                        </span>
+                      </div>
+                      <div>
+                        <span>Board Layout</span>
+                        <h3>PCB Designer</h3>
+                        <p>Footprints, copper layers, and live DRC</p>
+                      </div>
+                      <em data-progress={pcbCatalogProgress}>
+                        {pcbDesignSaveCount}/6 saved · interactive routing
+                      </em>
+                      <span
+                        aria-hidden="true"
+                        className="labCardSignalBus"
+                        data-progress={pcbCatalogProgress}
+                      />
+                    </button>
+                  )}
                   {visibleLabCatalogCount === 0 && (
                     <div className="labCatalogEmpty" role="status">
                       <Search aria-hidden="true" size={24} />
@@ -17742,6 +17850,7 @@ function App() {
                                 : ''}
                             </small>
                             <button
+                              aria-label={`View ${collection.label} topics`}
                               onClick={() => {
                                 setBankCollectionId(collection.id);
                                 setBankTopicFilter('all');
@@ -17751,6 +17860,7 @@ function App() {
                               View topics
                             </button>
                             <button
+                              aria-label={`${isComplete ? 'Run' : 'Start'} ${collection.label} diagnostic`}
                               onClick={() => handleStartBankDiagnostic(collection.id)}
                               type="button"
                             >
@@ -22691,17 +22801,6 @@ function ZyGuide({
             </span>
           </span>
         </button>
-        {canLaunchTutor && (
-          <button
-            aria-label="Open Zy Tutor"
-            className="zyCharacterChat"
-            onClick={handleTutorLaunch}
-            title="Open Zy Tutor"
-            type="button"
-          >
-            <MessageCircleQuestion size={15} />
-          </button>
-        )}
       </div>
 
       <div className="zyGuideBubble">
@@ -22710,15 +22809,28 @@ function ZyGuide({
             <Sparkles size={14} />
             {label}
           </span>
-          <button
-            aria-label="Show another tip"
-            className="zyTipButton"
-            onClick={handleNextTip}
-            title="Another tip"
-            type="button"
-          >
-            <RefreshCw size={14} />
-          </button>
+          <div className="zyGuideActions">
+            {canLaunchTutor && (
+              <button
+                aria-label="Open Zy Tutor"
+                className="zyCharacterChat"
+                onClick={handleTutorLaunch}
+                title="Open Zy Tutor"
+                type="button"
+              >
+                <MessageCircleQuestion size={15} />
+              </button>
+            )}
+            <button
+              aria-label="Show another tip"
+              className="zyTipButton"
+              onClick={handleNextTip}
+              title="Another tip"
+              type="button"
+            >
+              <RefreshCw size={14} />
+            </button>
+          </div>
         </div>
         <p key={`${tipIndex}-${reactionCount}-${message}`}>{message}</p>
         <span className="srOnly" aria-live="polite">
@@ -22730,111 +22842,211 @@ function ZyGuide({
 }
 
 type GetStartedScreenProps = {
+  onContinueLocal: () => void;
   onCreateAccount: () => void;
   onSignIn: () => void;
 };
 
-function GetStartedScreen({ onCreateAccount, onSignIn }: GetStartedScreenProps) {
-  const [stepIndex, setStepIndex] = useState(0);
-  const step = onboardingSteps[stepIndex];
-  const isFinalStep = stepIndex === onboardingSteps.length - 1;
-
-  function handleNext() {
-    if (isFinalStep) {
-      onCreateAccount();
-      return;
-    }
-
-    setStepIndex((index) => index + 1);
-  }
+function GetStartedScreen({
+  onContinueLocal,
+  onCreateAccount,
+  onSignIn,
+}: GetStartedScreenProps) {
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const preview = onboardingSteps[previewIndex];
 
   return (
-    <main className="startShell">
-      <section className="startExperience" aria-label="ZyloXP overview">
-        <header className="startHeader">
-          <div className="authBrand">
-            <div className="brandMark">
-              <BatteryCharging size={20} strokeWidth={2.4} />
-            </div>
+    <main className="landingShell">
+      <header className="landingHeader">
+        <div className="landingHeaderInner">
+          <div className="landingBrand" aria-label="ZyloXP home">
+            <span className="landingBrandMark">
+              <BatteryCharging size={21} strokeWidth={2.5} />
+            </span>
             <div>
               <strong>ZyloXP</strong>
-              <span>Tech career academy</span>
+              <span>Engineering learning lab</span>
             </div>
           </div>
-          <button className="textButton" onClick={onSignIn} type="button">
-            Sign in
-          </button>
-        </header>
-
-        <div className="startHero">
-          <div className="startCopy">
-            <p className="eyebrow">{step.eyebrow}</p>
-            <h1>{step.title}</h1>
-            <p>{step.description}</p>
-
-            <div className="startPointList">
-              {step.points.map((point) => (
-                <span key={point}>
-                  <CheckCircle2 size={18} />
-                  {point}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="startVisual" aria-label={`${step.eyebrow} preview`}>
-            <div className="startDiagramWindow">
-              <img
-                src={resolvePublicAssetPath(step.diagram)}
-                alt={`${step.eyebrow} diagram preview`}
-              />
-              <div className="startMetric">
-                <GraduationCap size={20} />
-                <strong>{step.metric}</strong>
-              </div>
-            </div>
-
-            <ZyGuide
-              className="startGuide"
-              compact
-              key={step.eyebrow}
-              label="Meet Zy"
-              messages={step.guide}
-              mood={step.mood}
-            />
-          </div>
+          <nav aria-label="Workspace access" className="landingAccountNav">
+            <button className="landingSignIn" onClick={onSignIn} type="button">
+              Local profile
+            </button>
+          </nav>
         </div>
+      </header>
 
-        <footer className="startFooter">
-          <div className="startDots" aria-label="Overview progress">
-            {onboardingSteps.map((item, index) => (
-              <button
-                aria-label={`Show ${item.eyebrow}`}
-                className={index === stepIndex ? 'active' : ''}
-                key={item.eyebrow}
-                onClick={() => setStepIndex(index)}
-                type="button"
-              />
-            ))}
-          </div>
+      <section
+        aria-labelledby="landing-title"
+        className="landingHero"
+        style={{
+          backgroundImage: `url("${resolvePublicAssetPath(
+            '/landing/zyloxp-board.jpg',
+          )}")`,
+        }}
+      >
+        <div className="landingHeroCopy">
+          <p className="eyebrow">Learn by building</p>
+          <h1 id="landing-title">ZyloXP</h1>
+          <p className="landingHeroStatement">
+            A place to work through electrical engineering.
+          </p>
+          <p className="landingHeroDescription">
+            Adjust a circuit, check a prediction, or lay out a board.
+            Keep your calculations and progress together as you learn.
+          </p>
 
-          <div className="startActions">
-            {stepIndex > 0 && (
-              <button
-                className="secondaryButton"
-                onClick={() => setStepIndex((index) => index - 1)}
-                type="button"
-              >
-                Back
-              </button>
-            )}
-            <button className="primaryButton" onClick={handleNext} type="button">
-              {isFinalStep ? 'Get started' : 'Next'}
+          <div className="landingHeroActions">
+            <button
+              className="primaryButton"
+              onClick={onContinueLocal}
+              type="button"
+            >
+              Start learning
               <ArrowRight size={18} />
             </button>
+            <button
+              className="secondaryButton"
+              onClick={onCreateAccount}
+              type="button"
+            >
+              Set up profile
+            </button>
           </div>
-        </footer>
+
+          <span className="landingLocalNote">
+            <ShieldCheck size={17} />
+            No account required. Progress is saved in this browser.
+          </span>
+
+          <div className="landingSignals" aria-label="ZyloXP learning modes">
+            <span>
+              <BrainCircuit size={18} />
+              Adaptive practice
+            </span>
+            <span>
+              <FlaskConical size={18} />
+              Interactive labs
+            </span>
+            <span>
+              <Route size={18} />
+              Career pathways
+            </span>
+          </div>
+        </div>
+        <p className="landingHeroCaption">
+          Circuit labs, PCB layout, and engineering practice.
+        </p>
       </section>
+
+      <section
+        aria-labelledby="product-preview-title"
+        className="landingProduct"
+      >
+        <header className="landingProductHeader">
+          <div>
+            <p className="eyebrow">Inside the workspace</p>
+            <h2 id="product-preview-title">
+              From a first calculation to a working layout.
+            </h2>
+          </div>
+          <p>
+            Explore the learning path, try a bench experiment,
+            and keep a record of what you find.
+          </p>
+        </header>
+
+        <div
+          aria-label="Product preview"
+          className="landingPreviewTabs"
+          role="tablist"
+        >
+          {onboardingSteps.map((item, index) => (
+            <button
+              aria-controls="landing-preview-panel"
+              aria-selected={previewIndex === index}
+              id={`landing-preview-tab-${index}`}
+              key={item.eyebrow}
+              onClick={() => setPreviewIndex(index)}
+              onKeyDown={(event) => {
+                let nextIndex = index;
+                if (event.key === 'ArrowRight') nextIndex = (index + 1) % onboardingSteps.length;
+                else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + onboardingSteps.length) % onboardingSteps.length;
+                else if (event.key === 'Home') nextIndex = 0;
+                else if (event.key === 'End') nextIndex = onboardingSteps.length - 1;
+                else return;
+                event.preventDefault();
+                setPreviewIndex(nextIndex);
+                document.getElementById(`landing-preview-tab-${nextIndex}`)?.focus();
+              }}
+              role="tab"
+              tabIndex={previewIndex === index ? 0 : -1}
+              type="button"
+            >
+              {index === 0 ? (
+                <Route size={17} />
+              ) : index === 1 ? (
+                <FlaskConical size={17} />
+              ) : (
+                <NotebookPen size={17} />
+              )}
+              {item.eyebrow}
+            </button>
+          ))}
+        </div>
+
+        <div
+          aria-labelledby={`landing-preview-tab-${previewIndex}`}
+          className="landingPreviewPanel"
+          id="landing-preview-panel"
+          role="tabpanel"
+        >
+          <div className="landingPreviewMedia">
+            <img
+              alt={`${preview.eyebrow} screen in ZyloXP`}
+              loading="lazy"
+              decoding="async"
+              key={preview.diagram}
+              src={resolvePublicAssetPath(preview.diagram)}
+            />
+          </div>
+          <div className="landingPreviewCopy">
+            <span>{preview.metric}</span>
+            <h3>{preview.title}</h3>
+            <p>{preview.description}</p>
+            <ul>
+              {preview.points.map((point) => (
+                <li key={point}>
+                  <CheckCircle2 size={17} />
+                  {point}
+                </li>
+              ))}
+            </ul>
+            <button onClick={onContinueLocal} type="button">
+              Open ZyloXP
+              <ArrowRight size={17} />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <footer className="landingFooter">
+        <div className="landingBrand">
+          <span className="landingBrandMark">
+            <BatteryCharging size={20} strokeWidth={2.5} />
+          </span>
+          <strong>ZyloXP</strong>
+        </div>
+        <p>An independent electrical engineering learning project.</p>
+        <div>
+          <button onClick={onCreateAccount} type="button">
+            Set up profile
+          </button>
+          <button onClick={onSignIn} type="button">
+            Local profile
+          </button>
+        </div>
+      </footer>
     </main>
   );
 }
@@ -23394,7 +23606,10 @@ function OverlayPanel({
           <div className="overlayStack">
             <article>
               <strong>How to use ZyloXP</strong>
-              <p>Pick a node on the circuit path, answer the current prompt, then move to the next bite.</p>
+              <p>
+                Build a practice session or choose a learning unit, answer the
+                prompt, then use the feedback to plan your next check.
+              </p>
             </article>
             <article>
               <strong>Labs</strong>
@@ -23757,11 +23972,8 @@ type AuthScreenProps = {
   onEmailChange: (value: string) => void;
   onModeChange: (mode: AuthMode) => void;
   onNameChange: (value: string) => void;
-  onPasswordChange: (value: string) => void;
   onRememberSessionChange: (remember: boolean) => void;
-  onSocialAuth: (provider: SocialProvider) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  password: string;
   rememberSession: boolean;
 };
 
@@ -23774,41 +23986,24 @@ function AuthScreen({
   onEmailChange,
   onModeChange,
   onNameChange,
-  onPasswordChange,
   onRememberSessionChange,
-  onSocialAuth,
   onSubmit,
-  password,
   rememberSession,
 }: AuthScreenProps) {
   const isCreateMode = mode === 'create';
-  const isResetMode = mode === 'reset';
-  const [showPassword, setShowPassword] = useState(false);
-
-  useEffect(() => {
-    setShowPassword(false);
-  }, [mode]);
-  const title = isResetMode
-    ? 'Reset your password'
-    : isCreateMode
-      ? 'Create your ZyloXP account'
-      : 'Log in to ZyloXP';
-  const subtitle = isResetMode
-    ? 'Enter the email on your account and we will send a reset link.'
-    : isCreateMode
-      ? 'Start your first technical path with a clean account setup.'
-      : 'Continue your XP streak, labs, and career path.';
+  const title = isCreateMode ? 'Set up your local profile' : 'Open your workspace';
+  const subtitle = 'Your profile and progress stay in this browser. No password or cloud account is needed.';
 
   return (
     <main className="authShell">
-      <section className="authPanel" aria-label="ZyloXP account access">
+      <section className="authPanel" aria-label="ZyloXP local profile">
         <div className="authBrand">
           <div className="brandMark">
             <BatteryCharging size={20} strokeWidth={2.4} />
           </div>
           <div>
             <strong>ZyloXP</strong>
-            <span>Tech career academy</span>
+            <span>Engineering learning lab</span>
           </div>
         </div>
 
@@ -23825,104 +24020,52 @@ function AuthScreen({
           </div>
         )}
 
-        {!isResetMode && (
-          <>
-            <div className="socialStack" aria-label="Social sign in">
-              <button className="socialButton" onClick={() => onSocialAuth('Google')} type="button">
-                <span className="googleMark">G</span>
-                Continue with Google
-              </button>
-              <button className="socialButton dark" onClick={() => onSocialAuth('Apple')} type="button">
-                <Apple fill="currentColor" size={18} />
-                Continue with Apple
-              </button>
-            </div>
-
-            <div className="authDivider">
-              <span>or</span>
-            </div>
-          </>
-        )}
-
         <form className="authForm" onSubmit={onSubmit}>
-          {isCreateMode && (
-            <label className="fieldGroup">
-              <span>Full name</span>
-              <div>
-                <User size={18} />
-                <input
-                  autoComplete="name"
-                  name="name"
-                  onChange={(event) => onNameChange(event.target.value)}
-                  placeholder="Your name"
-                  required
-                  type="text"
-                  value={name}
-                />
-              </div>
-            </label>
-          )}
+          <label className="fieldGroup">
+            <span>Display name</span>
+            <div>
+              <User size={18} />
+              <input
+                autoComplete="name"
+                name="name"
+                maxLength={60}
+                onChange={(event) => onNameChange(event.target.value)}
+                placeholder="Your name"
+                required
+                type="text"
+                value={name}
+              />
+            </div>
+          </label>
 
           <label className="fieldGroup">
-            <span>Email</span>
+            <span>Email (optional)</span>
             <div>
               <Mail size={18} />
               <input
                 autoComplete="email"
                 name="email"
+                maxLength={120}
                 onChange={(event) => onEmailChange(event.target.value)}
                 placeholder="you@example.com"
-                required
                 type="email"
                 value={email}
               />
             </div>
           </label>
 
-          {!isResetMode && (
-            <label className="fieldGroup">
-              <span>Password</span>
-              <div>
-                <Lock size={18} />
-                <input
-                  autoComplete={isCreateMode ? 'new-password' : 'current-password'}
-                  minLength={isCreateMode ? 8 : 1}
-                  name="password"
-                  onChange={(event) => onPasswordChange(event.target.value)}
-                  placeholder={isCreateMode ? 'Create a password' : 'Enter your password'}
-                  required
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                />
-                <button
-                  className="fieldIconButton"
-                  onClick={() => setShowPassword((isVisible) => !isVisible)}
-                  title={showPassword ? 'Hide password' : 'Show password'}
-                  type="button"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
+          <div className="authFormMeta">
+            <label>
+              <input
+                checked={rememberSession}
+                onChange={(event) =>
+                  onRememberSessionChange(event.target.checked)
+                }
+                type="checkbox"
+              />
+              Remember for 7 days
             </label>
-          )}
-
-          {!isCreateMode && !isResetMode && (
-            <div className="authFormMeta">
-              <label>
-                <input
-                  checked={rememberSession}
-                  onChange={(event) =>
-                    onRememberSessionChange(event.target.checked)
-                  }
-                  type="checkbox"
-                />
-                Remember me
-              </label>
-              <button className="textButton" onClick={() => onModeChange('reset')} type="button">
-                Forgot password?
-              </button>
-            </div>
-          )}
+          </div>
 
           {isCreateMode && (
             <div className="trackChoice" aria-label="Starting learning track">
@@ -23933,31 +24076,24 @@ function AuthScreen({
           )}
 
           <button className="primaryButton fullWidth" type="submit">
-            {isResetMode ? 'Send reset link' : isCreateMode ? 'Create account' : 'Sign in'}
+            Save profile and continue
             <ArrowRight size={18} />
           </button>
         </form>
 
         <div className="authFooter">
-          {isResetMode ? (
+          {isCreateMode ? (
             <>
-              Remembered it?
+              Already used this browser?
               <button onClick={() => onModeChange('login')} type="button">
-                Back to sign in
-              </button>
-            </>
-          ) : isCreateMode ? (
-            <>
-              Already have an account?
-              <button onClick={() => onModeChange('login')} type="button">
-                Sign in
+                Open local profile
               </button>
             </>
           ) : (
             <>
               New to ZyloXP?
               <button onClick={() => onModeChange('create')} type="button">
-                Create account
+                Set up profile
               </button>
             </>
           )}

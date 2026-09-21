@@ -1,0 +1,1427 @@
+.pcbDesignerPage {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  padding: 18px 0 34px;
+}
+
+.pcbDesignerHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.pcbDesignerHeader h1 {
+  margin: 3px 0 4px;
+  font-size: 2rem;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.pcbDesignerHeader > div > p:last-child {
+  margin: 0;
+  color: var(--zylo-muted);
+  font-weight: 500;
+}
+
+.pcbDraftStatus {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.pcbDraftStatus > span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: #168363;
+}
+
+.pcbDraftStatus.saving > span { background: #b07b18; }
+.pcbDraftStatus.unavailable > span { background: #b54637; }
+
+.pcbDrcSummary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 166px;
+  padding: 11px 13px;
+  border: 2px solid #8acbb9;
+  border-radius: 7px;
+  color: #0b6b55;
+  background: #e8f8f2;
+}
+
+.pcbDrcSummary.error {
+  border-color: #e5a29a;
+  color: #9e332c;
+  background: #fff0ee;
+}
+
+.pcbDrcSummary.warning {
+  border-color: #dfc56b;
+  color: #735600;
+  background: #fff8df;
+}
+
+.pcbDrcSummary > span {
+  display: grid;
+  gap: 1px;
+}
+
+.pcbDrcSummary small {
+  color: currentColor;
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pcbDrcSummary strong {
+  font-size: 0.84rem;
+}
+
+.pcbMetricBand {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 2px solid var(--zylo-border);
+  border-radius: 7px;
+  background: var(--zylo-panel);
+}
+
+.pcbMetricBand > div {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 9px;
+  align-items: center;
+  min-width: 0;
+  min-height: 64px;
+  padding: 10px 14px;
+  border-right: 1px solid var(--zylo-border);
+}
+
+.pcbMetricBand > div:last-child {
+  border-right: 0;
+}
+
+.pcbMetricBand svg {
+  grid-row: 1 / span 2;
+  color: #087fae;
+}
+
+.pcbMetricBand span {
+  color: var(--zylo-muted);
+  font-size: 0.68rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.pcbMetricBand strong {
+  font-size: 0.87rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.pcbWorkspace {
+  display: grid;
+  grid-template-columns: 176px minmax(0, 1fr) 256px;
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+}
+
+.pcbPalette,
+.pcbInspector,
+.pcbStage {
+  min-width: 0;
+}
+
+.pcbPalette,
+.pcbInspectorSection,
+.pcbDrcPanel,
+.pcbProjectControls,
+.pcbSavedShelf {
+  border: 2px solid var(--zylo-border);
+  border-radius: 7px;
+  background: var(--zylo-panel);
+}
+
+.pcbPalette {
+  overflow: hidden;
+}
+
+.pcbPalette > header,
+.pcbInspectorSection > header {
+  padding: 13px 14px 10px;
+  border-bottom: 1px solid var(--zylo-border);
+}
+
+.pcbPalette > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pcbLibraryToggle { display: none; }
+
+.pcbPalette h2,
+.pcbInspector h2,
+.pcbSavedShelf h2 {
+  margin: 2px 0 0;
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+.pcbPaletteList {
+  display: grid;
+  gap: 2px;
+  padding: 5px;
+}
+
+.pcbPaletteList > button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 48px;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: #284756;
+  background: transparent;
+  text-align: left;
+}
+
+.pcbPaletteList > button:hover,
+.pcbPaletteList > button.active {
+  border-color: #8ecbdd;
+  color: #075f7d;
+  background: #eaf7fb;
+}
+
+.pcbPaletteList > button > svg:first-child {
+  color: #0783a9;
+}
+
+.pcbPaletteList > button > svg:last-child {
+  opacity: 0.6;
+}
+
+.pcbPaletteList > button span {
+  display: grid;
+  min-width: 0;
+}
+
+.pcbPaletteList strong {
+  font-size: 0.77rem;
+}
+
+.pcbPaletteList small {
+  overflow: hidden;
+  color: var(--zylo-muted);
+  font-size: 0.61rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pcbChallenge {
+  padding: 12px;
+  border-top: 2px solid var(--zylo-border);
+  background: #f5faf8;
+}
+
+.pcbChallenge > header {
+  display: grid;
+  grid-template-columns: 37px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.pcbChallenge > header > span {
+  display: grid;
+  place-items: center;
+  width: 37px;
+  height: 37px;
+  border-radius: 6px;
+  color: #ffffff;
+  background: #12745b;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.pcbChallenge h3 {
+  margin: 2px 0 0;
+  font-size: 0.88rem;
+}
+
+.pcbChallengeMeter {
+  height: 6px;
+  margin: 11px 0 9px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #cfe2dc;
+}
+
+.pcbChallengeMeter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #20a981;
+  transition: width 180ms ease;
+}
+
+.pcbChallenge ul,
+.pcbDrcPanel ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pcbChallenge li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  color: #71817b;
+  font-size: 0.64rem;
+  font-weight: 760;
+}
+
+.pcbChallenge li svg {
+  color: #9aaba5;
+}
+
+.pcbChallenge li.complete {
+  color: #1c6d58;
+}
+
+.pcbChallenge li.complete svg {
+  color: #20a981;
+  fill: #d9f5eb;
+}
+
+.pcbStage {
+  overflow: hidden;
+  border: 2px solid #a7c6d1;
+  border-radius: 7px;
+  background: #17272f;
+}
+
+.pcbStageToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 54px;
+  padding: 7px 9px;
+  border-bottom: 1px solid #b7d0d9;
+  background: #f3f8fa;
+}
+
+.pcbBoardOptions { display: contents; }
+.pcbOptionsToggle { display: none; }
+
+.pcbToolGroup,
+.pcbHistoryControls,
+.pcbLayerGroup,
+.pcbZoomControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid #c5d8df;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.pcbToolGroup button,
+.pcbHistoryControls button,
+.pcbLayerGroup button,
+.pcbZoomControls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 36px;
+  min-height: 34px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 4px;
+  color: #456270;
+  background: transparent;
+  font-size: 0.69rem;
+  font-weight: 850;
+}
+
+.pcbToolGroup button:hover,
+.pcbToolGroup button.active {
+  color: #ffffff;
+  background: #087fae;
+}
+
+.pcbHistoryControls button {
+  min-width: 34px;
+  padding-inline: 6px;
+}
+
+.pcbHistoryControls button:hover:not(:disabled) {
+  color: #087fae;
+  background: #e7f5fa;
+}
+
+.pcbHistoryControls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.pcbLayerGroup {
+  gap: 4px;
+}
+
+.pcbLayerGroup > svg {
+  margin: 0 3px;
+  color: #59727e;
+}
+
+.pcbLayerGroup button.top.active {
+  color: #ffffff;
+  background: #b75d32;
+}
+
+.pcbLayerGroup button.bottom.active {
+  color: #ffffff;
+  background: #237c9a;
+}
+
+.pcbLayerGroup button.pcbLayerVisibility {
+  min-width: 32px;
+  padding-inline: 5px;
+  border-left: 1px solid #d5e3e8;
+  border-radius: 0 4px 4px 0;
+}
+
+.pcbLayerGroup button.pcbLayerVisibility:hover {
+  color: #087fae;
+  background: #e7f5fa;
+}
+
+.pcbGridControl {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  min-height: 42px;
+  padding: 3px 4px 3px 8px;
+  border: 1px solid #c5d8df;
+  border-radius: 6px;
+  color: #58717d;
+  background: #ffffff;
+  font-size: 0.66rem;
+  font-weight: 850;
+}
+
+.pcbGridControl select {
+  min-height: 32px;
+  padding: 3px 22px 3px 6px;
+  border: 0;
+  border-left: 1px solid #d8e6eb;
+  color: #203d49;
+  background: #ffffff;
+  font: inherit;
+}
+
+.pcbGridControl button {
+  min-height: 30px;
+  padding: 4px 7px;
+  border: 1px solid #c7dae1;
+  border-radius: 4px;
+  color: #58717d;
+  background: #f5fafb;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.pcbGridControl button.active {
+  border-color: #4eb0cb;
+  color: #075f7d;
+  background: #dff4fa;
+}
+
+.pcbTraceWidth {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  margin-left: auto;
+  color: #5c727c;
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.pcbTraceWidth select {
+  min-height: 36px;
+  padding: 4px 26px 4px 8px;
+  border: 1px solid #c5d8df;
+  border-radius: 5px;
+  color: #203d49;
+  background: #ffffff;
+  font: inherit;
+}
+
+.pcbZoomControls span {
+  min-width: 39px;
+  color: #3f5f6d;
+  font-size: 0.66rem;
+  font-weight: 850;
+  text-align: center;
+}
+
+.pcbZoomControls button:disabled {
+  opacity: 0.35;
+}
+
+.pcbBoardViewport {
+  position: relative;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: #14242b;
+}
+
+.pcbBoardViewport[data-tool='place'] {
+  cursor: crosshair;
+}
+
+.pcbBoardViewport[data-tool='route'] {
+  cursor: cell;
+}
+
+.pcbBoardCanvas {
+  display: block;
+  min-width: 0;
+  max-width: none;
+  margin: 0 auto;
+  color: rgba(200, 240, 224, 0.1);
+  touch-action: pan-x pan-y;
+  user-select: none;
+}
+
+.pcbBoardEdge {
+  fill: #b77c43;
+  stroke: #6e462a;
+  stroke-width: 4;
+}
+
+.pcbBoardSurface {
+  fill: #0b6b55;
+  stroke: #073e35;
+  stroke-width: 3;
+}
+
+.pcbBoardGrid {
+  fill: url('#pcb-grid');
+  opacity: 0.7;
+}
+
+.pcbBoardSilkscreen {
+  fill: #d8ece6;
+  stroke: #d8ece6;
+  stroke-width: 2;
+  opacity: 0.82;
+}
+
+.pcbBoardSilkscreen text {
+  stroke: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.pcbBoardSilkscreen path { fill: none; }
+
+.pcbMountingHole circle:first-child {
+  fill: #c89a54;
+  stroke: #f7d48a;
+  stroke-width: 3;
+}
+
+.pcbMountingHole circle:last-child {
+  fill: #14242b;
+}
+
+.pcbCopperZone path {
+  fill: rgba(213, 146, 73, 0.35);
+  stroke: #d79752;
+  stroke-dasharray: 6 5;
+  stroke-width: 2;
+}
+
+.pcbCopperZone text {
+  fill: #f1c184;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pcbTraceLayer .pcbTraceVisual,
+.pcbRoutePreview {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: opacity 160ms ease;
+}
+
+.pcbTraceLayer.top .pcbTraceVisual,
+.pcbRoutePreview.top {
+  stroke: #dd8a4f;
+}
+
+.pcbTraceLayer.bottom .pcbTraceVisual,
+.pcbRoutePreview.bottom {
+  stroke: #45a8c7;
+  stroke-dasharray: 2 3;
+}
+
+.pcbTraceHit {
+  fill: none;
+  stroke: transparent;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  cursor: pointer;
+  pointer-events: stroke;
+}
+
+.pcbTrace:hover .pcbTraceVisual,
+.pcbTrace:focus-within .pcbTraceVisual,
+.pcbTrace.selected .pcbTraceVisual {
+  filter: drop-shadow(0 0 4px rgba(244, 252, 255, 0.95));
+  stroke: #f5fcff;
+}
+
+.pcbRoutePreview {
+  opacity: 0.8;
+  stroke-dasharray: 9 7;
+  animation: pcb-route-preview 720ms linear infinite;
+}
+
+.pcbAirwireLayer line {
+  stroke: #f3d273;
+  stroke-dasharray: 6 7;
+  stroke-width: 2;
+  animation: pcb-airwire-flow 1.2s linear infinite;
+}
+
+.pcbAirwireLayer text {
+  fill: #fff0ae;
+  stroke: #0b4b3e;
+  stroke-width: 4px;
+  paint-order: stroke;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+@keyframes pcb-route-preview {
+  to { stroke-dashoffset: -16; }
+}
+
+@keyframes pcb-airwire-flow {
+  to { stroke-dashoffset: -26; }
+}
+
+.pcbBoardCanvas[data-active-layer='top'] .pcbTraceLayer.bottom,
+.pcbBoardCanvas[data-active-layer='bottom'] .pcbTraceLayer.top {
+  opacity: 0.38;
+}
+
+.pcbBoardCanvas[data-show-inactive='false'][data-active-layer='top'] .pcbTraceLayer.bottom,
+.pcbBoardCanvas[data-show-inactive='false'][data-active-layer='bottom'] .pcbTraceLayer.top {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.pcbCourtyard {
+  fill: rgba(229, 245, 239, 0.03);
+  stroke: #b8d9cf;
+  stroke-dasharray: 4 3;
+  stroke-width: 1.5;
+  opacity: 0.66;
+}
+
+.pcbFootprint {
+  cursor: grab;
+  filter: url('#pcb-component-shadow');
+  outline: none;
+  touch-action: none;
+}
+
+.pcbFootprint:active {
+  cursor: grabbing;
+}
+
+.pcbFootprint.selected .pcbCourtyard,
+.pcbFootprint:focus-visible .pcbCourtyard {
+  fill: rgba(157, 229, 255, 0.12);
+  stroke: #93e5ff;
+  stroke-dasharray: none;
+  stroke-width: 3;
+  opacity: 1;
+}
+
+.pcbChipBody rect {
+  fill: #17232b;
+  stroke: #071218;
+  stroke-width: 3;
+}
+
+.pcbChipBody circle {
+  fill: #d4e2e8;
+}
+
+.pcbChipBody path {
+  fill: none;
+  stroke: #344b56;
+  stroke-width: 2;
+}
+
+.pcbChipBody text {
+  fill: #adbec6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+
+.pcbPassiveBody rect {
+  stroke-width: 2;
+}
+
+.pcbPassiveBody.capacitor rect {
+  fill: #c7a461;
+  stroke: #6e5630;
+}
+
+.pcbPassiveBody.capacitor path {
+  stroke: #f1d69e;
+  stroke-width: 3;
+}
+
+.pcbPassiveBody.resistor rect {
+  fill: #e2d3b0;
+  stroke: #725f42;
+}
+
+.pcbPassiveBody.resistor path {
+  stroke: #3c79a1;
+  stroke-width: 4;
+}
+
+.pcbLedBody circle {
+  fill: #ce564e;
+  stroke: #7b2c29;
+  stroke-width: 3;
+}
+
+.pcbLedBody path {
+  fill: none;
+  stroke: #ffe0dc;
+  stroke-width: 2;
+}
+
+.pcbUsbBody > path:first-child {
+  fill: #a7b6bd;
+  stroke: #4f626b;
+  stroke-width: 3;
+}
+
+.pcbUsbBody rect {
+  fill: #233b45;
+  stroke: #d9e2e6;
+  stroke-width: 2;
+}
+
+.pcbUsbBody > path:last-child {
+  fill: none;
+  stroke: #6f8994;
+  stroke-width: 3;
+}
+
+.pcbHeaderBody rect {
+  fill: #1d2a30;
+  stroke: #091216;
+  stroke-width: 3;
+}
+
+.pcbHeaderBody path {
+  stroke: #3d515a;
+  stroke-width: 2;
+}
+
+.pcbReference {
+  fill: #e4f2ed;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.pcbPad {
+  cursor: cell;
+  outline: none;
+  touch-action: none;
+}
+
+.pcbPadRing {
+  fill: #d7a850;
+  stroke: #ffe0a1;
+  stroke-width: 2;
+}
+
+.pcbPadHole {
+  fill: #183129;
+  stroke: #684a22;
+  stroke-width: 1;
+}
+
+.pcbPad text {
+  fill: #d8eee7;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-anchor: middle;
+}
+
+.pcbPad:hover .pcbPadRing,
+.pcbPad:focus-visible .pcbPadRing,
+.pcbPad.routeStart .pcbPadRing {
+  fill: #ffffff;
+  stroke: #6ee2ff;
+  stroke-width: 5;
+}
+
+.pcbPad.routeStart {
+  animation: pcb-pad-pulse 850ms ease-in-out infinite alternate;
+}
+
+@keyframes pcb-pad-pulse {
+  to { opacity: 0.58; }
+}
+
+.pcbStageStatus {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 8px 11px;
+  border-top: 1px solid #304a55;
+  color: #b8cbd3;
+  background: #17272f;
+  font-size: 0.7rem;
+  font-weight: 760;
+}
+
+.pcbToolStatus {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.pcbToolStatus.place { color: #8be1ff; }
+.pcbToolStatus.route { color: #f1bd77; }
+
+.pcbStageStatus > span:last-child {
+  color: #8ca5af;
+  white-space: nowrap;
+}
+
+.pcbInspector {
+  display: grid;
+  gap: 10px;
+}
+
+.pcbInspectorSection {
+  overflow: hidden;
+}
+
+.pcbComponentDetails {
+  display: grid;
+  margin: 0;
+  padding: 7px 12px;
+}
+
+.pcbComponentDetails > div {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 7px 0;
+  border-bottom: 1px solid #e1edf2;
+}
+
+.pcbComponentDetails > div:last-child {
+  border-bottom: 0;
+}
+
+.pcbComponentDetails dt {
+  color: var(--zylo-muted);
+  font-size: 0.68rem;
+  font-weight: 790;
+}
+
+.pcbComponentDetails dd {
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pcbInspectorActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  padding: 0 12px 12px;
+}
+
+.pcbInspectorActions.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.pcbTraceProperties {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  padding: 0 12px 10px;
+}
+
+.pcbTraceProperties label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pcbTraceProperties span {
+  color: var(--zylo-muted);
+  font-size: 0.59rem;
+  font-weight: 830;
+}
+
+.pcbTraceProperties select {
+  width: 100%;
+  min-height: 34px;
+  padding: 4px 24px 4px 7px;
+  border: 1px solid #c8dbe2;
+  border-radius: 5px;
+  color: #203d49;
+  background: #f8fcfd;
+  font-size: 0.63rem;
+  font-weight: 800;
+}
+
+.pcbInspectorActions button,
+.pcbDrcPanel header button,
+.pcbProjectControls button,
+.pcbSavedShelf button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  border: 1px solid #bed5df;
+  border-radius: 5px;
+  color: #2b5768;
+  background: #f8fcfd;
+  font-size: 0.69rem;
+  font-weight: 850;
+}
+
+.pcbInspectorActions button:hover,
+.pcbProjectControls button:hover,
+.pcbSavedShelf button:hover {
+  border-color: #6eb9cf;
+  color: #075f7d;
+  background: #eaf7fb;
+}
+
+.pcbInspectorActions button.danger {
+  border-color: #e5b9b4;
+  color: #9c3b35;
+  background: #fff5f3;
+}
+
+.pcbInspectorEmpty {
+  min-height: 98px;
+  margin: 0;
+  padding: 16px 14px;
+  color: var(--zylo-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.pcbDrcPanel {
+  padding: 12px;
+}
+
+.pcbDrcPanel > header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.pcbDrcPanel > header > span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  color: #0c7159;
+  background: #dff6ee;
+}
+
+.pcbDrcPanel > header > span.error {
+  color: #a1362f;
+  background: #ffe8e4;
+}
+
+.pcbDrcPanel > header button {
+  min-height: 32px;
+  padding: 4px 7px;
+}
+
+.pcbDrcPanel h2 {
+  font-size: 0.86rem;
+}
+
+.pcbDrcCounts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin: 11px 0 8px;
+}
+
+.pcbDrcCounts span {
+  padding: 7px;
+  border: 1px solid #d7e5ea;
+  border-radius: 5px;
+  color: var(--zylo-muted);
+  background: #f7fafb;
+  font-size: 0.62rem;
+  font-weight: 760;
+  text-align: center;
+}
+
+.pcbDrcCounts strong {
+  color: var(--zylo-ink);
+  font-size: 0.82rem;
+}
+
+.pcbDrcPanel li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 7px;
+  align-items: start;
+  padding: 8px;
+  border-left: 3px solid #d2b455;
+  color: #715800;
+  background: #fff9e8;
+}
+
+.pcbDrcPanel li.error {
+  border-left-color: #cf6259;
+  color: #873a34;
+  background: #fff2f0;
+}
+
+.pcbDrcPanel li.pass {
+  border-left-color: #48a98a;
+  color: #17614e;
+  background: #edf9f5;
+}
+
+.pcbDrcPanel li span {
+  display: grid;
+  gap: 2px;
+}
+
+.pcbDrcPanel li strong {
+  font-size: 0.68rem;
+}
+
+.pcbDrcPanel li small {
+  color: currentColor;
+  font-size: 0.59rem;
+  font-weight: 670;
+  line-height: 1.35;
+}
+
+.pcbProjectControls {
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+}
+
+.pcbProjectControls label {
+  display: grid;
+  gap: 5px;
+}
+
+.pcbProjectControls label span {
+  color: var(--zylo-muted);
+  font-size: 0.66rem;
+  font-weight: 850;
+}
+
+.pcbProjectControls input {
+  width: 100%;
+  min-height: 40px;
+  padding: 7px 9px;
+  border: 1px solid #bad1db;
+  border-radius: 5px;
+  color: var(--zylo-ink);
+  background: #ffffff;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.pcbProjectControls > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 39px;
+  gap: 7px;
+}
+
+.pcbProjectControls .pcbSaveButton {
+  color: #ffffff;
+  background: #087fae;
+  border-color: #087fae;
+}
+
+.pcbProjectControls .pcbResetActions {
+  grid-template-columns: 1fr 1fr;
+}
+
+.pcbSavedShelf {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.pcbSavedShelf > header {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  justify-content: space-between;
+}
+
+.pcbSavedShelf > header > span {
+  color: var(--zylo-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.pcbSavedShelf > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pcbSavedShelf article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  gap: 5px;
+  min-width: 0;
+}
+
+.pcbSavedShelf .pcbSavedOpen {
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 54px;
+  padding: 7px 9px;
+  text-align: left;
+}
+
+.pcbSavedOpen > span {
+  display: grid;
+  min-width: 0;
+}
+
+.pcbSavedOpen strong,
+.pcbSavedOpen small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pcbSavedOpen small {
+  color: var(--zylo-muted);
+  font-size: 0.61rem;
+}
+
+@media (max-width: 1280px) {
+  .pcbWorkspace {
+    grid-template-columns: 174px minmax(0, 1fr);
+  }
+
+  .pcbInspector {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pcbInspectorSection,
+  .pcbDrcPanel,
+  .pcbProjectControls {
+    height: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .pcbDesignerHeader {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .pcbDesignerHeader > .secondaryButton {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .pcbMetricBand {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pcbMetricBand > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .pcbMetricBand > div:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--zylo-border);
+  }
+
+  .pcbWorkspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pcbPalette {
+    display: block;
+  }
+
+  .pcbPalette > header {
+    border-bottom: 1px solid var(--zylo-border);
+    padding-block: 8px;
+  }
+
+  .pcbLibraryToggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 6px 10px;
+    border: 1px solid #9ec7d6;
+    border-radius: 5px;
+    color: #075f7d;
+    background: #eaf7fb;
+    font-size: 0.8rem;
+    font-weight: 650;
+  }
+
+  .pcbPalette[data-library-open='false'] > :not(header) { display: none; }
+
+  .pcbPalette[data-library-open='false'] > header { border-bottom: 0; }
+
+  .pcbPaletteList {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .pcbPaletteList > button {
+    flex: 0 0 150px;
+  }
+
+  .pcbChallenge {
+    grid-column: 1 / -1;
+  }
+
+  .pcbInspector {
+    grid-column: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pcbSavedShelf > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .pcbDesignerPage {
+    gap: 14px;
+    padding-top: 10px;
+  }
+
+  .pcbDesignerHeader {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .pcbDrcSummary {
+    min-width: 0;
+    gap: 5px;
+    padding: 8px;
+    border-width: 1px;
+  }
+
+  .pcbDrcSummary > svg { display: none; }
+  .pcbDrcSummary strong { font-size: 0.72rem; }
+  .pcbDrcSummary small { font-size: 0.6rem; }
+  .pcbDraftStatus { font-size: 0.7rem; }
+
+  .pcbDesignerHeader h1 {
+    font-size: 1.65rem;
+  }
+
+  .pcbMetricBand > div {
+    padding: 9px;
+  }
+
+  .pcbPalette {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pcbPalette > header {
+    border-right: 0;
+    border-bottom: 1px solid var(--zylo-border);
+  }
+
+  .pcbStageToolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .pcbOptionsToggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 40px;
+    border: 1px solid #c5d8df;
+    border-radius: 5px;
+    color: #315665;
+    background: #f8fcfd;
+    font-size: 0.73rem;
+    font-weight: 600;
+  }
+
+  .pcbBoardOptions {
+    display: none;
+    grid-column: 1 / -1;
+    order: 5;
+    gap: 7px;
+    padding-top: 7px;
+    border-top: 1px solid #c5d8df;
+  }
+
+  .pcbBoardOptions[data-open='true'] { display: grid; }
+
+  .pcbToolGroup,
+  .pcbHistoryControls,
+  .pcbLayerGroup {
+    width: 100%;
+  }
+
+  .pcbLayerGroup {
+    grid-column: 1 / -1;
+  }
+
+  .pcbToolGroup button,
+  .pcbLayerGroup button {
+    flex: 1;
+  }
+
+  .pcbHistoryControls button {
+    flex: 1;
+  }
+
+  .pcbGridControl {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .pcbGridControl select {
+    flex: 1;
+  }
+
+  .pcbTraceWidth {
+    margin-left: 0;
+  }
+
+  .pcbZoomControls {
+    justify-self: stretch;
+    justify-content: space-between;
+    min-width: 0;
+  }
+
+  .pcbZoomControls button { min-width: 28px; padding-inline: 4px; }
+  .pcbZoomControls span { min-width: 32px; }
+
+  .pcbBoardViewport { min-height: 0; }
+
+  .pcbStageStatus {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pcbStageStatus > span:last-child {
+    white-space: normal;
+  }
+
+  .pcbSavedShelf > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.pcbDesignerPage :is(button, input, select):focus-visible,
+.pcbLibraryToggle:focus-visible {
+  outline: 2px solid #0783a9;
+  outline-offset: 3px;
+}
+
+.appShell[data-motion='reduced'] .pcbAirwireLayer line,
+.appShell[data-motion='reduced'] .pcbRoutePreview,
+.appShell[data-motion='reduced'] .pcbPad.routeStart {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcbPad.routeStart {
+    animation: none;
+  }
+
+  .pcbChallengeMeter span,
+  .pcbTraceLayer path {
+    transition: none;
+  }
+
+  .pcbAirwireLayer line,
+  .pcbRoutePreview {
+    animation: none;
+  }
+}

@@ -1,115 +1,70 @@
 # ZyloXP
 
-Learn electrical engineering by moving between short lessons, adaptive practice, interactive bench labs, concept visualizations, and career evidence—all in an installable, local-first web app.
+A browser-based electrical engineering workbench. Practice a calculation, change a circuit parameter, or lay out a small PCB, then keep the result in your notebook.
 
-**[Open the live app](https://zhezaywang.github.io/ZyloXP/)** · **[Explore the question bank](electrical_engineering_question_bank_250000/README.md)**
+[Open the app](https://zhezaywang.github.io/ZyloXP/) · [Architecture](docs/architecture.md) · [Question bank](electrical_engineering_question_bank_250000/README.md)
 
-[![Deploy to GitHub Pages](https://github.com/zhezaywang/ZyloXP/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/zhezaywang/ZyloXP/actions/workflows/deploy-pages.yml)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
-[![Question Bank](https://img.shields.io/badge/checked_questions-250%2C000-0A8F86)](electrical_engineering_question_bank_250000/README.md)
+[![Deployment](https://github.com/zhezaywang/ZyloXP/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/zhezaywang/ZyloXP/actions/workflows/deploy-pages.yml)
 
-![ZyloXP engineering foundations dashboard](docs/zyloxp-dashboard.jpg)
+![PCB layout workspace with footprints, copper routes, and placement checks](docs/zyloxp-pcb.jpg)
 
-ZyloXP connects the full learning loop: understand a relationship, answer a checked prompt, test it on an interactive bench, capture what changed, and apply the result to real engineering work.
+## Try it
 
-## What you can do
+Choose **Start learning**. No account, API key, or installation is required.
 
-- **Learn and plan:** daily missions, XP, streaks, skill paths, Focus Room, custom Study Routes, a Weekly Planner, and progress insights.
-- **Practice deliberately:** confidence-rated questions, Smart Review, Mistake Lab, adaptive Power Sprints, visual problem inspection, and checkpoint exams.
-- **Work at the bench:** 13 interactive lab scenarios with calibration missions, fault diagnosis, saved bench runs, and a resistor-network Circuit Workbench.
-- **Explore the EE Atlas:** 28 interactive concept models across eight domains, plus seven playable engineering challenges.
-- **Build an engineering notebook:** a Study List, Field Journal, formula library and recall rounds, saved questions, and reusable bench setups.
-- **Use practical tools:** calculators for Ohm's law, DC power, resistor bands, loaded dividers, LED limiting, RC timing, AC reactance, and unit conversion.
-- **Connect learning to work:** eight career tracks, readiness signals, guided engineering projects, and a portfolio studio.
-- **Keep progress portable:** browser-local autosave, validated JSON backup and restore, installable PWA support, offline shell caching, and an optional local PIN privacy lock.
+1. Open **Labs > PCB Designer**. Move a footprint, route between pads, and check the remaining connections. Edits survive a refresh; saved boards can be exported as JSON.
+2. Open **Labs > Ohm's Law Bench**. Change the source voltage or resistance and compare the current and power readings.
+3. Explore **EE Atlas**, or use **Practice** to work through a question and inspect its circuit diagram.
+4. Save an observation in **Notebook**. **Settings > Progress backup** exports the learning state and PCB projects together.
 
-## Inside the product
+## What is implemented
 
-| Interactive engineering labs | Engineering notebook |
+| Workspace | What you can do |
 | --- | --- |
-| ![Live Ohm's law bench with circuit controls and ammeter](docs/zyloxp-labs.jpg) | ![Formula library inside the ZyloXP engineering notebook](docs/zyloxp-notebook.jpg) |
+| PCB Designer | Place and rotate footprints, route top/bottom copper, change grid and trace width, undo edits, inspect connections, and save boards. |
+| Labs | Experiment with circuit, signal, and control models; complete guided calibration and fault-finding tasks. |
+| Practice and Atlas | Answer questions with feedback, revisit mistakes, and explore interactive concept models and games. |
+| Notebook | Collect formulas, saved questions, observations, and bench runs. |
+| Learning and careers | Follow skill paths, review activity, and work through role-related project decisions. |
 
-The seven primary workspaces—Learn, Practice, Labs, EE Atlas, Careers, Question Bank, and Notebook—share progress, recent activity, study targets, and saved artifacts. Hash-based routes make every workspace refresh-safe on GitHub Pages.
+![Ohm's law lab running in the browser](docs/zyloxp-labs.jpg)
 
-## Question bank
+## Engineering decisions
 
-The project is backed by a validated electrical-engineering content package containing:
+- **React and TypeScript:** typed curriculum and board models, with larger workspaces loaded on demand.
+- **SVG circuit and PCB views:** component geometry, pads, traces, and interaction targets share the same coordinate system.
+- **Local persistence:** drafts save automatically; board validation rejects broken references and invalid geometry instead of silently dropping components.
+- **Static deployment:** hash routes work on GitHub Pages without a server. A service worker caches the app shell and visited assets.
+- **Verification:** storage regression tests and Playwright tests run against a production build on desktop and mobile-sized Chromium viewports. Deployment waits for these checks and the production dependency audit.
 
-- **250,000** generated and deterministically checked questions
-- **20** electrical engineering topics
-- **25** organizational levels per topic
-- **100** governing formula templates
-- **12,500** SVG instructional diagrams with matching LaTeX/TikZ sources
-- **0** answer-recomputation failures and **0** image-validation failures in the latest reports
-
-The 25 levels organize the collection; they are not psychometrically calibrated ability measures. The deployed app uses representative checked prompts and topic metadata. This repository includes a 50,000-row stratified review workbook, while the canonical 250,000-row CSV is intentionally excluded because it exceeds GitHub's per-file size limit.
-
-See the [question bank documentation](electrical_engineering_question_bank_250000/README.md) and [latest validation summary](electrical_engineering_question_bank_250000/validation_summary.json) for the schema, assumptions, coverage, and rebuild process.
-
-## Local-first by design
-
-ZyloXP runs entirely in the browser and stores learner state locally. There is no hosted user account or remote progress service in this version. The optional six-digit device PIN is a privacy lock for the current browser session; it does not encrypt learning data or replace server-side authentication.
-
-The app can be installed as a PWA and caches its application shell for offline reopening. Progress can be exported to a validated JSON backup and restored on another browser.
-
-## Technology
-
-| Area | Tools and concepts |
-| --- | --- |
-| Front end | React 19, TypeScript, Vite, lazy-loaded feature modules |
-| Interface | Responsive CSS, semantic HTML, accessible labels, reduced-motion and contrast preferences |
-| Learning state | Browser storage, versioned persistence, JSON backup and restore |
-| Engineering content | Typed curriculum models, SVG, LaTeX/TikZ, interactive circuit and signal visualizations |
-| PWA and security | Service worker, web app manifest, Content Security Policy, local Web Crypto PIN verifier |
-| Delivery | GitHub Actions and GitHub Pages |
-
-## Project map
-
-```text
-src/
-├── App.tsx                       # Application shell, routing, and shared learning state
-├── data.ts                      # Curriculum, labs, questions, and career tracks
-├── ElectricalAtlas.tsx          # Interactive concept atlas and engineering games
-├── EngineeringToolkit.tsx       # Practical engineering calculators
-├── FormulaNotebookWorkspace.tsx # Formula library and quick-recall flow
-├── NotebookLibrary.tsx          # Study List, notes, questions, and bench records
-├── QuestionVisualStage.tsx      # Question diagrams and visual inspection tools
-└── ...                          # Focus, planning, review, exams, insights, and portfolios
-
-public/
-├── diagrams/                    # App-facing reference diagrams
-├── question-bank/images/        # Representative checked question visuals
-├── manifest.webmanifest         # Installable PWA metadata
-└── sw.js                        # Offline application-shell cache
-
-electrical_engineering_question_bank_250000/
-├── images/                      # 12,500 generated SVG diagrams
-├── latex_sources/               # 12,500 editable LaTeX/TikZ sources
-├── *.csv / *.json               # Metadata, formulas, manifests, and validation
-└── *.xlsx                       # 50,000-row stratified review workbook
-```
+See [architecture and tradeoffs](docs/architecture.md) for the implementation map and current limits.
 
 ## Run locally
 
-Requirements: Node.js 22.13 or newer and pnpm 11.
+Use Node.js 24 (see [.nvmrc](.nvmrc)) and pnpm 11.0.7.
 
 ```bash
 git clone https://github.com/zhezaywang/ZyloXP.git
 cd ZyloXP
 pnpm install --frozen-lockfile
-pnpm run dev
+pnpm dev
 ```
 
-Open `http://localhost:5173`.
-
-## Verify the project
+Open the URL printed by Vite, normally `http://localhost:5173`.
 
 ```bash
-pnpm run typecheck
-pnpm run build
-pnpm run preview
+pnpm exec playwright install chromium
+pnpm verify
 ```
 
-The production build is deployed automatically from `main` through the [GitHub Pages workflow](.github/workflows/deploy-pages.yml).
+`verify` runs unit tests, both TypeScript checks, a production build, and browser tests. The browser tests start their own preview server on port 4178. For individual checks, use `pnpm test`, `pnpm typecheck`, `pnpm build`, or `pnpm test:e2e` after building.
+
+## Content and scope
+
+The companion dataset contains **250,000 generated numerical questions** based on **100 formula templates** across **20 topics**. Its [committed validation report](electrical_engineering_question_bank_250000/validation_summary.json), dated July 23, 2026, records answer recomputation and checks on 12,500 instructional SVG diagrams. These are template variants, not 250,000 independently authored problems. The 25 level labels are organizational, not calibrated difficulty scores.
+
+The app loads a representative subset and topic metadata. The repository includes a 50,000-row review workbook; the full CSV is excluded because it exceeds GitHub's file-size limit.
+
+This is a learning project, not a production EDA tool. PCB checks cover placement and guided connections, not complete electrical-rule checking or manufacturing sign-off. Lab models are simplified. Career scores are learning heuristics, not professional assessments.
+
+Profiles, progress, and the optional device PIN are local to the browser. There is **no cloud authentication or synchronization**; the PIN does not encrypt stored data. Export a backup before clearing browser storage. Offline access depends on which assets have already been visited. The initial learning path includes starter progress for exploration.

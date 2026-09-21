@@ -14,29 +14,40 @@ const contentSecurityDirectives = [
   "media-src 'self' data: blob:",
   "object-src 'none'",
   "script-src 'self'",
+  "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline'",
   "worker-src 'self' blob:",
 ];
-const strictContentSecurityPolicy = contentSecurityDirectives.join('; ');
-const staticContentSecurityPolicy = contentSecurityDirectives
+const productionContentSecurityDirectives = [
+  ...contentSecurityDirectives,
+  "require-trusted-types-for 'script'",
+  "trusted-types 'none'",
+  'upgrade-insecure-requests',
+];
+const strictContentSecurityPolicy =
+  productionContentSecurityDirectives.join('; ');
+const staticContentSecurityPolicy = productionContentSecurityDirectives
   .filter((directive) => !directive.startsWith('frame-ancestors'))
   .join('; ');
-const developmentContentSecurityPolicy = strictContentSecurityPolicy
+const developmentContentSecurityPolicy = contentSecurityDirectives
+  .join('; ')
   .replace("connect-src 'self'", "connect-src 'self' ws: wss:")
   .replace("script-src 'self'", "script-src 'self' 'unsafe-inline'");
 
 const securityHeaders = {
   'Content-Security-Policy': strictContentSecurityPolicy,
-  'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+  'Cross-Origin-Embedder-Policy': 'require-corp',
+  'Cross-Origin-Opener-Policy': 'same-origin',
   'Cross-Origin-Resource-Policy': 'same-origin',
   'Origin-Agent-Cluster': '?1',
   'Permissions-Policy':
-    'accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()',
+    'accelerometer=(), browsing-topics=(), camera=(), clipboard-read=(), clipboard-write=(self), display-capture=(), gamepad=(), geolocation=(), gyroscope=(), hid=(), magnetometer=(), microphone=(), payment=(), publickey-credentials-get=(), serial=(), speaker-selection=(), usb=(), web-share=(), xr-spatial-tracking=()',
   'Referrer-Policy': 'no-referrer',
   'X-DNS-Prefetch-Control': 'off',
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
   'X-Permitted-Cross-Domain-Policies': 'none',
+  'X-XSS-Protection': '0',
 };
 
 export default defineConfig({
@@ -88,6 +99,7 @@ export default defineConfig({
           }
 
           if (
+            id.includes('/src/authSession.ts') ||
             id.includes('/src/LocalAppSecurity.tsx') ||
             id.includes('/src/localAppLock.ts')
           ) {

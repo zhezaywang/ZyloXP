@@ -124,7 +124,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     equation: 'V = IR · ΣI = 0 · ΣV = 0',
     summary:
       'Relate voltage, current, and resistance while conserving charge and energy at every node and loop.',
-    interactiveLabel: 'Live two-loop network',
+    interactiveLabel: 'Live source-load network',
     diagramKind: 'network',
     principles: [
       'Current is conserved at an ideal node.',

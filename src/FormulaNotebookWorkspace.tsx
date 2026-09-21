@@ -472,6 +472,7 @@ export function FormulaNotebookWorkspace({
                           : 'Available'}
                       </span>
                       <button
+                        aria-label={`Open ${entry.source} for ${entry.title}`}
                         onClick={() => onOpenSource(entry)}
                         type="button"
                       >

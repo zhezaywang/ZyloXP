@@ -87,7 +87,7 @@ export function LocalSecuritySettings({
   const [nextPin, setNextPin] = useState('');
   const [confirmNextPin, setConfirmNextPin] = useState('');
   const [timeoutMinutes, setTimeoutMinutes] = useState(15);
-  const [lockOnHidden, setLockOnHidden] = useState(false);
+  const [lockOnHidden, setLockOnHidden] = useState(true);
   const [busyAction, setBusyAction] = useState<
     'change' | 'disable' | 'enable' | null
   >(null);
@@ -99,7 +99,11 @@ export function LocalSecuritySettings({
     if (config) {
       setTimeoutMinutes(config.timeoutMinutes);
       setLockOnHidden(config.lockOnHidden);
+      return;
     }
+
+    setTimeoutMinutes(15);
+    setLockOnHidden(true);
   }, [config]);
 
   function clearPinFields() {
@@ -142,6 +146,8 @@ export function LocalSecuritySettings({
     if (result.ok) {
       clearPinFields();
       setManageOpen(false);
+    } else {
+      setCurrentPin('');
     }
   }
 
@@ -154,6 +160,8 @@ export function LocalSecuritySettings({
     if (result.ok) {
       clearPinFields();
       setManageOpen(false);
+    } else {
+      setCurrentPin('');
     }
   }
 

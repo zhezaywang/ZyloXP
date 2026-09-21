@@ -4,7 +4,7 @@ dist/
 *.local
 AGENTS.md
 
-# Exceeds GitHub's 100 MB per-file limit; the full dataset remains in the XLSX workbook.
+# The canonical CSV exceeds GitHub's file limit; the workbook is a 50,000-row sample.
 electrical_engineering_question_bank_250000/question_database.csv
 
 # Local duplicate exports; keep the canonical files without the " 2" suffix.
@@ -12,3 +12,14 @@ electrical_engineering_question_bank_250000/README 2.md
 electrical_engineering_question_bank_250000/image_database 2.csv
 electrical_engineering_question_bank_250000/question_database 2.csv
 electrical_engineering_question_bank_250000/validation_summary 2.json
+
+# Machine-local exports, credentials, and browser-test artifacts.
+README 2.md
+# Retained local concept artwork; the app uses real product captures.
+public/landing/zyloxp-engineering-hero.jpg
+.env
+.env.*
+!.env.example
+test-results/
+playwright-report/
+blob-report/

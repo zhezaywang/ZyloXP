@@ -16,6 +16,10 @@ import {
 
 const BACKUP_SCHEMA_VERSION = 1;
 const MAX_BACKUP_FILE_BYTES = 2 * 1024 * 1024;
+const MAX_BACKUP_DEPTH = 16;
+const MAX_BACKUP_NODES = 25_000;
+const MAX_BACKUP_COLLECTION_SIZE = 10_000;
+const UNSAFE_BACKUP_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 const BACKUP_GROUPS = [
   {
     expected: 'object',
@@ -41,6 +45,21 @@ const BACKUP_GROUPS = [
     expected: 'array',
     key: 'zyloxp-study-list-v1',
     label: 'Study List',
+  },
+  {
+    expected: 'array',
+    key: 'zyloxp-pcb-designs-v1',
+    label: 'Saved PCB boards',
+  },
+  {
+    expected: 'object',
+    key: 'zyloxp-pcb-draft-v1',
+    label: 'PCB draft',
+  },
+  {
+    expected: 'array',
+    key: 'zyloxp-recent-learning-v1',
+    label: 'Recent learning',
   },
 ] as const;
 
@@ -79,6 +98,66 @@ function isExpectedValue(
   return expected === 'array' ? Array.isArray(value) : isRecord(value);
 }
 
+function assertSafeBackupValue(rootValue: unknown) {
+  const pendingValues = [{ depth: 0, value: rootValue }];
+  let visitedNodes = 0;
+
+  while (pendingValues.length > 0) {
+    const nextValue = pendingValues.pop();
+    if (!nextValue) {
+      continue;
+    }
+
+    visitedNodes += 1;
+    if (visitedNodes > MAX_BACKUP_NODES) {
+      throw new Error('This backup contains too much nested data.');
+    }
+    if (nextValue.depth > MAX_BACKUP_DEPTH) {
+      throw new Error('This backup is nested too deeply.');
+    }
+
+    const { value } = nextValue;
+    if (
+      value === null ||
+      typeof value === 'string' ||
+      typeof value === 'boolean'
+    ) {
+      continue;
+    }
+    if (typeof value === 'number') {
+      if (!Number.isFinite(value)) {
+        throw new Error('This backup contains an invalid number.');
+      }
+      continue;
+    }
+
+    if (Array.isArray(value)) {
+      if (value.length > MAX_BACKUP_COLLECTION_SIZE) {
+        throw new Error('This backup contains an oversized list.');
+      }
+      value.forEach((item) =>
+        pendingValues.push({ depth: nextValue.depth + 1, value: item }),
+      );
+      continue;
+    }
+
+    if (!isRecord(value)) {
+      throw new Error('This backup contains an unsupported value.');
+    }
+
+    const entries = Object.entries(value);
+    if (entries.length > MAX_BACKUP_COLLECTION_SIZE) {
+      throw new Error('This backup contains an oversized data group.');
+    }
+    entries.forEach(([key, item]) => {
+      if (UNSAFE_BACKUP_KEYS.has(key)) {
+        throw new Error('This backup contains an unsafe data key.');
+      }
+      pendingValues.push({ depth: nextValue.depth + 1, value: item });
+    });
+  }
+}
+
 function getSafeCount(value: unknown) {
   return typeof value === 'number' && Number.isFinite(value)
     ? Math.max(0, Math.round(value))
@@ -98,6 +177,7 @@ function createBackupFromStorage(): ZyloBackup {
 
         const parsedValue = JSON.parse(storedValue) as unknown;
         if (isExpectedValue(parsedValue, group.expected)) {
+          assertSafeBackupValue(parsedValue);
           data[group.key] = parsedValue;
         }
       } catch {
@@ -143,6 +223,7 @@ export function parseZyloBackup(serializedBackup: string): ZyloBackup {
   }
 
   const parsedData = parsedBackup.data;
+  assertSafeBackupValue(parsedData);
   const knownKeys = new Set<string>(BACKUP_GROUPS.map((group) => group.key));
   const payloadKeys = Object.keys(parsedData);
   if (payloadKeys.some((key) => !knownKeys.has(key))) {

@@ -37,6 +37,7 @@ const RECENT_LEARNING_PAGES = new Set<AppPage>([
   'lesson',
   'portfolio',
   'workbench',
+  'pcb-designer',
 ]);
 
 const RECENT_LEARNING_ICONS = {
@@ -55,7 +56,7 @@ function isCanonicalLearningRoute(routeHash: string) {
   const route = parseAppHash(routeHash);
   return (
     RECENT_LEARNING_PAGES.has(route.page) &&
-    route.resourceId !== null &&
+    (route.resourceId !== null || route.page === 'pcb-designer') &&
     buildAppHash(route) === routeHash
   );
 }

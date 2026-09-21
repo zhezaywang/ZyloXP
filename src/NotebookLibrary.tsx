@@ -456,6 +456,7 @@ export function SavedQuestionLibrary({
               </div>
               <div className="notebookArtifactActions">
                 <button
+                  aria-label={`Open saved question ${item.subtopic}`}
                   className="secondaryButton"
                   onClick={() => onOpen(item.questionIndex)}
                   type="button"

@@ -60,6 +60,7 @@ type ElectricalAtlasProps = {
   onOpenConcept: (conceptId: string) => void;
   onOpenGame: (gameId: string) => void;
   onOpenLab: (labId: string) => void;
+  onOpenPcbDesigner: () => void;
   view: AtlasView;
 };
 
@@ -398,7 +399,7 @@ function RangeControl({
           aria-label={label}
           max={max}
           min={min}
-          onChange={(event) => onChange(Number(event.currentTarget.value))}
+          onInput={(event) => onChange(Number(event.currentTarget.value))}
           step={step}
           type="range"
           value={value}
@@ -2288,11 +2289,13 @@ function AtlasOverview({
   bestScores,
   onOpenConcept,
   onOpenGame,
+  onOpenPcbDesigner,
   progress,
 }: {
   bestScores: AtlasBestScores;
   onOpenConcept: (conceptId: string) => void;
   onOpenGame: (gameId: string) => void;
+  onOpenPcbDesigner: () => void;
   progress: AtlasProgress;
 }) {
   const [domain, setDomain] = useState<AtlasDomainId | 'all'>('all');
@@ -2373,6 +2376,37 @@ function AtlasOverview({
         onOpenConcept={onOpenConcept}
         progress={progress}
       />
+
+      <section className="atlasPcbLaunch" aria-labelledby="atlas-pcb-title">
+        <div className="atlasPcbVisual" aria-hidden="true">
+          <svg viewBox="0 0 420 180">
+            <rect height="148" rx="11" width="386" x="17" y="16" />
+            <path className="top" d="M52 88H124V48H212V112H344" />
+            <path className="bottom" d="M72 137H164V91H292V48H365" />
+            <rect className="chip" height="68" rx="6" width="76" x="174" y="57" />
+            <rect className="port" height="48" rx="5" width="48" x="30" y="65" />
+            {[54, 112, 145, 278, 326, 365].map((x, index) => (
+              <circle cx={x} cy={index % 2 === 0 ? 47 : 137} key={`${x}-${index}`} r="8" />
+            ))}
+            <text textAnchor="middle" x="212" y="96">MCU</text>
+          </svg>
+        </div>
+        <div className="atlasPcbCopy">
+          <p className="eyebrow">Applied design workspace</p>
+          <h2 id="atlas-pcb-title">Move from schematic thinking to PCB layout</h2>
+          <p>Place real footprints, route top and bottom copper, and clear board-level design rules.</p>
+          <div>
+            <span><CircuitBoard size={15} /> Footprint placement</span>
+            <span><Route size={15} /> Copper routing</span>
+            <span><ShieldCheck size={15} /> Live DRC</span>
+          </div>
+        </div>
+        <button onClick={onOpenPcbDesigner} type="button">
+          <CircuitBoard size={18} />
+          Open PCB Designer
+          <ArrowRight size={17} />
+        </button>
+      </section>
 
       <nav className="atlasWorkspaceTabs" aria-label="Atlas views">
         <button
@@ -2462,7 +2496,11 @@ function AtlasOverview({
                       </>
                     )}
                   </span>
-                  <button onClick={() => onOpenGame(game.id)} type="button">
+                  <button
+                    aria-label={`Play ${game.title}`}
+                    onClick={() => onOpenGame(game.id)}
+                    type="button"
+                  >
                     <Play size={16} />
                     Play
                   </button>
@@ -3698,6 +3736,7 @@ export function ElectricalAtlas({
   onOpenConcept,
   onOpenGame,
   onOpenLab,
+  onOpenPcbDesigner,
   view,
 }: ElectricalAtlasProps) {
   const [bestScores, setBestScores] = useState<AtlasBestScores>(readBestScores);
@@ -3813,6 +3852,7 @@ export function ElectricalAtlas({
       bestScores={bestScores}
       onOpenConcept={onOpenConcept}
       onOpenGame={onOpenGame}
+      onOpenPcbDesigner={onOpenPcbDesigner}
       progress={progress}
     />
   );

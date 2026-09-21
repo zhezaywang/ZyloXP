@@ -3263,3 +3263,154 @@
     transition: none;
   }
 }
+.atlasPcbLaunch {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.78fr) minmax(300px, 1.25fr) auto;
+  gap: 20px;
+  align-items: center;
+  overflow: hidden;
+  margin: 22px 0;
+  padding: 16px;
+  border-top: 2px solid #7fbda6;
+  border-bottom: 2px solid #7fbda6;
+  background: #eff9f5;
+}
+
+.atlasPcbVisual {
+  overflow: hidden;
+  border: 1px solid #75a896;
+  border-radius: 7px;
+  background: #18312b;
+}
+
+.atlasPcbVisual svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.atlasPcbVisual svg > rect:first-child {
+  fill: #0d6c55;
+  stroke: #784f30;
+  stroke-width: 6;
+}
+
+.atlasPcbVisual path.top,
+.atlasPcbVisual path.bottom {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 11;
+}
+
+.atlasPcbVisual path.top {
+  stroke: #dc8a4c;
+}
+
+.atlasPcbVisual path.bottom {
+  stroke: #47a5c2;
+  stroke-dasharray: 3 4;
+}
+
+.atlasPcbVisual rect.chip {
+  fill: #17242b;
+  stroke: #e0b05b;
+  stroke-width: 4;
+}
+
+.atlasPcbVisual rect.port {
+  fill: #a1b0b7;
+  stroke: #40545d;
+  stroke-width: 4;
+}
+
+.atlasPcbVisual circle {
+  fill: #e1b358;
+  stroke: #ffe0a1;
+  stroke-width: 3;
+}
+
+.atlasPcbVisual text {
+  fill: #c6d5da;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.atlasPcbCopy {
+  min-width: 0;
+}
+
+.atlasPcbCopy h2 {
+  margin: 3px 0 5px;
+  font-size: 1.25rem;
+  letter-spacing: 0;
+}
+
+.atlasPcbCopy > p:not(.eyebrow) {
+  margin: 0;
+  color: #587267;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.atlasPcbCopy > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 13px;
+  margin-top: 10px;
+}
+
+.atlasPcbCopy span {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  color: #266a56;
+  font-size: 0.69rem;
+  font-weight: 820;
+}
+
+.atlasPcbLaunch > button {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 13px;
+  border: 1px solid #0f765c;
+  border-radius: 6px;
+  color: #ffffff;
+  background: #0f765c;
+  font-size: 0.77rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.atlasPcbLaunch > button:hover {
+  background: #0b654f;
+}
+
+@media (max-width: 900px) {
+  .atlasPcbLaunch {
+    grid-template-columns: minmax(180px, 0.75fr) minmax(0, 1fr);
+  }
+
+  .atlasPcbLaunch > button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 620px) {
+  .atlasPcbLaunch {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 13px;
+    padding: 13px 0;
+  }
+
+  .atlasPcbLaunch > button {
+    width: 100%;
+  }
+}
