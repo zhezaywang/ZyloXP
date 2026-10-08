@@ -23,7 +23,7 @@ export type StudyListItem = StudyListResource & {
   completedAt: number | null;
 };
 
-const MAX_STUDY_LIST_ITEMS = 60;
+export const MAX_STUDY_LIST_ITEMS = 60;
 const MAX_TEXT_LENGTH = 280;
 const STUDY_LIST_KIND_SET = new Set<string>(STUDY_LIST_KINDS);
 
@@ -157,6 +157,8 @@ export function addStudyListResource(
     );
   }
 
+  if (items.length >= MAX_STUDY_LIST_ITEMS) return items;
+
   return normalizeStudyListItems([
     ...items,
     {
@@ -165,4 +167,23 @@ export function addStudyListResource(
       completedAt: null,
     },
   ]);
+}
+
+export function canAddStudyListResource(items: StudyListItem[], resource: StudyListResource) {
+  return items.length < MAX_STUDY_LIST_ITEMS ||
+    items.some((item) => getStudyListItemKey(item) === getStudyListItemKey(resource));
+}
+
+export function restoreStudyListItems(items: StudyListItem[], removed: StudyListItem[], originalOrder: StudyListItem[]) {
+  const current = new Map(items.map((item) => [getStudyListItemKey(item), item]));
+  const missing = removed.filter((item) => !current.has(getStudyListItemKey(item)));
+  if (current.size + missing.length > MAX_STUDY_LIST_ITEMS) return null;
+  for (const item of missing) current.set(getStudyListItemKey(item), item);
+  const restored: StudyListItem[] = [];
+  for (const item of originalOrder) {
+    const key = getStudyListItemKey(item);
+    const candidate = current.get(key);
+    if (candidate) { restored.push(candidate); current.delete(key); }
+  }
+  return [...restored, ...current.values()];
 }

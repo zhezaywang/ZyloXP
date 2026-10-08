@@ -20,7 +20,7 @@ export function normalizeHeartState(state: HeartState, now = Date.now()): HeartS
     typeof state.nextHeartAt === 'number' && Number.isFinite(state.nextHeartAt)
       ? state.nextHeartAt
       : null;
-  const nextHeartAt = storedNextHeartAt ?? now + HEART_RECHARGE_MS;
+  const nextHeartAt = Math.min(storedNextHeartAt ?? now + HEART_RECHARGE_MS, now + HEART_RECHARGE_MS);
 
   if (now < nextHeartAt) {
     return { hearts, nextHeartAt };
@@ -41,12 +41,13 @@ export function getFullRechargeMs(
   nextHeartAt: number | null,
   now = Date.now(),
 ) {
-  if (hearts >= MAX_HEARTS || nextHeartAt === null) {
+  const current = normalizeHeartState({ hearts, nextHeartAt }, now);
+  if (current.hearts >= MAX_HEARTS || current.nextHeartAt === null) {
     return 0;
   }
 
-  const nextHeartMs = Math.max(0, nextHeartAt - now);
-  return nextHeartMs + Math.max(0, MAX_HEARTS - hearts - 1) * HEART_RECHARGE_MS;
+  const nextHeartMs = Math.max(0, current.nextHeartAt - now);
+  return nextHeartMs + Math.max(0, MAX_HEARTS - current.hearts - 1) * HEART_RECHARGE_MS;
 }
 
 export function formatHeartCountdown(milliseconds: number) {

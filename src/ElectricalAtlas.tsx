@@ -32,7 +32,7 @@ import {
   Zap,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   atlasDomains,
@@ -49,6 +49,8 @@ import type {
   EngineeringGame,
 } from './electricalAtlasData';
 import './ElectricalAtlas.css';
+import { phasorPoint, plotPath, sampleSineWave, secondOrderStep, secondOrderSettlingTime, transmissionVoltage } from './visualMath';
+import { digitalTiming, mosfetOperatingPoint, pidResponse, qamConstellation, relayTrip, uncertaintyModel, waveMatchScore } from './atlasMath';
 
 type AtlasView = 'concept' | 'game' | 'overview';
 
@@ -203,58 +205,16 @@ function clampNumber(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function calculatePidMetrics(
-  proportional: number,
-  integral: number,
-  derivative: number,
-  plantTimeConstant = 1.5,
-) {
-  const loopStrength = Math.max(0.15, proportional + integral * 0.8);
-  const naturalFrequency =
-    Math.sqrt(loopStrength / Math.max(0.35, plantTimeConstant)) * 1.25;
-  const damping = clampNumber(
-    (0.24 + derivative * 0.42 + proportional * 0.025) /
-      (1 + integral * 0.16),
-    0.08,
-    1.35,
-  );
-  const stable = damping > 0.14 && loopStrength < 12;
-  const overshoot =
-    stable && damping < 1
-      ? Math.exp(
-          (-damping * Math.PI) / Math.sqrt(Math.max(0.001, 1 - damping ** 2)),
-        ) * 100
-      : stable
-        ? 0
-        : 100;
-  const settlingTime = stable
-    ? 4 / Math.max(0.08, damping * naturalFrequency)
-    : 12;
-  const steadyError =
-    integral > 0.08
-      ? 0.5 / (1 + integral * 5)
-      : 100 / (1 + proportional * 1.8);
-
-  return {
-    damping,
-    naturalFrequency,
-    overshoot,
-    settlingTime,
-    stable,
-    steadyError,
-  };
-}
-
 function makeStepResponsePath({
-  damping,
-  naturalFrequency,
-  samples = 100,
+  at,
+  scale,
+  samples = 800,
   width = 520,
   x = 55,
   y = 205,
 }: {
-  damping: number;
-  naturalFrequency: number;
+  at: (time: number) => number;
+  scale: number;
   samples?: number;
   width?: number;
   x?: number;
@@ -263,42 +223,12 @@ function makeStepResponsePath({
   return Array.from({ length: samples + 1 }, (_, index) => {
     const progress = index / samples;
     const time = progress * 8;
-    let response: number;
-
-    if (damping < 1) {
-      const dampedFrequency =
-        naturalFrequency * Math.sqrt(Math.max(0.001, 1 - damping ** 2));
-      response =
-        1 -
-        Math.exp(-damping * naturalFrequency * time) *
-          (Math.cos(dampedFrequency * time) +
-            (damping / Math.sqrt(Math.max(0.001, 1 - damping ** 2))) *
-              Math.sin(dampedFrequency * time));
-    } else {
-      response = 1 - Math.exp(-naturalFrequency * time);
-    }
+    const response = at(time);
 
     const pointX = x + progress * width;
-    const pointY = y - clampNumber(response, -0.2, 1.55) * 120;
-    return `${index === 0 ? 'M' : 'L'}${pointX.toFixed(2)} ${pointY.toFixed(2)}`;
+    const pointY = y - response * scale;
+    return `${index === 0 ? `M${x} ${y}L` : 'L'}${pointX.toFixed(2)} ${pointY.toFixed(2)}`;
   }).join(' ');
-}
-
-function calculateRelayTrip(
-  faultCurrent: number,
-  pickupCurrent: number,
-  timeMultiplier: number,
-) {
-  const multiple = faultCurrent / Math.max(1, pickupCurrent);
-  if (multiple <= 1) {
-    return { multiple, tripTime: 99 };
-  }
-  return {
-    multiple,
-    tripTime:
-      (timeMultiplier * 0.14) /
-      Math.max(0.001, Math.pow(multiple, 0.02) - 1),
-  };
 }
 
 function makeWavePath({
@@ -334,7 +264,7 @@ function makeWavePath({
 function makeRcChargePath({
   timeConstant,
   timeWindow,
-  samples = 100,
+  samples = 400,
   width = 620,
   x = 70,
   y = 230,
@@ -346,10 +276,13 @@ function makeRcChargePath({
   x?: number;
   y?: number;
 }) {
-  return Array.from({ length: samples + 1 }, (_, index) => {
-    const progress = index / samples;
-    const time = progress * timeWindow;
-    const charge = 1 - Math.exp(-time / Math.max(1, timeConstant));
+  const times = [...new Set([
+    ...Array.from({ length: samples + 1 }, (_, index) => index / samples * timeWindow),
+    ...Array.from({ length: 121 }, (_, index) => index / 20 * timeConstant).filter((time) => time <= timeWindow),
+  ])].sort((a, b) => a - b);
+  return times.map((time, index) => {
+    const progress = time / timeWindow;
+    const charge = 1 - Math.exp(-time / timeConstant);
     const pointX = x + progress * width;
     const pointY = y - charge * 150;
     return `${index === 0 ? 'M' : 'L'}${pointX.toFixed(2)} ${pointY.toFixed(
@@ -481,13 +414,12 @@ function NetworkExplorer() {
               <feDropShadow dx="0" dy="3" floodOpacity=".18" stdDeviation="3" />
             </filter>
           </defs>
-          <path className="atlasWire" d="M100 55H245M365 55H520V195H100V55" />
+          <path className="atlasWire" d="M100 74V55H245 M365 55H520V92 M520 188V195H100V178" />
           <rect className="atlasSource" filter="url(#atlas-shadow)" height="104" rx="8" width="70" x="65" y="74" />
           <path className="atlasSourceMark" d="M84 107h32M91 126h18" />
           <text className="atlasSvgLabel" x="75" y="96">DC</text>
           <text className="atlasSvgValue" x="77" y="157">{sourceVoltage} V</text>
           <rect className="atlasComponent" filter="url(#atlas-shadow)" height="52" rx="7" width="120" x="245" y="29" />
-          <path className="atlasResistorBands" d="M268 32v46M286 32v46M323 32v46M342 32v46" />
           <text className="atlasSvgValue" textAnchor="middle" x="305" y="103">RS = {seriesResistance} Ω</text>
           <rect className="atlasLoad" filter="url(#atlas-shadow)" height="96" rx="8" width="92" x="474" y="92" />
           <path className="atlasLoadCoil" d="M492 118h18l8 10 10-20 10 20 8-10h4" />
@@ -496,7 +428,7 @@ function NetworkExplorer() {
           <g className="atlasFlowDots">
             <circle cx="170" cy="55" r="6" />
             <circle cx="415" cy="55" r="6" />
-            <circle cx="520" cy="213" r="6" />
+            <circle cx="520" cy="195" r="6" />
             <circle cx="260" cy="195" r="6" />
           </g>
           <text className="atlasSvgAccent" x="390" y="38">I = {formatNumber(current)} A</text>
@@ -521,9 +453,7 @@ function PhasorExplorer() {
   const [amplitude, setAmplitude] = useState(6);
   const [frequency, setFrequency] = useState(3);
   const [phase, setPhase] = useState(35);
-  const angle = (phase * Math.PI) / 180;
-  const vectorX = 475 + Math.cos(angle) * amplitude * 12;
-  const vectorY = 105 - Math.sin(angle) * amplitude * 12;
+  const { x: vectorX, y: vectorY } = phasorPoint(505, 105, amplitude * 7, phase);
 
   return (
     <div className="atlasInteractiveGrid">
@@ -539,11 +469,12 @@ function PhasorExplorer() {
         <svg aria-label="Interactive waveform and phasor diagram" viewBox="0 0 620 250">
           <path className="atlasGridLine" d="M30 65H360M30 115H360M30 165H360M85 30V200M195 30V200M305 30V200" />
           <path className="atlasAxis" d="M30 115H365M420 105H585M505 25V190" />
-          <path className="atlasWavePath" d={makeWavePath({ amplitude: amplitude * 8, cycles: frequency / 2, phase, width: 320, x: 35, y: 115 })} />
+          <path className="atlasWavePath" d={makeWavePath({ amplitude: amplitude * 8, cycles: frequency / 2, phase: phase + 90, width: 320, x: 35, y: 115 })} />
           <circle className="atlasPhasorRing" cx="505" cy="105" r="78" />
           <path className="atlasPhasorVector" d={`M505 105L${vectorX} ${vectorY}`} />
           <circle className="atlasPhasorTip" cx={vectorX} cy={vectorY} r="7" />
           <text className="atlasSvgLabel" x="38" y="222">TIME DOMAIN</text>
+          <text className="atlasSvgLabel" textAnchor="end" x="355" y="222">0–0.5 ms</text>
           <text className="atlasSvgLabel" x="455" y="222">PHASOR</text>
           <text className="atlasSvgAccent" x="510" y="47">{phase}°</text>
         </svg>
@@ -573,11 +504,18 @@ function ResonanceExplorer() {
       Math.PI *
       Math.sqrt((inductance / 1000) * (capacitance / 1_000_000)));
   const q = Math.sqrt((inductance / 1000) / (capacitance / 1_000_000)) / resistance;
-  const responsePath = Array.from({ length: 90 }, (_, index) => {
-    const ratio = 0.25 + (index / 89) * 2.2;
+  const resonanceX = 48 + ((1 - 0.25) / 2.2) * 515;
+  const halfPowerLow = (Math.sqrt(4 + 1 / q ** 2) - 1 / q) / 2;
+  const halfPowerHigh = (Math.sqrt(4 + 1 / q ** 2) + 1 / q) / 2;
+  const ratios = [...new Set([
+    ...Array.from({ length: 441 }, (_, index) => 0.25 + index * 0.005),
+    ...Array.from({ length: 201 }, (_, index) => 1 + (index - 100) / (20 * q)),
+    halfPowerLow, halfPowerHigh, 1,
+  ])].filter((ratio) => ratio >= 0.25 && ratio <= 2.45).sort((a, b) => a - b);
+  const responsePath = ratios.map((ratio, index) => {
     const magnitude =
       1 / Math.sqrt(1 + q * q * (ratio - 1 / ratio) ** 2);
-    const x = 48 + (index / 89) * 515;
+    const x = 48 + ((ratio - 0.25) / 2.2) * 515;
     const y = 190 - magnitude * 135;
     return `${index === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`;
   }).join(' ');
@@ -598,11 +536,13 @@ function ResonanceExplorer() {
           <path className="atlasAxis" d="M48 30V195H578" />
           <path className="atlasResponseArea" d={`${responsePath}L563 190H48Z`} />
           <path className="atlasResponsePath" d={responsePath} />
-          <path className="atlasMarkerLine" d="M282 35V195" />
-          <circle className="atlasPhasorTip" cx="282" cy="55" r="7" />
-          <text className="atlasSvgAccent" textAnchor="middle" x="282" y="24">f₀ {formatNumber(resonance, 0)} Hz</text>
-          <text className="atlasSvgLabel" x="500" y="220">FREQUENCY</text>
-          <text className="atlasSvgLabel" transform="rotate(-90 18 120)" x="18" y="120">GAIN</text>
+          <path className="atlasMarkerLine" d={`M${resonanceX} 35V195`} />
+          <circle className="atlasPhasorTip" cx={resonanceX} cy="55" r="7" />
+          <text className="atlasSvgAccent" textAnchor="middle" x={resonanceX} y="24">f₀ {formatNumber(resonance, 0)} Hz</text>
+          <text className="atlasSvgLabel" x="48" y="220">0.25</text>
+          <text className="atlasSvgLabel" textAnchor="middle" x={resonanceX} y="220">1</text>
+          <text className="atlasSvgLabel" textAnchor="end" x="563" y="220">2.45 f/f₀</text>
+          <text className="atlasSvgLabel" transform="rotate(-90 18 145)" x="18" y="145">I / I(f₀)</text>
         </svg>
       </Stage>
       <aside className="atlasControlPanel" aria-label="RLC controls">
@@ -622,17 +562,14 @@ function ResonanceExplorer() {
 function DiodeExplorer() {
   const [junctionVoltage, setJunctionVoltage] = useState(0.65);
   const [seriesResistance, setSeriesResistance] = useState(330);
-  const diodeCurrent = Math.min(
-    60,
-    0.08 * Math.exp((junctionVoltage - 0.45) / 0.055),
-  );
+  const saturationCurrent = 0.08 * Math.exp(-0.45 / 0.055);
+  const diodeCurrent = saturationCurrent * Math.expm1(junctionVoltage / 0.055);
   const sourceVoltage = junctionVoltage + (diodeCurrent / 1000) * seriesResistance;
-  const brightness = Math.min(1, diodeCurrent / 20);
   const curvePath = Array.from({ length: 80 }, (_, index) => {
-    const voltage = (index / 79) * 0.9;
-    const current = Math.min(60, 0.08 * Math.exp((voltage - 0.45) / 0.055));
+    const voltage = (index / 79) * 0.85;
+    const current = saturationCurrent * Math.expm1(voltage / 0.055);
     return `${index === 0 ? 'M' : 'L'}${55 + voltage * 430} ${
-      195 - current * 2.35
+      195 - current * (140 / 120)
     }`;
   }).join(' ');
 
@@ -651,14 +588,13 @@ function DiodeExplorer() {
           <path className="atlasGridLine" d="M55 55H490M55 100H490M55 145H490M55 190H490M160 35V200M270 35V200M380 35V200" />
           <path className="atlasAxis" d="M55 25V198H510" />
           <path className="atlasDiodeCurve" d={curvePath} />
-          <circle className="atlasPhasorTip" cx={55 + junctionVoltage * 430} cy={195 - diodeCurrent * 2.35} r="8" />
-          <g className="atlasLed" style={{ opacity: 0.35 + brightness * 0.65 }}>
-            <circle cx="555" cy="100" r="31" />
-            <path d="M535 100h40M555 80v40" />
-          </g>
-          <text className="atlasSvgValue" textAnchor="middle" x="555" y="153">LED</text>
-          <text className="atlasSvgLabel" x="438" y="220">VOLTAGE</text>
-          <text className="atlasSvgLabel" transform="rotate(-90 20 120)" x="20" y="120">CURRENT</text>
+          <circle className="atlasPhasorTip" cx={55 + junctionVoltage * 430} cy={195 - diodeCurrent * (140 / 120)} r="8" />
+          <path className="atlasDiodeSymbol" d="M520 100H540 M540 80V120L570 100Z M570 80V120 M570 100H590" />
+          <text className="atlasSvgValue" textAnchor="middle" x="555" y="153">Model</text>
+          <text className="atlasSvgLabel" x="60" y="190">0</text>
+          <text className="atlasSvgLabel" textAnchor="middle" x={55 + 0.85 * 430} y="215">0.85 V</text>
+          <text className="atlasSvgLabel" textAnchor="middle" x="285" y="242">VOLTAGE (V)</text>
+          <text className="atlasSvgLabel" transform="rotate(-90 20 120)" x="20" y="120">CURRENT (mA)</text>
         </svg>
       </Stage>
       <aside className="atlasControlPanel" aria-label="Diode controls">
@@ -667,8 +603,8 @@ function DiodeExplorer() {
         <RangeControl label="Junction voltage" max={0.85} min={0.3} onChange={setJunctionVoltage} step={0.01} value={junctionVoltage} valueLabel={`${junctionVoltage.toFixed(2)} V`} />
         <RangeControl label="Series resistor" max={1000} min={100} onChange={setSeriesResistance} step={10} value={seriesResistance} valueLabel={`${seriesResistance} Ω`} />
         <p className="atlasControlNote">
-          A small voltage change near conduction produces a large current
-          change, so the series resistor is essential.
+          Illustrative Shockley junction, nVT = 55 mV. The source adjusts to
+          maintain the selected junction voltage as the resistor changes.
         </p>
       </aside>
     </div>
@@ -695,17 +631,19 @@ function OpAmpExplorer() {
         title="Inverting op-amp bench"
       >
         <svg aria-label="Interactive operational amplifier circuit" viewBox="0 0 620 250">
-          <path className="atlasWire" d="M45 125H155M155 125H230M390 125H565M155 125V55H390V98" />
+          <path className="atlasWire" d="M45 105H155 M230 105H245 M390 125H565 M235 105V40H250 M342 40H425V125" />
           <path className="atlasComponent" d="M245 55L245 195L390 125Z" />
           <text className="atlasSvgValue" x="267" y="112">−</text>
           <text className="atlasSvgValue" x="267" y="157">+</text>
           <text className="atlasSvgLabel" x="300" y="130">OP AMP</text>
-          <rect className="atlasComponent" height="42" rx="6" width="75" x="155" y="104" />
-          <text className="atlasSvgValue" textAnchor="middle" x="192" y="96">RIN</text>
-          <rect className="atlasComponent" height="42" rx="6" width="92" x="250" y="34" />
-          <text className="atlasSvgValue" textAnchor="middle" x="296" y="28">RF</text>
-          <path className="atlasGround" d="M245 155V203M223 203H267M230 211H260M238 219H252" />
-          <text className="atlasSvgAccent" x="45" y="108">VIN {formatNumber(inputVoltage)} V</text>
+          <rect className="atlasComponent" height="30" rx="6" width="75" x="155" y="90" />
+          <text className="atlasSvgValue" textAnchor="middle" x="192" y="81">RIN</text>
+          <rect className="atlasComponent" height="28" rx="6" width="92" x="250" y="26" />
+          <text className="atlasSvgValue" textAnchor="middle" x="296" y="19">RF</text>
+          <circle className="atlasPhasorTip" cx="235" cy="105" r="3" />
+          <circle className="atlasPhasorTip" cx="425" cy="125" r="3" />
+          <path className="atlasGround" d="M245 155H220V203M198 203H242M205 211H235M213 219H227" />
+          <text className="atlasSvgAccent" x="45" y="145">VIN {formatNumber(inputVoltage)} V</text>
           <text className={saturated ? 'atlasSvgWarning' : 'atlasSvgAccent'} textAnchor="end" x="565" y="108">
             VOUT {formatNumber(outputVoltage)} V
           </text>
@@ -723,6 +661,7 @@ function OpAmpExplorer() {
           {saturated
             ? 'The requested output crosses the usable rail. Reduce input or gain.'
             : 'The amplifier is operating inside its linear output range.'}
+          {' '}This model allows 0.6 V of headroom to each supply rail.
         </p>
       </aside>
     </div>
@@ -739,7 +678,7 @@ function FilterExplorer() {
     const magnitude = 1 / Math.sqrt(1 + (frequency / cutoff) ** 2);
     const db = 20 * Math.log10(magnitude);
     return `${index === 0 ? 'M' : 'L'}${50 + (index / 99) * 510} ${
-      55 + Math.min(120, Math.abs(db) * 4)
+      55 + Math.min(135, Math.abs(db) * 2.7)
     }`;
   }).join(' ');
   const markerX =
@@ -761,8 +700,8 @@ function FilterExplorer() {
           <path className="atlasAxis" d="M50 30V190H570" />
           <path className="atlasResponsePath" d={curvePath} />
           <path className="atlasMarkerLine" d={`M${markerX} 35V190`} />
-          <circle className="atlasPhasorTip" cx={markerX} cy={55 + Math.abs(20 * Math.log10(gain)) * 4} r="7" />
-          <text className="atlasSvgAccent" x={Math.min(510, markerX + 10)} y="30">{signalFrequency} Hz</text>
+          <circle className="atlasPhasorTip" cx={markerX} cy={55 + Math.min(135, Math.abs(20 * Math.log10(gain)) * 2.7)} r="7" />
+          <text className="atlasSvgAccent" textAnchor="end" x={Math.max(145, markerX)} y="30">{signalFrequency} Hz</text>
           <text className="atlasSvgLabel" x="470" y="218">LOG FREQUENCY</text>
         </svg>
       </Stage>
@@ -782,13 +721,8 @@ function FilterExplorer() {
 function DigitalTimingExplorer() {
   const [frequency, setFrequency] = useState(4);
   const [delay, setDelay] = useState(12);
-  const periodNs = 1000 / frequency;
-  const margin = Math.max(0, periodNs / 2 - delay);
-  const shift = Math.min(115, (delay / (periodNs / 2)) * 90);
-  const squarePath = (offset: number) =>
-    `M35 ${75 + offset}H105V${35 + offset}H175V${75 + offset}H245V${
-      35 + offset
-    }H315V${75 + offset}H385V${35 + offset}H455V${75 + offset}H555`;
+  const timing = digitalTiming(frequency, delay);
+  const { periodNs, margin } = timing;
 
   return (
     <div className="atlasInteractiveGrid">
@@ -803,12 +737,14 @@ function DigitalTimingExplorer() {
       >
         <svg aria-label="Interactive digital timing diagram" viewBox="0 0 620 250">
           <path className="atlasGridLine" d="M35 45H570M35 115H570M35 185H570M105 25V205M175 25V205M245 25V205M315 25V205M385 25V205M455 25V205M525 25V205" />
-          <path className="atlasDigitalInput" d={squarePath(0)} />
-          <path className="atlasDigitalOutput" transform={`translate(${shift} 80)`} d={squarePath(0)} />
+          <path className="atlasDigitalInput" d={timing.inputPath} />
+          <path className="atlasDigitalOutput" d={timing.outputPath} />
           <text className="atlasSvgLabel" x="35" y="25">INPUT</text>
           <text className="atlasSvgLabel" x="35" y="105">OUTPUT</text>
-          <path className="atlasDelayArrow" d={`M105 220H${105 + shift}`} />
-          <text className="atlasSvgAccent" x={110 + shift / 2} y="240">{delay} ns</text>
+          <path className="atlasMarkerLine" d={`M${timing.inputEdgeX} 30V220 M${timing.outputEdgeX} 110V220`} />
+          <path className="atlasDelayArrow" d={`M${timing.inputEdgeX} 220H${timing.outputEdgeX}`} />
+          <text className="atlasSvgAccent" x={timing.inputEdgeX} y="240">{delay} ns</text>
+          <text className="atlasSvgLabel" textAnchor="end" x="555" y="240">0–{formatNumber(timing.durationNs, 0)} ns</text>
         </svg>
       </Stage>
       <aside className="atlasControlPanel" aria-label="Digital timing controls">
@@ -818,8 +754,8 @@ function DigitalTimingExplorer() {
         <RangeControl label="Propagation delay" max={120} min={2} onChange={setDelay} step={2} value={delay} valueLabel={`${delay} ns`} />
         <p className={`atlasControlNote ${margin < periodNs * 0.1 ? 'warning' : ''}`}>
           {margin < periodNs * 0.1
-            ? 'Timing margin is nearly gone. The next register may capture unstable data.'
-            : 'The delayed output settles before the next active half-cycle.'}
+            ? 'Half-cycle budget exhausted or nearly exhausted. Ideal transport delay only; register setup, hold, and clock skew are not modeled.'
+            : 'Positive half-cycle budget. Ideal transport delay only; register setup, hold, and clock skew are not modeled.'}
         </p>
       </aside>
     </div>
@@ -832,13 +768,9 @@ function SamplingExplorer() {
   const ratio = sampleRate / signalFrequency;
   const aliasFrequency =
     Math.abs(signalFrequency - Math.round(signalFrequency / sampleRate) * sampleRate);
-  const sampleCount = Math.max(3, Math.round(sampleRate * 1.8));
-  const samples = Array.from({ length: sampleCount }, (_, index) => {
-    const progress = index / (sampleCount - 1);
-    return {
-      x: 35 + progress * 520,
-      y: 115 - Math.sin(progress * Math.PI * 2 * signalFrequency * 0.34) * 65,
-    };
+  const duration = 0.34;
+  const samples = sampleSineWave({
+    frequency: signalFrequency, sampleRate, duration, x: 35, y: 115, width: 520, amplitude: 65,
   });
 
   return (
@@ -847,23 +779,24 @@ function SamplingExplorer() {
         eyebrow="Discrete-time capture"
         readouts={[
           { label: 'Samples / cycle', value: formatNumber(ratio) },
-          { label: 'Nyquist status', value: ratio >= 2 ? 'Pass' : 'Aliased' },
+          { label: 'Nyquist status', value: ratio > 2 ? 'Pass' : ratio === 2 ? 'At limit' : 'Aliased' },
           { label: 'Observed alias', value: `${formatNumber(aliasFrequency)} kHz` },
         ]}
         title="Analog waveform and sample points"
       >
         <svg aria-label="Interactive sampling and aliasing diagram" viewBox="0 0 620 250">
           <path className="atlasGridLine" d="M35 50H555M35 115H555M35 180H555M135 30V200M235 30V200M335 30V200M435 30V200M535 30V200" />
-          <path className="atlasWaveReference" d={makeWavePath({ amplitude: 65, cycles: signalFrequency * 0.34, width: 520, x: 35, y: 115 })} />
+          <path className="atlasWaveReference" d={makeWavePath({ amplitude: 65, cycles: signalFrequency * duration, width: 520, x: 35, y: 115 })} />
           {samples.map((sample, index) => (
             <g key={`${sample.x}-${index}`}>
               <path className="atlasSampleStem" d={`M${sample.x} 190V${sample.y}`} />
               <circle className="atlasSampleDot" cx={sample.x} cy={sample.y} r="5" />
             </g>
           ))}
-          <text className={ratio >= 2 ? 'atlasSvgAccent' : 'atlasSvgWarning'} x="35" y="225">
-            {ratio >= 2 ? 'RECONSTRUCTION POSSIBLE' : 'ALIASING ACTIVE'}
+          <text className={ratio > 2 ? 'atlasSvgAccent' : 'atlasSvgWarning'} x="35" y="225">
+            {ratio > 2 ? 'RECONSTRUCTION POSSIBLE' : ratio === 2 ? 'AT NYQUIST LIMIT' : 'ALIASING ACTIVE'}
           </text>
+          <text className="atlasSvgLabel" textAnchor="end" x="555" y="225">{duration} ms</text>
         </svg>
       </Stage>
       <aside className="atlasControlPanel" aria-label="Sampling controls">
@@ -871,9 +804,11 @@ function SamplingExplorer() {
         <h3>Protect the waveform</h3>
         <RangeControl label="Signal frequency" max={20} min={1} onChange={setSignalFrequency} step={1} value={signalFrequency} valueLabel={`${signalFrequency} kHz`} />
         <RangeControl label="Sample rate" max={60} min={2} onChange={setSampleRate} step={1} value={sampleRate} valueLabel={`${sampleRate} kS/s`} />
-        <p className={`atlasControlNote ${ratio < 2 ? 'warning' : ''}`}>
-          {ratio < 2
-            ? 'The samples can describe a false lower-frequency waveform.'
+        <p className={`atlasControlNote ${ratio <= 2 ? 'warning' : ''}`}>
+          {ratio === 2
+            ? 'At exactly twice the frequency, this sine can be sampled only at its zero crossings. Increase the rate.'
+            : ratio < 2
+              ? 'The samples can describe a false lower-frequency waveform.'
             : 'The rate clears Nyquist; real hardware still needs anti-alias margin.'}
         </p>
       </aside>
@@ -906,13 +841,15 @@ function ThreePhaseExplorer() {
         <svg aria-label="Interactive three phase power diagram" viewBox="0 0 620 250">
           <path className="atlasAxis" d="M145 125H345M245 25V225" />
           <circle className="atlasPhasorRing" cx="245" cy="125" r="92" />
-          {[0, 120, 240].map((angle, index) => {
+          {[0, -120, 120].map((angle, index) => {
             const radians = (angle * Math.PI) / 180;
             const endX = 245 + Math.cos(radians) * 90;
             const endY = 125 - Math.sin(radians) * 90;
+            const currentTip = phasorPoint(245, 125, 65, angle - Math.acos(powerFactor) * 180 / Math.PI);
             return (
               <g className={`atlasPhase phase${index + 1}`} key={angle}>
                 <path d={`M245 125L${endX} ${endY}`} />
+                <path d={`M245 125L${currentTip.x} ${currentTip.y}`} style={{ strokeDasharray: '5 5', strokeLinecap: 'butt', strokeWidth: 3 }} />
                 <circle cx={endX} cy={endY} r="7" />
                 <text x={endX + (index === 0 ? 12 : -18)} y={endY - 10}>
                   {String.fromCharCode(65 + index)}
@@ -920,6 +857,7 @@ function ThreePhaseExplorer() {
               </g>
             );
           })}
+          <text className="atlasSvgLabel" textAnchor="middle" x="245" y="245">NORMALIZED V · DASHED I LAGS</text>
           <g className="atlasPowerMeter">
             <rect height="142" rx="10" width="190" x="395" y="54" />
             <text className="atlasSvgLabel" x="418" y="86">POWER ANALYZER</text>
@@ -964,15 +902,15 @@ function TransformerExplorer() {
         title="Ideal transformer and load"
       >
         <svg aria-label="Interactive transformer diagram" viewBox="0 0 620 250">
-          <path className="atlasWire" d="M40 75H140M40 175H140M410 75H565V175H410" />
+          <path className="atlasWire" d="M40 55H140 M40 215H140 M410 55H541V84 M541 166V215H410" />
           <path className="atlasCoil primary" d="M140 55q30 20 0 40q30 20 0 40q30 20 0 40q30 20 0 40" />
           <path className="atlasCore" d="M260 45V205M282 45V205" />
           <path className="atlasCoil secondary" d="M410 55q-30 20 0 40q-30 20 0 40q-30 20 0 40q-30 20 0 40" />
           <rect className="atlasLoad" height="82" rx="8" width="82" x="500" y="84" />
           <text className="atlasSvgLabel" textAnchor="middle" x="541" y="116">LOAD</text>
           <text className="atlasSvgValue" textAnchor="middle" x="541" y="143">{load} Ω</text>
-          <text className="atlasSvgAccent" x="40" y="58">{primaryVoltage} V</text>
-          <text className="atlasSvgAccent" x="430" y="58">{formatNumber(secondaryVoltage)} V</text>
+          <text className="atlasSvgAccent" x="40" y="35">{primaryVoltage} V</text>
+          <text className="atlasSvgAccent" x="430" y="35">{formatNumber(secondaryVoltage)} V</text>
           <text className="atlasSvgValue" textAnchor="middle" x="275" y="232">NS/NP = {ratio.toFixed(2)}</text>
           <path className="atlasFluxArrow" d="M220 35H330" />
         </svg>
@@ -999,7 +937,7 @@ function BuckExplorer() {
   const outputVoltage = inputVoltage * (duty / 100);
   const outputCurrent = outputVoltage / load;
   const outputPower = outputVoltage * outputCurrent;
-  const ripple = Math.max(0.02, (inputVoltage - outputVoltage) * (duty / 100) * 0.035);
+  const ripple = (inputVoltage - outputVoltage) * (duty / 100) / (100e-6 * 100e3);
 
   return (
     <div className="atlasInteractiveGrid">
@@ -1008,20 +946,23 @@ function BuckExplorer() {
         readouts={[
           { label: 'Output voltage', value: `${formatNumber(outputVoltage)} V` },
           { label: 'Load current', value: `${formatNumber(outputCurrent)} A` },
-          { label: 'Ripple estimate', value: `${formatNumber(ripple)} A` },
+          { label: 'Inductor ripple p-p', value: `${formatNumber(ripple)} A` },
         ]}
         title="Buck converter power stage"
       >
         <svg aria-label="Interactive buck converter diagram" viewBox="0 0 620 250">
-          <path className="atlasWire" d="M55 70H160M215 70H305M395 70H545V185H55V70" />
+          <path className="atlasWire" d="M55 70H160 M215 70H305 M395 70H545V91 M545 166V185H55" />
+          <circle className="atlasComponent" cx="55" cy="70" r="4" />
+          <circle className="atlasComponent" cx="55" cy="185" r="4" />
           <rect className="atlasSwitch" height="54" rx="7" width="55" x="160" y="43" />
-          <path className="atlasSwitchBlade" d="M172 81L203 58" />
-          <text className="atlasSvgLabel" textAnchor="middle" x="188" y="122">PWM</text>
+          <path className="atlasSwitchBlade" d="M160 70H215" />
+          <text className="atlasSvgLabel" textAnchor="middle" x="188" y="122">PWM · ON</text>
           <path className="atlasInductor" d="M305 70q15-32 30 0q15-32 30 0q15-32 30 0" />
+          <text className="atlasSvgLabel" textAnchor="middle" x="350" y="27">100 µH</text>
           <path className="atlasCapacitor" d="M440 70V115M420 115H460M420 132H460M440 132V185" />
           <rect className="atlasLoad" height="75" rx="8" width="70" x="510" y="91" />
           <text className="atlasSvgValue" textAnchor="middle" x="545" y="135">{load} Ω</text>
-          <path className="atlasDiodeSymbol" d="M255 70V125M238 125H272M242 145H268M255 145V185" />
+          <path className="atlasDiodeSymbol" d="M255 70V125 M238 125H272 M238 150H272L255 125Z M255 150V185" />
           <text className="atlasSvgAccent" x="55" y="55">{inputVoltage} V</text>
           <text className="atlasSvgAccent" x="470" y="55">{formatNumber(outputVoltage)} V</text>
           <g className="atlasFlowDots">
@@ -1039,8 +980,8 @@ function BuckExplorer() {
         <RangeControl label="Duty cycle" max={90} min={10} onChange={setDuty} step={1} value={duty} valueLabel={`${duty}%`} />
         <RangeControl label="Load resistance" max={20} min={1} onChange={setLoad} step={1} value={load} valueLabel={`${load} Ω`} />
         <p className="atlasControlNote">
-          The ideal average output follows duty cycle; current ripple remains a
-          separate design constraint.
+          Ideal continuous conduction, 100 µH at 100 kHz. ΔIL =
+          (VIN − VOUT)D/(LfS); load current stays above half the ripple throughout this range.
         </p>
       </aside>
     </div>
@@ -1048,6 +989,7 @@ function BuckExplorer() {
 }
 
 function FieldExplorer() {
+  const arrowId = `force-${useId().replace(/:/g, '')}`;
   const [chargeA, setChargeA] = useState(3);
   const [chargeB, setChargeB] = useState(-2);
   const [distance, setDistance] = useState(0.35);
@@ -1062,30 +1004,25 @@ function FieldExplorer() {
         eyebrow="Electrostatic field"
         readouts={[
           { label: 'Force magnitude', value: `${formatNumber(force, 3)} N` },
-          { label: 'Interaction', value: attracts ? 'Attraction' : 'Repulsion' },
+          { label: 'Interaction', value: force === 0 ? 'No force' : attracts ? 'Attraction' : 'Repulsion' },
           { label: 'Separation', value: `${distance.toFixed(2)} m` },
         ]}
         title="Two-charge force map"
       >
-        <svg aria-label="Interactive electric field diagram" viewBox="0 0 620 250">
+        <svg aria-label="Interactive two-charge force diagram" viewBox="0 0 620 250">
           <defs>
-            <marker id="atlas-arrow" markerHeight="8" markerWidth="8" orient="auto" refX="7" refY="4">
+            <marker id={arrowId} markerHeight="8" markerWidth="8" orient="auto" refX="7" refY="4">
               <path d="M0 0L8 4L0 8Z" />
             </marker>
           </defs>
-          {[-70, -40, 0, 40, 70].map((offset) => (
-            <path
-              className="atlasFieldLine"
-              d={`M175 125Q310 ${125 + offset} 445 125`}
-              key={offset}
-              markerEnd="url(#atlas-arrow)"
-            />
-          ))}
+          {force > 0 && <g>
+            <path className="atlasFieldLine" d={attracts ? 'M210 125H285' : 'M100 125H25'} markerEnd={`url(#${arrowId})`} />
+            <path className="atlasFieldLine" d={attracts ? 'M410 125H335' : 'M520 125H595'} markerEnd={`url(#${arrowId})`} />
+          </g>}
           <circle className={chargeA >= 0 ? 'atlasCharge positive' : 'atlasCharge negative'} cx="155" cy="125" r="48" />
           <circle className={chargeB >= 0 ? 'atlasCharge positive' : 'atlasCharge negative'} cx="465" cy="125" r="48" />
-          <text className="atlasChargeLabel" textAnchor="middle" x="155" y="134">{chargeA >= 0 ? '+' : '−'}{Math.abs(chargeA)} µC</text>
-          <text className="atlasChargeLabel" textAnchor="middle" x="465" y="134">{chargeB >= 0 ? '+' : '−'}{Math.abs(chargeB)} µC</text>
-          <path className={attracts ? 'atlasForceArrow attract' : 'atlasForceArrow repel'} d={attracts ? 'M210 205H410' : 'M410 205H210'} />
+          <text className="atlasChargeLabel" textAnchor="middle" x="155" y="134">{chargeA > 0 ? '+' : chargeA < 0 ? '−' : ''}{Math.abs(chargeA)} µC</text>
+          <text className="atlasChargeLabel" textAnchor="middle" x="465" y="134">{chargeB > 0 ? '+' : chargeB < 0 ? '−' : ''}{Math.abs(chargeB)} µC</text>
           <text className="atlasSvgAccent" textAnchor="middle" x="310" y="235">{formatNumber(force, 3)} N</text>
         </svg>
       </Stage>
@@ -1097,6 +1034,7 @@ function FieldExplorer() {
         <RangeControl label="Distance" max={1} min={0.1} onChange={setDistance} step={0.05} value={distance} valueLabel={`${distance.toFixed(2)} m`} />
         <p className="atlasControlNote">
           Force follows the charge product and inverse square of distance.
+          Charge symbols and force arrows are not drawn to scale.
         </p>
       </aside>
     </div>
@@ -1111,14 +1049,7 @@ function TransmissionExplorer() {
     (loadImpedance - characteristicImpedance) /
     (loadImpedance + characteristicImpedance);
   const vswr = (1 + Math.abs(reflection)) / Math.max(0.001, 1 - Math.abs(reflection));
-  const standingPath = Array.from({ length: 100 }, (_, index) => {
-    const progress = index / 99;
-    const envelope =
-      1 + reflection * Math.cos(progress * Math.PI * 2 * electricalLength);
-    return `${index === 0 ? 'M' : 'L'}${45 + progress * 510} ${
-      125 - envelope * 48 * Math.sin(progress * Math.PI * 4)
-    }`;
-  }).join(' ');
+  const standingPath = plotPath((x) => 125 - 28 * transmissionVoltage(x, electricalLength, reflection), 45, 470, 240);
 
   return (
     <div className="atlasInteractiveGrid">
@@ -1133,12 +1064,15 @@ function TransmissionExplorer() {
       >
         <svg aria-label="Interactive transmission line standing wave" viewBox="0 0 620 250">
           <path className="atlasGridLine" d="M45 65H555M45 125H555M45 185H555M145 35V205M245 35V205M345 35V205M445 35V205M545 35V205" />
-          <path className="atlasTransmissionRail" d="M45 70H555M45 180H555" />
+          <path className="atlasTransmissionRail" d="M45 70H561V83 M45 180H561V168" />
           <path className="atlasStandingWave" d={standingPath} />
           <rect className="atlasLoad" height="85" rx="8" width="72" x="525" y="83" />
           <text className="atlasSvgLabel" textAnchor="middle" x="561" y="115">LOAD</text>
           <text className="atlasSvgValue" textAnchor="middle" x="561" y="143">{loadImpedance} Ω</text>
           <text className="atlasSvgAccent" x="45" y="28">Z₀ {characteristicImpedance} Ω</text>
+          <text className="atlasSvgLabel" x="45" y="220">SOURCE</text>
+          <text className="atlasSvgLabel" textAnchor="end" x="515" y="220">LOAD · {electricalLength} λ</text>
+          <text className="atlasSvgLabel" textAnchor="middle" x="280" y="242">VOLTAGE SNAPSHOT · INCIDENT + REFLECTED</text>
         </svg>
       </Stage>
       <aside className="atlasControlPanel" aria-label="Transmission line controls">
@@ -1160,31 +1094,16 @@ function ControlExplorer() {
   const [damping, setDamping] = useState(0.45);
   const [naturalFrequency, setNaturalFrequency] = useState(2.2);
   const [gain, setGain] = useState(1);
+  const overshoot = damping < 1 ? Math.exp(-damping * Math.PI / Math.sqrt(1 - damping ** 2)) * 100 : 0;
+  const scale = 145 / (gain * (1 + overshoot / 100));
   const responsePath = Array.from({ length: 120 }, (_, index) => {
     const t = (index / 119) * 6;
-    let response: number;
-    if (damping < 1) {
-      const wd = naturalFrequency * Math.sqrt(1 - damping ** 2);
-      response =
-        gain *
-        (1 -
-          (Math.exp(-damping * naturalFrequency * t) /
-            Math.sqrt(1 - damping ** 2)) *
-            Math.sin(wd * t + Math.acos(damping)));
-    } else {
-      response = gain * (1 - Math.exp(-naturalFrequency * t / damping));
-    }
+    const response = gain * secondOrderStep(t, damping, naturalFrequency);
     return `${index === 0 ? 'M' : 'L'}${45 + (index / 119) * 520} ${
-      190 - Math.min(1.8, Math.max(-0.2, response)) * 95
+      190 - response * scale
     }`;
   }).join(' ');
-  const overshoot =
-    damping < 1
-      ? Math.exp(
-          (-damping * Math.PI) / Math.sqrt(Math.max(0.001, 1 - damping ** 2)),
-        ) * 100
-      : 0;
-  const settling = 4 / Math.max(0.1, damping * naturalFrequency);
+  const settling = secondOrderSettlingTime(damping, naturalFrequency);
 
   return (
     <div className="atlasInteractiveGrid">
@@ -1192,7 +1111,7 @@ function ControlExplorer() {
         eyebrow="Closed-loop dynamics"
         readouts={[
           { label: 'Overshoot', value: `${formatNumber(overshoot, 0)}%` },
-          { label: 'Settling estimate', value: `${formatNumber(settling)} s` },
+          { label: 'Settling (2% final)', value: `${formatNumber(settling)} s` },
           { label: 'Final value', value: gain.toFixed(1) },
         ]}
         title="Second-order step response"
@@ -1200,10 +1119,11 @@ function ControlExplorer() {
         <svg aria-label="Interactive control system step response" viewBox="0 0 620 250">
           <path className="atlasGridLine" d="M45 55H565M45 95H565M45 135H565M45 175H565M145 35V200M245 35V200M345 35V200M445 35V200M545 35V200" />
           <path className="atlasAxis" d="M45 25V195H575" />
-          <path className="atlasSetpoint" d={`M45 ${190 - gain * 95}H565`} />
+          <path className="atlasSetpoint" d={`M45 ${190 - gain * scale}H565`} />
           <path className="atlasControlResponse" d={responsePath} />
-          <text className="atlasSvgAccent" x="470" y={180 - gain * 95}>SETPOINT</text>
-          <text className="atlasSvgLabel" x="520" y="222">TIME</text>
+          <text className="atlasSvgAccent" textAnchor="end" x="560" y={180 - gain * scale}>SETPOINT {gain.toFixed(1)}</text>
+          <text className="atlasSvgLabel" x="45" y="222">0 s</text>
+          <text className="atlasSvgLabel" textAnchor="end" x="565" y="222">6 s</text>
         </svg>
       </Stage>
       <aside className="atlasControlPanel" aria-label="Control response controls">
@@ -1226,7 +1146,7 @@ function GroundExplorer() {
   const [noiseCurrent, setNoiseCurrent] = useState(1.8);
   const [loopArea, setLoopArea] = useState(35);
   const sharedNoise = (returnImpedance / 1000) * noiseCurrent;
-  const couplingIndex = sharedNoise * (loopArea / 10);
+  const inducedVoltage = loopArea / 10000;
 
   return (
     <div className="atlasInteractiveGrid">
@@ -1234,7 +1154,7 @@ function GroundExplorer() {
         eyebrow="Real return path"
         readouts={[
           { label: 'Shared noise', value: `${formatNumber(sharedNoise * 1000)} mV` },
-          { label: 'Coupling index', value: formatNumber(couplingIndex * 100) },
+          { label: 'Pickup at 1 T/s', value: `${formatNumber(inducedVoltage * 1000)} mV` },
           { label: 'Loop area', value: `${loopArea} cm²` },
         ]}
         title="Signal and power return currents"
@@ -1247,14 +1167,18 @@ function GroundExplorer() {
           <text className="atlasSvgValue" textAnchor="middle" x="138" y="132">QUIET</text>
           <text className="atlasSvgLabel" textAnchor="middle" x="472" y="105">SWITCHER</text>
           <text className="atlasSvgValue" textAnchor="middle" x="472" y="132">NOISY</text>
-          <path className="atlasQuietTrace" d="M190 98H335V165H85" />
-          <path className="atlasNoisyTrace" d="M420 122H330V183H525" />
-          <path className="atlasGroundPlane" d="M65 180H555" />
+          <path className="atlasQuietTrace" d="M138 147V158H330V180" />
+          <path className="atlasNoisyTrace" d="M472 147V180H285" />
+          <path className="atlasGroundPlane" d="M215 180H65" />
+          <rect className="atlasComponent" height="24" width="70" x="215" y="168" />
+          <circle className="atlasPhasorTip" cx="330" cy="180" r="4" />
+          <path className="atlasGround" d="M65 180V190 M50 190H80 M55 197H75 M60 204H70" />
           <g className="atlasFlowDots">
-            <circle cx="376" cy="122" r="6" />
-            <circle cx="330" cy="166" r="6" />
-            <circle cx="246" cy="180" r="6" />
+            <circle cx="472" cy="162" r="5" />
+            <circle cx="380" cy="180" r="5" />
+            <circle cx="170" cy="180" r="5" />
           </g>
+          <text className="atlasSvgLabel" textAnchor="middle" x="250" y="232">ZRETURN {returnImpedance} mΩ</text>
           <text className="atlasSvgWarning" textAnchor="middle" x="305" y="65">{formatNumber(sharedNoise * 1000)} mV shared</text>
         </svg>
       </Stage>
@@ -1266,7 +1190,8 @@ function GroundExplorer() {
         <RangeControl label="Loop area" max={100} min={5} onChange={setLoopArea} step={5} value={loopArea} valueLabel={`${loopArea} cm²`} />
         <p className={`atlasControlNote ${sharedNoise > 0.1 ? 'warning' : ''}`}>
           Shorter, wider return paths lower impedance and keep switching current
-          out of the sensor reference.
+          out of the sensor reference. Magnetic pickup assumes a uniform perpendicular
+          field changing at 1 T/s: |V| = A|dB/dt|. Return paths are not to scale.
         </p>
       </aside>
     </div>
@@ -1293,7 +1218,7 @@ function MeterExplorer() {
         title="Source and meter impedance"
       >
         <svg aria-label="Interactive meter loading diagram" viewBox="0 0 620 250">
-          <path className="atlasWire" d="M55 70H260M260 70H540V185H55V70" />
+          <path className="atlasWire" d="M89 82V70H165 M277 70H320V105H350 M350 165H320V205H89V174" />
           <rect className="atlasSource" height="92" rx="8" width="68" x="55" y="82" />
           <text className="atlasSvgLabel" textAnchor="middle" x="89" y="115">SOURCE</text>
           <text className="atlasSvgValue" textAnchor="middle" x="89" y="145">{sourceVoltage} V</text>
@@ -1386,16 +1311,8 @@ function MosfetExplorer() {
   const [gateVoltage, setGateVoltage] = useState(8);
   const [supplyVoltage, setSupplyVoltage] = useState(24);
   const [loadResistance, setLoadResistance] = useState(8);
-  const thresholdVoltage = 3;
-  const on = gateVoltage > thresholdVoltage;
-  const onResistance = on
-    ? 0.035 + 0.32 / Math.max(0.2, (gateVoltage - thresholdVoltage) ** 2)
-    : 1_000_000;
-  const drainCurrent = on
-    ? Math.min(20, supplyVoltage / (loadResistance + onResistance))
-    : 0;
-  const drainVoltage = on ? drainCurrent * onResistance : supplyVoltage;
-  const conductionLoss = drainCurrent ** 2 * onResistance;
+  const { on, onResistance, drainCurrent, drainVoltage, conductionLoss } =
+    mosfetOperatingPoint(gateVoltage, supplyVoltage, loadResistance);
 
   return (
     <div className="atlasInteractiveGrid">
@@ -1409,7 +1326,7 @@ function MosfetExplorer() {
         title="MOSFET gate drive and load current"
       >
         <svg aria-label="Interactive MOSFET low-side switching circuit" viewBox="0 0 620 250">
-          <path className="atlasWire" d="M95 55H495V92M495 158V205H95V55" />
+          <path className="atlasWire" d="M95 82V55H290 M420 55H495V91 M495 169V205H95V182" />
           <rect className="atlasSource" height="100" rx="8" width="72" x="58" y="82" />
           <path className="atlasSourceMark" d="M78 112h32M85 132h18" />
           <text className="atlasSvgLabel" x="70" y="103">DC BUS</text>
@@ -1418,10 +1335,11 @@ function MosfetExplorer() {
           <path className="atlasLoadCoil" d="M310 55h16l8-12 12 24 12-24 12 24 10-12h20" />
           <text className="atlasSvgValue" textAnchor="middle" x="355" y="105">{loadResistance} Ω LOAD</text>
           <rect className={`atlasSwitch ${on ? 'conducting' : ''}`} height="78" rx="9" width="96" x="447" y="91" />
-          <path className="atlasSwitchBlade" d={on ? 'M470 142L518 112' : 'M470 142L510 142'} />
+          <path className="atlasWire" d="M495 91V108 M495 150V169" />
+          <path className="atlasSwitchBlade" d={on ? 'M495 108V150' : 'M495 108L470 140'} />
           <text className="atlasSvgLabel" textAnchor="middle" x="495" y="187">N-MOSFET</text>
-          <path className="atlasSignalLine" d="M195 145H440" />
-          <text className="atlasSvgAccent" x="205" y="132">VG = {gateVoltage.toFixed(1)} V</text>
+          <path className="atlasSignalLine" d="M195 145H447" />
+          <text className="atlasSvgAccent" x="205" y="132">VGS = {gateVoltage.toFixed(1)} V</text>
           {on && (
             <g className="atlasFlowDots">
               <circle cx="210" cy="55" r="6" />
@@ -1442,7 +1360,7 @@ function MosfetExplorer() {
         <RangeControl label="DC bus" max={48} min={6} onChange={setSupplyVoltage} step={1} value={supplyVoltage} valueLabel={`${supplyVoltage} V`} />
         <RangeControl label="Load resistance" max={30} min={2} onChange={setLoadResistance} step={1} value={loadResistance} valueLabel={`${loadResistance} Ω`} />
         <p className={`atlasControlNote ${on && conductionLoss > 2 ? 'warning' : ''}`}>
-          Threshold voltage only begins channel formation. A power MOSFET needs
+          Illustrative resistive-switch model, not a device rating. Threshold voltage only begins channel formation. A power MOSFET needs
           the specified gate drive to reach low on-resistance.
         </p>
       </aside>
@@ -1458,8 +1376,8 @@ function EmbeddedExplorer() {
     ((interruptRate * 1000 * serviceCycles) / (clockRate * 1_000_000)) * 100;
   const latency = serviceCycles / clockRate;
   const available = Math.max(0, 100 - utilization);
-  const slotWidth = 74;
-  const busyWidth = Math.min(slotWidth - 8, (utilization / 100) * slotWidth);
+  const slotWidth = 66;
+  const busyWidth = Math.min(1, utilization / 100) * slotWidth;
 
   return (
     <div className="atlasInteractiveGrid">
@@ -1467,7 +1385,7 @@ function EmbeddedExplorer() {
         eyebrow="Real-time firmware"
         readouts={[
           { label: 'Interrupt load', value: `${formatNumber(utilization, 1)}%` },
-          { label: 'Service latency', value: `${formatNumber(latency)} µs` },
+          { label: 'ISR execution time', value: `${formatNumber(latency)} µs` },
           { label: 'Background time', value: `${formatNumber(available, 1)}%` },
         ]}
         title="Interrupt service and CPU budget"
@@ -1484,13 +1402,13 @@ function EmbeddedExplorer() {
             const x = 218 + index * slotWidth;
             return (
               <g key={x}>
-                <rect className="atlasCpuSlot" height="42" rx="4" width={slotWidth - 8} x={x} y="127" />
-                <rect className={utilization > 90 ? 'atlasCpuBusy overloaded' : 'atlasCpuBusy'} height="42" rx="4" width={Math.max(3, busyWidth)} x={x} y="127" />
+                <rect className="atlasCpuSlot" height="42" width={slotWidth} x={x} y="127" />
+                <rect className={utilization > 90 ? 'atlasCpuBusy overloaded' : 'atlasCpuBusy'} height="42" width={busyWidth} x={x} y="127" />
               </g>
             );
           })}
-          <text className={utilization > 100 ? 'atlasSvgWarning' : 'atlasSvgAccent'} x="205" y="205">
-            {utilization > 100 ? 'DEADLINE MISSED · ISR DEMAND EXCEEDS CPU' : `${formatNumber(available, 1)}% CPU REMAINS FOR TASKS`}
+          <text className={utilization > 100 ? 'atlasSvgWarning' : 'atlasSvgAccent'} textAnchor="middle" x="310" y="235">
+            {utilization > 100 ? 'OVERLOAD · ISR DEMAND EXCEEDS CPU' : `${formatNumber(available, 1)}% CPU REMAINS FOR TASKS`}
           </text>
         </svg>
       </Stage>
@@ -1514,28 +1432,9 @@ function ModulationExplorer() {
   const [symbolRate, setSymbolRate] = useState(500);
   const [snr, setSnr] = useState(18);
   const order = 2 ** bitsPerSymbol;
-  const gridSize = Math.sqrt(order);
   const dataRate = (symbolRate * bitsPerSymbol) / 1000;
   const bandwidth = (symbolRate * 1.35) / 1000;
-  const snrLinear = 10 ** (snr / 10);
-  const bitErrorRate = Math.min(
-    0.5,
-    0.2 * Math.exp(-snrLinear / Math.max(2, order / 3)),
-  );
-  const noiseScale = Math.max(1.5, (30 - snr) * 0.65);
-  const points = Array.from({ length: order }, (_, index) => {
-    const column = index % gridSize;
-    const row = Math.floor(index / gridSize);
-    const spacing = gridSize === 1 ? 0 : 230 / (gridSize - 1);
-    const idealX = 310 - 115 + column * spacing;
-    const idealY = 126 - 115 + row * spacing;
-    return {
-      idealX,
-      idealY,
-      receivedX: idealX + Math.sin(index * 7.31) * noiseScale,
-      receivedY: idealY + Math.cos(index * 4.73) * noiseScale,
-    };
-  });
+  const { points, scale, evmPercent } = qamConstellation(bitsPerSymbol, snr);
 
   return (
     <div className="atlasInteractiveGrid">
@@ -1544,22 +1443,23 @@ function ModulationExplorer() {
         readouts={[
           { label: 'Modulation', value: `${order}-QAM` },
           { label: 'Bit rate', value: `${formatNumber(dataRate)} Mb/s` },
-          { label: 'Estimated BER', value: bitErrorRate < 0.0001 ? bitErrorRate.toExponential(1) : formatNumber(bitErrorRate, 4) },
+          { label: 'Expected RMS EVM', value: `${formatNumber(evmPercent)}%` },
         ]}
         title="Constellation spacing and channel noise"
       >
         <svg aria-label="Interactive QAM constellation" viewBox="0 0 620 250">
           <path className="atlasGridLine" d="M80 26H540M80 76H540M80 126H540M80 176H540M80 226H540M110 16V236M210 16V236M310 16V236M410 16V236M510 16V236" />
-          <path className="atlasAxis" d="M70 126H550M310 16V236" />
+          <path className="atlasAxis" d="M70 132H550M310 42V224" />
           {points.map((point, index) => (
             <g key={index}>
-              <circle className="atlasConstellationIdeal" cx={point.idealX} cy={point.idealY} r="8" />
-              <circle className="atlasConstellationReceived" cx={point.receivedX} cy={point.receivedY} r="4" />
+              <circle className="atlasConstellationIdeal" cx={310 + point.i * scale} cy={132 - point.q * scale} r="4" />
+              <circle className="atlasConstellationReceived" cx={310 + point.receivedI * scale} cy={132 - point.receivedQ * scale} r="3" />
             </g>
           ))}
           <text className="atlasSvgLabel" x="545" y="118">I</text>
           <text className="atlasSvgLabel" x="320" y="25">Q</text>
-          <text className="atlasSvgAccent" x="82" y="45">{snr} dB SNR · {formatNumber(bandwidth)} MHz occupied</text>
+          <text className="atlasSvgAccent" x="82" y="34">Es/N₀ {snr} dB · {formatNumber(bandwidth)} MHz</text>
+          <text className="atlasSvgLabel" textAnchor="middle" x="310" y="243">UNIT SYMBOL ENERGY · ROLL-OFF 0.35</text>
         </svg>
       </Stage>
       <aside className="atlasControlPanel" aria-label="Modulation controls">
@@ -1567,10 +1467,11 @@ function ModulationExplorer() {
         <h3>Trade rate for noise margin</h3>
         <RangeControl label="Bits per symbol" max={6} min={2} onChange={setBitsPerSymbol} step={2} value={bitsPerSymbol} valueLabel={`${bitsPerSymbol} bit (${order}-QAM)`} />
         <RangeControl label="Symbol rate" max={2000} min={100} onChange={setSymbolRate} step={100} value={symbolRate} valueLabel={`${symbolRate} ksym/s`} />
-        <RangeControl label="Channel SNR" max={30} min={5} onChange={setSnr} step={1} value={snr} valueLabel={`${snr} dB`} />
-        <p className={`atlasControlNote ${bitErrorRate > 0.01 ? 'warning' : ''}`}>
+        <RangeControl label="Symbol Es/N0" max={30} min={5} onChange={setSnr} step={1} value={snr} valueLabel={`${snr} dB`} />
+        <p className="atlasControlNote">
           Higher-order QAM moves more bits per symbol, but each decision region
-          becomes smaller and needs more received SNR.
+          becomes smaller. Equal mean symbol energy; independent Gaussian I/Q noise.
+          EVM is the population RMS, not the error rate of this small sample.
         </p>
       </aside>
     </div>
@@ -1580,9 +1481,9 @@ function ModulationExplorer() {
 function ProtectionExplorer() {
   const [loadCurrent, setLoadCurrent] = useState(600);
   const [faultCurrent, setFaultCurrent] = useState(6000);
-  const [pickupCurrent, setPickupCurrent] = useState(1200);
+  const [pickupCurrent, setPickupCurrent] = useState(1250);
   const [timeMultiplier, setTimeMultiplier] = useState(0.25);
-  const relay = calculateRelayTrip(
+  const relay = relayTrip(
     faultCurrent,
     pickupCurrent,
     timeMultiplier,
@@ -1597,7 +1498,7 @@ function ProtectionExplorer() {
         eyebrow="Feeder protection"
         readouts={[
           { label: 'Fault multiple', value: `${formatNumber(relay.multiple)} × pickup` },
-          { label: 'Relay trip time', value: relay.tripTime >= 90 ? 'No trip' : `${formatNumber(relay.tripTime)} s` },
+          { label: 'Relay trip time', value: relay.tripTime === null ? 'No trip' : `${formatNumber(relay.tripTime)} s` },
           { label: 'Load margin', value: `${formatNumber(pickupCurrent / loadCurrent)} × load` },
         ]}
         title="Inverse-time overcurrent relay"
@@ -1608,8 +1509,8 @@ function ProtectionExplorer() {
           <text className="atlasSvgValue" textAnchor="middle" x="78" y="142">BUS</text>
           <path className="atlasWire" d="M120 125H205M275 125H505" />
           <rect className={coordinated ? 'atlasBreaker coordinated' : 'atlasBreaker'} height="72" rx="8" width="70" x="205" y="89" />
-          <path className="atlasSwitchBlade" d="M220 142L260 108" />
-          <text className="atlasSvgLabel" textAnchor="middle" x="240" y="181">RELAY</text>
+          <path className="atlasSwitchBlade" d="M205 125H275" />
+          <text className="atlasSvgLabel" textAnchor="middle" x="240" y="181">BEFORE TRIP</text>
           <rect className="atlasLoad" height="90" rx="9" width="84" x="495" y="80" />
           <text className="atlasSvgLabel" textAnchor="middle" x="537" y="113">FEEDER</text>
           <text className="atlasSvgValue" textAnchor="middle" x="537" y="139">{formatNumber(faultCurrent / 1000)} kA</text>
@@ -1644,7 +1545,7 @@ function ProtectionExplorer() {
 }
 
 function AntennaExplorer() {
-  const [frequency, setFrequency] = useState(915);
+  const [frequency, setFrequency] = useState(900);
   const [distance, setDistance] = useState(5);
   const [transmitPower, setTransmitPower] = useState(20);
   const [antennaGain, setAntennaGain] = useState(3);
@@ -1675,7 +1576,7 @@ function AntennaExplorer() {
           <path className="atlasAntennaArc tertiary" d="M165 138Q310 84 435 143" />
           <circle className="atlasPhasorTip" cx="310" cy="59" r="7" />
           <text className="atlasSvgLabel" textAnchor="middle" x="95" y="230">TX {transmitPower} dBm</text>
-          <text className="atlasSvgLabel" textAnchor="middle" x="500" y="230">RX −100 dBm</text>
+          <text className="atlasSvgLabel" textAnchor="middle" x="500" y="230">SENS −100 dBm</text>
           <text className="atlasSvgAccent" textAnchor="middle" x="310" y="30">{distance} km · {frequency} MHz</text>
           <text className={fadeMargin >= 10 ? 'atlasSvgAccent' : 'atlasSvgWarning'} textAnchor="middle" x="310" y="191">
             {fadeMargin >= 10 ? `${formatNumber(fadeMargin, 1)} dB LINK MARGIN` : 'LINK AT RISK · ADD MARGIN'}
@@ -1703,13 +1604,14 @@ function PidExplorer() {
   const [integral, setIntegral] = useState(0.8);
   const [derivative, setDerivative] = useState(0.7);
   const [plantTimeConstant, setPlantTimeConstant] = useState(1.5);
-  const metrics = calculatePidMetrics(
+  const metrics = pidResponse(
     proportional,
     integral,
     derivative,
     plantTimeConstant,
   );
-  const responsePath = makeStepResponsePath(metrics);
+  const scale = 155 / Math.max(1.1, metrics.peak);
+  const responsePath = makeStepResponsePath({ ...metrics, scale });
 
   return (
     <div className="atlasInteractiveGrid">
@@ -1717,7 +1619,7 @@ function PidExplorer() {
         eyebrow="Closed-loop response"
         readouts={[
           { label: 'Overshoot', value: `${formatNumber(metrics.overshoot, 1)}%` },
-          { label: 'Settling time', value: `${formatNumber(metrics.settlingTime)} s` },
+          { label: 'Settling (2% final)', value: `${formatNumber(metrics.settlingTime)} s` },
           { label: 'Steady error', value: `${formatNumber(metrics.steadyError, 1)}%` },
         ]}
         title="PID gains and step response"
@@ -1725,12 +1627,12 @@ function PidExplorer() {
         <svg aria-label="Interactive PID step response" viewBox="0 0 620 250">
           <path className="atlasGridLine" d="M55 65H575M55 105H575M55 145H575M55 185H575M160 35V215M265 35V215M370 35V215M475 35V215M575 35V215" />
           <path className="atlasAxis" d="M55 35V215H580" />
-          <path className="atlasSetpoint" d="M55 85H575" />
+          <path className="atlasSetpoint" d={`M55 ${205 - scale}H575`} />
           <path className={metrics.stable ? 'atlasControlResponse' : 'atlasControlResponse unstable'} d={responsePath} />
-          <text className="atlasSvgLabel" x="64" y="76">SETPOINT</text>
-          <text className={metrics.stable ? 'atlasSvgAccent' : 'atlasSvgWarning'} x="365" y="228">
-            {metrics.stable ? `ζ = ${formatNumber(metrics.damping)} · LOOP STABLE` : 'TUNING REGION UNSTABLE'}
-          </text>
+          <text className="atlasSvgLabel" x="64" y={195 - scale}>SETPOINT 1</text>
+          <text className="atlasSvgLabel" x="55" y="235">0 s</text>
+          <text className="atlasSvgLabel" textAnchor="middle" x="310" y="235">G(s) = 1/({plantTimeConstant.toFixed(1)}s + 1)</text>
+          <text className="atlasSvgLabel" textAnchor="end" x="575" y="235">8 s</text>
         </svg>
       </Stage>
       <aside className="atlasControlPanel" aria-label="PID tuning controls">
@@ -1741,8 +1643,9 @@ function PidExplorer() {
         <RangeControl label="Derivative Kd" max={3} min={0} onChange={setDerivative} step={0.1} value={derivative} valueLabel={derivative.toFixed(1)} />
         <RangeControl label="Plant time constant" max={4} min={0.5} onChange={setPlantTimeConstant} step={0.1} value={plantTimeConstant} valueLabel={`${plantTimeConstant.toFixed(1)} s`} />
         <p className={`atlasControlNote ${!metrics.stable || metrics.overshoot > 25 ? 'warning' : ''}`}>
-          Increase Kp for authority, Ki for offset removal, and Kd for damping.
-          A practical derivative term is filtered to limit noise gain.
+          Ideal unity-feedback PID and first-order plant. Unfiltered derivative
+          causes an initial step; real controllers filter it. No delay or actuator limits.
+          Settling is within 2% of the final output, which differs from the command when Ki = 0.
         </p>
       </aside>
     </div>
@@ -1755,23 +1658,16 @@ function UncertaintyExplorer() {
   const [sampleCount, setSampleCount] = useState(10);
   const [calibrationCorrection, setCalibrationCorrection] = useState(0);
   const trueValue = 10;
-  const residualBias = sensorBias - calibrationCorrection;
-  const randomUncertainty = randomNoise / Math.sqrt(sampleCount);
-  const combinedUncertainty = Math.sqrt(
-    residualBias ** 2 + randomUncertainty ** 2,
-  );
-  const reportedValue = trueValue * (1 + residualBias / 100);
+  const { residualBias, standardUncertainty: randomUncertainty, mean: reportedValue, meanX, bandWidth, scale, extent } =
+    uncertaintyModel(sensorBias, randomNoise, sampleCount, calibrationCorrection);
   const trueX = 310;
-  const meanX = trueX + residualBias * 110;
-  const bandWidth = Math.max(8, combinedUncertainty * 110);
+  const illustratedCount = Math.min(28, sampleCount);
   const sampleDots = Array.from(
-    { length: Math.min(28, sampleCount) },
+    { length: illustratedCount },
     (_, index) => ({
       x:
         meanX +
-        Math.sin(index * 5.13) *
-          randomNoise *
-          115,
+        (illustratedCount === 1 ? 0 : (2 * index - illustratedCount + 1) / Math.sqrt((illustratedCount ** 2 - 1) / 3)) * randomNoise * scale,
       y: 105 + (index % 5) * 15,
     }),
   );
@@ -1781,8 +1677,8 @@ function UncertaintyExplorer() {
       <Stage
         eyebrow="Metrology result"
         readouts={[
-          { label: 'Reported mean', value: `${formatNumber(reportedValue, 4)} V` },
-          { label: 'Combined uncertainty', value: `${formatNumber(combinedUncertainty, 3)}%` },
+          { label: 'Expected mean', value: `${formatNumber(reportedValue, 4)} V` },
+          { label: 'Mean u (noise only)', value: `${formatNumber(trueValue * randomUncertainty / 100, 4)} V` },
           { label: 'Residual bias', value: `${formatNumber(residualBias, 2)}%` },
         ]}
         title="Bias, averaging, and calibration"
@@ -1797,6 +1693,7 @@ function UncertaintyExplorer() {
             <circle className="atlasMeasurementDot" cx={dot.x} cy={dot.y} key={index} r="4" />
           ))}
           <text className="atlasSvgLabel" textAnchor="middle" x={trueX} y="218">TRUE 10.0000 V</text>
+          <text className="atlasSvgLabel" textAnchor="middle" x="310" y="241">SPAN ±{formatNumber(extent)}% · BAND ±1u</text>
           <text className="atlasSvgAccent" textAnchor="middle" x={clampNumber(meanX, 130, 490)} y="42">
             MEAN {formatNumber(reportedValue, 4)} V
           </text>
@@ -1810,8 +1707,9 @@ function UncertaintyExplorer() {
         <RangeControl label="Sample count" max={100} min={1} onChange={setSampleCount} step={1} value={sampleCount} valueLabel={`${sampleCount}`} />
         <RangeControl label="Calibration correction" max={2} min={-2} onChange={setCalibrationCorrection} step={0.1} value={calibrationCorrection} valueLabel={`${calibrationCorrection.toFixed(1)}%`} />
         <p className={`atlasControlNote ${Math.abs(residualBias) > randomUncertainty * 2 ? 'warning' : ''}`}>
-          More samples narrow random uncertainty. Only a traceable correction
-          addresses systematic bias.
+          Noise σ/√N sets the mean's standard uncertainty; bias is a signed error,
+          not an uncertainty component. Correction is added to the reading. The
+          illustrated spread is schematic; calibration uncertainty is omitted.
         </p>
       </aside>
     </div>
@@ -2947,20 +2845,7 @@ function WaveMatchGame({
   const target = targets[round % targets.length];
 
   function checkMatch() {
-    const amplitudeError = Math.abs(amplitude - target.amplitude) / 9;
-    const frequencyError = Math.abs(frequency - target.frequency) / 6;
-    const rawPhaseError = Math.abs(phase - target.phase) % 360;
-    const phaseError = Math.min(rawPhaseError, 360 - rawPhaseError) / 180;
-    const nextScore = Math.max(
-      0,
-      Math.round(
-        100 -
-          (amplitudeError * 0.34 +
-            frequencyError * 0.36 +
-            phaseError * 0.3) *
-            100,
-      ),
-    );
+    const nextScore = waveMatchScore({ amplitude, frequency, phase }, target);
     setScore(nextScore);
     onScore(nextScore);
   }
@@ -2983,9 +2868,10 @@ function WaveMatchGame({
         </header>
         <svg aria-label="Target and adjustable waveform" viewBox="0 0 760 280">
           <path className="atlasGridLine" d="M45 65H715M45 140H715M45 215H715M155 35V235M265 35V235M375 35V235M485 35V235M595 35V235M705 35V235" />
-          <path className="atlasTargetWave" d={makeWavePath({ amplitude: target.amplitude * 9, cycles: target.frequency / 2, phase: target.phase, width: 660, x: 50, y: 140 })} />
-          <path className="atlasPlayerWave" d={makeWavePath({ amplitude: amplitude * 9, cycles: frequency / 2, phase, width: 660, x: 50, y: 140 })} />
-          <text className="atlasSvgLabel" x="50" y="260">ALIGN AMPLITUDE · FREQUENCY · PHASE</text>
+          <path className="atlasTargetWave" d={makeWavePath({ amplitude: target.amplitude * 9, cycles: target.frequency / 2, phase: target.phase + 90, width: 660, x: 50, y: 140 })} />
+          <path className="atlasPlayerWave" d={makeWavePath({ amplitude: amplitude * 9, cycles: frequency / 2, phase: phase + 90, width: 660, x: 50, y: 140 })} />
+          <text className="atlasSvgLabel" x="50" y="260">v(t) = A cos(2πft + φ)</text>
+          <text className="atlasSvgLabel" textAnchor="end" x="710" y="260">0–0.5 ms</text>
         </svg>
       </section>
       <aside className="atlasGameControls">
@@ -3224,11 +3110,9 @@ function TransientTraceGame({
   const timeWindow = scenario.targetTimeConstant * 5;
   const targetMarkerX =
     70 + (scenario.targetTimeConstant / timeWindow) * 620;
-  const playerMarkerX =
-    70 + Math.min(1, timeConstant / timeWindow) * 620;
-  const playerMarkerY =
-    230 -
-    (1 - Math.exp(-Math.min(timeConstant, timeWindow) / timeConstant)) * 150;
+  const markerVisible = timeConstant <= timeWindow;
+  const playerMarkerX = 70 + (timeConstant / timeWindow) * 620;
+  const playerMarkerY = 230 - (1 - Math.exp(-1)) * 150;
   const timeError =
     Math.abs(timeConstant - scenario.targetTimeConstant) /
     scenario.targetTimeConstant;
@@ -3241,7 +3125,7 @@ function TransientTraceGame({
     );
     const nextScore = Math.max(
       0,
-      Math.round(100 - timeError * 150 - currentOverage * 45),
+      Math.min(currentSafe ? 100 : 79, Math.round(100 - timeError * 150 - currentOverage * 45)),
     );
     setScore(nextScore);
     onScore(nextScore);
@@ -3288,26 +3172,27 @@ function TransientTraceGame({
             className="atlasTransientTargetMarker"
             d={`M${targetMarkerX.toFixed(2)} 58V230`}
           />
-          <path
+          {markerVisible && <path
             className="atlasTransientPlayerMarker"
             d={`M${playerMarkerX.toFixed(2)} 58V230`}
-          />
-          <circle
+          />}
+          {markerVisible && <circle
             className="atlasTransientChargeDot"
             cx={playerMarkerX}
             cy={playerMarkerY}
             r="8"
-          />
+          />}
           <text className="atlasSvgLabel" x="18" y="84">
             V
           </text>
-          <text className="atlasSvgLabel" x="672" y="265">
-            TIME
+          <text className="atlasSvgLabel" textAnchor="end" x="690" y="265">
+            {timeWindow} ms
           </text>
           <text className="atlasSvgAccent" x="82" y="66">
             100%
           </text>
-          <text className="atlasSvgLabel" x="82" y="151">
+          <path className="atlasSetpoint" d={`M70 ${playerMarkerY}H690`} />
+          <text className="atlasSvgLabel" x="82" y={playerMarkerY - 8}>
             63.2%
           </text>
           <text
@@ -3323,10 +3208,10 @@ function TransientTraceGame({
               timeError <= 0.05 ? 'atlasSvgAccent' : 'atlasSvgWarning'
             }
             textAnchor="middle"
-            x={playerMarkerX}
+            x={markerVisible ? clampNumber(playerMarkerX, 160, 600) : 540}
             y="36"
           >
-            YOUR tau {timeConstant} ms
+            YOUR tau {timeConstant} ms{markerVisible ? '' : ' > WINDOW'}
           </text>
         </svg>
         <div className="transientReadouts">
@@ -3414,19 +3299,10 @@ function AliasEscapeGame({
   const ratio = sampleRate / signalFrequency;
   const alias =
     Math.abs(signalFrequency - Math.round(signalFrequency / sampleRate) * sampleRate);
-  const sampleCount = Math.max(4, Math.round(sampleRate * 1.25));
-  const samples = Array.from(
-    { length: sampleCount },
-    (_, index) => {
-      const progress = index / Math.max(1, sampleCount - 1);
-      return {
-        x: 45 + progress * 660,
-        y:
-          140 -
-          Math.sin(progress * Math.PI * 2 * signalFrequency * 0.23) * 75,
-      };
-    },
-  );
+  const duration = 0.23;
+  const samples = sampleSineWave({
+    frequency: signalFrequency, sampleRate, duration, x: 45, y: 140, width: 660, amplitude: 75,
+  });
 
   function checkRate() {
     const safe = ratio >= 2.2;
@@ -3452,13 +3328,14 @@ function AliasEscapeGame({
         </header>
         <svg aria-label="Signal and adjustable sample points" viewBox="0 0 760 280">
           <path className="atlasGridLine" d="M45 65H715M45 140H715M45 215H715M155 35V235M265 35V235M375 35V235M485 35V235M595 35V235M705 35V235" />
-          <path className="atlasTargetWave" d={makeWavePath({ amplitude: 75, cycles: signalFrequency * 0.23, width: 660, x: 45, y: 140 })} />
+          <path className="atlasTargetWave" d={makeWavePath({ amplitude: 75, cycles: signalFrequency * duration, width: 660, x: 45, y: 140 })} />
           {samples.map((sample, index) => (
             <circle className="atlasSampleDot" cx={sample.x} cy={sample.y} key={`${sample.x}-${index}`} r="5" />
           ))}
           <text className={ratio >= 2.2 ? 'atlasSvgAccent' : 'atlasSvgWarning'} x="45" y="260">
-            {ratio >= 2.2 ? `${ratio.toFixed(2)} SAMPLES / CYCLE` : `ALIAS MAY APPEAR AT ${alias.toFixed(1)} kHz`}
+            {ratio >= 2.2 ? `${ratio.toFixed(2)} SAMPLES / CYCLE` : ratio > 2 ? 'INCREASE ANTI-ALIAS MARGIN' : ratio === 2 ? 'AT NYQUIST LIMIT' : `ALIAS MAY APPEAR AT ${alias.toFixed(1)} kHz`}
           </text>
+          <text className="atlasSvgLabel" textAnchor="end" x="705" y="260">{duration} ms</text>
         </svg>
       </section>
       <aside className="atlasGameControls">
@@ -3504,18 +3381,22 @@ function PidTuneGame({
   const [derivative, setDerivative] = useState(0.5);
   const [score, setScore] = useState<number | null>(null);
   const target = targets[round % targets.length];
-  const metrics = calculatePidMetrics(
+  const metrics = pidResponse(
     proportional,
     integral,
     derivative,
     target.plantTimeConstant,
   );
+  const scale = 175 / Math.max(1.1, metrics.peak);
   const responsePath = makeStepResponsePath({
     ...metrics,
+    scale,
     width: 660,
     x: 50,
     y: 235,
   });
+  const meetsTarget = metrics.overshoot <= target.maxOvershoot &&
+    metrics.settlingTime <= target.maxSettling && metrics.steadyError <= 1;
 
   function checkTuning() {
     const overshootPenalty =
@@ -3526,13 +3407,13 @@ function PidTuneGame({
     const instabilityPenalty = metrics.stable ? 0 : 70;
     const nextScore = Math.max(
       0,
-      Math.round(
+      Math.min(meetsTarget ? 100 : 79, Math.round(
         100 -
           overshootPenalty -
           settlingPenalty -
           errorPenalty -
           instabilityPenalty,
-      ),
+      )),
     );
     setScore(nextScore);
     onScore(nextScore);
@@ -3559,10 +3440,11 @@ function PidTuneGame({
         <svg aria-label="PID tuning target and response" viewBox="0 0 760 280">
           <path className="atlasGridLine" d="M50 75H710M50 115H710M50 155H710M50 195H710M50 235H710M160 35V245M270 35V245M380 35V245M490 35V245M600 35V245M710 35V245" />
           <path className="atlasAxis" d="M50 35V245H715" />
-          <path className="atlasSetpoint" d="M50 115H710" />
+          <path className="atlasSetpoint" d={`M50 ${235 - scale}H710`} />
           <path className={metrics.stable ? 'atlasControlResponse' : 'atlasControlResponse unstable'} d={responsePath} />
-          <text className="atlasSvgLabel" x="58" y="104">TARGET</text>
-          <text className="atlasSvgAccent" x="430" y="260">
+          <text className="atlasSvgLabel" x="58" y={225 - scale}>TARGET 1</text>
+          <text className="atlasSvgLabel" x="50" y="260">0–8 s</text>
+          <text className="atlasSvgAccent" textAnchor="end" x="710" y="260">
             {formatNumber(metrics.overshoot, 1)}% OS · {formatNumber(metrics.settlingTime)} s SETTLE
           </text>
         </svg>
@@ -3573,6 +3455,9 @@ function PidTuneGame({
         <RangeControl label="Proportional Kp" max={8} min={0.2} onChange={(value) => { setProportional(value); setScore(null); }} step={0.1} value={proportional} valueLabel={proportional.toFixed(1)} />
         <RangeControl label="Integral Ki" max={4} min={0} onChange={(value) => { setIntegral(value); setScore(null); }} step={0.1} value={integral} valueLabel={integral.toFixed(1)} />
         <RangeControl label="Derivative Kd" max={3} min={0} onChange={(value) => { setDerivative(value); setScore(null); }} step={0.1} value={derivative} valueLabel={derivative.toFixed(1)} />
+        <p className="atlasControlNote">Ideal PID, G(s) = 1/({target.plantTimeConstant}s + 1).
+          Unfiltered derivative gives an initial step. Settling: 2% of final output;
+          steady error must also be ≤1%.</p>
         <button className="atlasCheckButton" onClick={checkTuning} type="button">
           <Target size={17} />
           Test response
@@ -3580,7 +3465,7 @@ function PidTuneGame({
       </aside>
       <ScorePanel
         feedback={
-          score !== null && score >= 80
+          score !== null && meetsTarget
             ? 'The loop settles inside the target envelope with useful damping.'
             : 'Use Kp for speed, add Kd to control overshoot, then use enough Ki to remove offset.'
         }
@@ -3602,22 +3487,27 @@ function RelayCoordinationGame({
     { backupTime: 1.8, maxLoad: 900, minFault: 7800, title: 'Process bus' },
   ];
   const [round, setRound] = useState(0);
-  const [pickupCurrent, setPickupCurrent] = useState(1200);
+  const [pickupCurrent, setPickupCurrent] = useState(1250);
   const [timeMultiplier, setTimeMultiplier] = useState(0.25);
   const [score, setScore] = useState<number | null>(null);
   const scenario = scenarios[round % scenarios.length];
-  const relay = calculateRelayTrip(
+  const relay = relayTrip(
     scenario.minFault,
     pickupCurrent,
     timeMultiplier,
   );
   const loadMargin = pickupCurrent / scenario.maxLoad;
-  const coordinationMargin = scenario.backupTime - relay.tripTime;
+  const coordinationMargin = relay.tripTime === null ? null : scenario.backupTime - relay.tripTime;
   const secure = loadMargin >= 1.25;
   const sensitive = relay.multiple >= 1.5;
-  const selective = coordinationMargin >= 0.3 && relay.tripTime >= 0.12;
+  const selective = coordinationMargin !== null && coordinationMargin >= 0.3 && relay.tripTime !== null && relay.tripTime >= 0.12;
 
   function checkCoordination() {
+    if (relay.tripTime === null || coordinationMargin === null) {
+      setScore(0);
+      onScore(0);
+      return;
+    }
     const loadPenalty = Math.max(0, 1.25 - loadMargin) * 90;
     const sensitivityPenalty = Math.max(0, 1.5 - relay.multiple) * 40;
     const selectivityPenalty =
@@ -3625,7 +3515,7 @@ function RelayCoordinationGame({
       Math.max(0, 0.12 - relay.tripTime) * 100;
     const nextScore = Math.max(
       0,
-      Math.round(100 - loadPenalty - sensitivityPenalty - selectivityPenalty),
+      Math.min(secure && sensitive && selective ? 100 : 79, Math.round(100 - loadPenalty - sensitivityPenalty - selectivityPenalty)),
     );
     setScore(nextScore);
     onScore(nextScore);
@@ -3633,7 +3523,7 @@ function RelayCoordinationGame({
 
   function nextRound() {
     setRound((current) => (current + 1) % scenarios.length);
-    setPickupCurrent(1200);
+    setPickupCurrent(1250);
     setTimeMultiplier(0.25);
     setScore(null);
   }
@@ -3653,9 +3543,9 @@ function RelayCoordinationGame({
           <text className="atlasSvgLabel" textAnchor="middle" x="82" y="136">GRID</text>
           <path className="atlasWire" d="M124 140H215M285 140H465M535 140H680" />
           <rect className="atlasBreaker" height="78" rx="8" width="70" x="215" y="101" />
-          <path className="atlasSwitchBlade" d="M230 154L270 120" />
+          <path className="atlasSwitchBlade" d="M215 140H285" />
           <rect className={secure && sensitive && selective ? 'atlasBreaker coordinated' : 'atlasBreaker'} height="78" rx="8" width="70" x="465" y="101" />
-          <path className="atlasSwitchBlade" d="M480 154L520 120" />
+          <path className="atlasSwitchBlade" d="M465 140H535" />
           <rect className="atlasLoad" height="84" rx="8" width="70" x="660" y="98" />
           <text className="atlasSvgLabel" textAnchor="middle" x="250" y="202">BACKUP</text>
           <text className="atlasSvgLabel" textAnchor="middle" x="500" y="202">LOCAL</text>
@@ -3663,8 +3553,8 @@ function RelayCoordinationGame({
           <text className={secure && sensitive ? 'atlasSvgAccent' : 'atlasSvgWarning'} x="170" y="58">
             PICKUP {pickupCurrent} A · M = {formatNumber(relay.multiple)}×
           </text>
-          <text className={selective ? 'atlasSvgAccent' : 'atlasSvgWarning'} x="385" y="248">
-            TRIP {relay.tripTime >= 90 ? 'BLOCKED' : `${formatNumber(relay.tripTime)} s`} · MARGIN {formatNumber(coordinationMargin)} s
+          <text className={selective ? 'atlasSvgAccent' : 'atlasSvgWarning'} textAnchor="middle" x="440" y="248">
+            {relay.tripTime === null || coordinationMargin === null ? 'NO PICKUP · NO COORDINATION MARGIN' : `TRIP ${formatNumber(relay.tripTime)} s · MARGIN ${formatNumber(coordinationMargin)} s`}
           </text>
         </svg>
       </section>
@@ -3685,7 +3575,7 @@ function RelayCoordinationGame({
       </aside>
       <ScorePanel
         feedback={
-          score !== null && score >= 80
+          score !== null && secure && sensitive && selective
             ? 'The local relay is secure on load, sensitive to the fault, and clears before backup.'
             : 'Raise pickup above load, preserve at least 1.5× fault multiple, and leave 0.30 s for device selectivity.'
         }

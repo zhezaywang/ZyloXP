@@ -1,0 +1,18 @@
+export const labValues = {
+  adcBitDepth: 10, adcFilterCutoff: 3, adcInputAmplitude: 1.2, adcInputFrequency: 1,
+  adcReferenceVoltage: 3.3, adcSampleRate: 8, bjtBaseCurrent: 20, bjtCollectorResistance: 2.2,
+  bjtCurrentGain: 90, bjtSupplyVoltage: 12, bjtTemperature: 25, capacitance: 30,
+  digitalClockFrequency: 50, digitalPropagationDelay: 10, digitalSetupTime: 3,
+  filterFrequency: 100, lineCurrent: 24, lineVoltage: 400, mosfetBusVoltage: 24,
+  mosfetDutyCycle: 50, mosfetGateResistance: 10, mosfetGateVoltage: 8,
+  mosfetLoadResistance: 8, mosfetSwitchingFrequency: 50, opAmpFeedbackResistance: 10,
+  opAmpInputResistance: 2, opAmpInputVoltage: 0.5, opAmpSupplyVoltage: 12,
+  pidDerivativeGain: 0.35, pidIntegralGain: 0.6, pidPlantTimeConstant: 1.5,
+  pidProportionalGain: 1.6, pidSetpoint: 60, powerFactor: 0.86, rcResistance: 7,
+  resistance: 10, resonanceCapacitance: 2.5, resonanceFrequency: 1000,
+  resonanceInductance: 10, resonanceResistance: 12, resonanceSourceVoltage: 5,
+  transmissionCharacteristicImpedance: 50, transmissionElectricalLength: 90,
+  transmissionLoadImpedance: 75, transformerCoreArea: 12, transformerFrequency: 60,
+  transformerLoadResistance: 10, transformerPrimaryTurns: 500, transformerPrimaryVoltage: 120,
+  transformerSecondaryTurns: 105, transformerWindingResistance: 0.5, voltage: 7,
+};

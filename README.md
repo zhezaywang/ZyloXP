@@ -12,7 +12,7 @@ A browser-based electrical engineering workbench. Practice a calculation, change
 
 Choose **Start learning**. No account, API key, or installation is required.
 
-1. Open **Labs > PCB Designer**. Move a footprint, route between pads, and check the remaining connections. Edits survive a refresh; saved boards can be exported as JSON.
+1. Open **Labs > PCB Designer**. Move a footprint, route between pads, and check the remaining connections. Edits survive a refresh. Export a board as JSON, then reopen it with the import control. Imports show a preview before replacing your draft and can be undone.
 2. Open **Labs > Ohm's Law Bench**. Change the source voltage or resistance and compare the current and power readings.
 3. Explore **EE Atlas**, or use **Practice** to work through a question and inspect its circuit diagram.
 4. Save an observation in **Notebook**. **Settings > Progress backup** exports the learning state and PCB projects together.
@@ -21,7 +21,7 @@ Choose **Start learning**. No account, API key, or installation is required.
 
 | Workspace | What you can do |
 | --- | --- |
-| PCB Designer | Place and rotate footprints, route top/bottom copper, change grid and trace width, undo edits, inspect connections, and save boards. |
+| PCB Designer | Place and rotate footprints, route top/bottom copper, change grid and trace width, undo edits, inspect connections, and save, export, or import boards. |
 | Labs | Experiment with circuit, signal, and control models; complete guided calibration and fault-finding tasks. |
 | Practice and Atlas | Answer questions with feedback, revisit mistakes, and explore interactive concept models and games. |
 | Notebook | Collect formulas, saved questions, observations, and bench runs. |
@@ -57,13 +57,17 @@ pnpm exec playwright install chromium
 pnpm verify
 ```
 
-`verify` runs unit tests, both TypeScript checks, a production build, and browser tests. The browser tests start their own preview server on port 4178. For individual checks, use `pnpm test`, `pnpm typecheck`, `pnpm build`, or `pnpm test:e2e` after building.
+`verify` runs unit tests, SVG and reference-sync checks (Python 3), both TypeScript checks, a production build, and browser tests. The browser tests start their own preview server on port 4178. For individual checks, use `pnpm test`, `pnpm test:references`, `pnpm typecheck`, `pnpm build`, or `pnpm test:e2e` after building.
 
 ## Content and scope
 
 The companion dataset contains **250,000 generated numerical questions** based on **100 formula templates** across **20 topics**. Its [committed validation report](electrical_engineering_question_bank_250000/validation_summary.json), dated July 23, 2026, records answer recomputation and checks on 12,500 instructional SVG diagrams. These are template variants, not 250,000 independently authored problems. The 25 level labels are organizational, not calibrated difficulty scores.
 
 The app loads a representative subset and topic metadata. The repository includes a 50,000-row review workbook; the full CSV is excluded because it exceeds GitHub's file-size limit.
+
+The dataset's validation status is not an independent engineering certification of its drawings. See the [visual accuracy review](docs/visual-accuracy.md) for corrected circuit connections, equation-driven plots, coverage, and remaining model limits. `pnpm audit:visuals` generates a contact sheet gallery of the bundled diagrams; set `VISUAL_AUDIT_DIR` to choose the output directory.
+
+Use `VISUAL_AUDIT_EXTREMES=1 pnpm audit:visuals` to include all lab control endpoints. After changing a live lab drawing, `pnpm sync:lab-references` regenerates its fixed reference image from the same renderer.
 
 This is a learning project, not a production EDA tool. PCB checks cover placement and guided connections, not complete electrical-rule checking or manufacturing sign-off. Lab models are simplified. Career scores are learning heuristics, not professional assessments.
 

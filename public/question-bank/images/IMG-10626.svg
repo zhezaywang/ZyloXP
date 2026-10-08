@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
-<!-- LaTeX/TikZ source: latex_sources/IMG-10626.tex -->
+<!-- App-local reviewed SVG; upstream LaTeX/TikZ source: latex_sources/IMG-10626.tex (not synchronized). -->
 <defs>
 <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
 <path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
@@ -25,20 +25,22 @@
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
 <text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">UART bit time problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-10626 | Embedded Systems | EE-212501</text>
-<rect class="box" x="140" y="235" width="135" height="125" rx="8"/>
-<text class="label" x="188" y="302" text-anchor="start">MCU</text>
-<line class="wire" x1="275" y1="270" x2="430" y2="270"/>
-<line class="wire" x1="275" y1="330" x2="430" y2="330"/>
-<text class="tiny" x="330" y="258" text-anchor="start">TX</text>
-<text class="tiny" x="330" y="352" text-anchor="start">RX</text>
-<rect class="soft" x="430" y="235" width="170" height="125" rx="8"/>
-<text class="label" x="486" y="302" text-anchor="start">Device</text>
-<line class="wire" x1="600" y1="300" x2="760" y2="300" marker-end="url(#arrow)"/>
-<text class="small" x="646" y="282" text-anchor="start">interrupt / data</text>
-<rect class="soft" x="320" y="420" width="220" height="28" rx="0"/>
-<text class="tiny" x="348" y="439" text-anchor="start">start</text>
-<text class="tiny" x="438" y="439" text-anchor="start">data bits</text>
-<text class="tiny" x="522" y="439" text-anchor="start">stop</text>
+<text class="label" x="480" y="160" text-anchor="middle">115200 baud; 8N1 example, least-significant bit first</text>
+<path class="thin" stroke-dasharray="4 5" d="M170 195 V380 M230 195 V380 M290 195 V380 M350 195 V380 M410 195 V380 M470 195 V380 M530 195 V380 M590 195 V380 M650 195 V380 M710 195 V380 M770 195 V380"/>
+<path class="accent" d="M110 220 H170 V340 H230 V220 H290 V340 H350 V220 H470 V340 H590 V220 H650 V340 H710 V220 H830"/>
+<text class="tiny" x="130" y="202" text-anchor="middle">idle = 1</text>
+<text class="tiny" x="200" y="366" text-anchor="middle">START</text>
+<text class="tiny" x="260" y="366" text-anchor="middle">D0</text>
+<text class="tiny" x="320" y="366" text-anchor="middle">D1</text>
+<text class="tiny" x="380" y="366" text-anchor="middle">D2</text>
+<text class="tiny" x="440" y="366" text-anchor="middle">D3</text>
+<text class="tiny" x="500" y="366" text-anchor="middle">D4</text>
+<text class="tiny" x="560" y="366" text-anchor="middle">D5</text>
+<text class="tiny" x="620" y="366" text-anchor="middle">D6</text>
+<text class="tiny" x="680" y="366" text-anchor="middle">D7</text>
+<text class="tiny" x="740" y="366" text-anchor="middle">STOP</text>
+<path class="thin" d="M170 405 V429 M170 417 H230 M230 405 V429"/>
+<text class="small" x="200" y="456" text-anchor="middle">tbit = 1 / baud</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
 <text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">What is the bit time for a UART baud rate of 115200 baud?</text>
 </svg>

@@ -40,10 +40,20 @@ const SEARCH_ALIAS_GROUPS = [
 const NORMALIZED_ALIAS_GROUPS = SEARCH_ALIAS_GROUPS.map((group) =>
   group.map(normalizeSearchText),
 );
+const PHRASE_ALIASES = NORMALIZED_ALIAS_GROUPS.flatMap((group) =>
+  group.map((alias) => ({ group, tokens: alias.split(' ') })),
+).filter((candidate) => candidate.tokens.length > 1)
+  .sort((a, b) => b.tokens.length - a.tokens.length);
 
 export function normalizeSearchText(value: string) {
   return value
     .toLowerCase()
+    .replace(/[µμ]/g, 'micro')
+    .replace(/ω/g, ' ohm ')
+    .replace(/β/g, ' beta ')
+    .replace(/φ/g, ' phase ')
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 }
@@ -161,13 +171,24 @@ function getQueryGroups(query: string) {
     return [wholeQueryAliasGroup];
   }
 
-  return tokenize(normalizedQuery).map((queryToken) => {
+  const tokens = tokenize(normalizedQuery);
+  const groups: string[][] = [];
+  for (let index = 0; index < tokens.length;) {
+    // Prefer the longest complete phrase, so "op amp gain" keeps the alias intact.
+    const phrase = PHRASE_ALIASES.find((candidate) =>
+      candidate.tokens.every((token, offset) => tokens[index + offset] === token));
+    if (phrase) {
+      groups.push(phrase.group);
+      index += phrase.tokens.length;
+      continue;
+    }
+    const queryToken = tokens[index++];
     const aliasGroup = NORMALIZED_ALIAS_GROUPS.find((group) =>
       group.some((alias) => aliasMatchesToken(alias, queryToken)),
     );
-
-    return aliasGroup ? [queryToken, ...aliasGroup] : [queryToken];
-  });
+    groups.push(aliasGroup ? [queryToken, ...aliasGroup] : [queryToken]);
+  }
+  return groups;
 }
 
 function getAlternativeMatchCost(alternative: string, field: string) {
@@ -175,7 +196,7 @@ function getAlternativeMatchCost(alternative: string, field: string) {
     return 0;
   }
 
-  if (field.startsWith(alternative)) {
+  if (field.startsWith(alternative) && (alternative.length > 3 || field.startsWith(`${alternative} `))) {
     return 1;
   }
 
@@ -225,7 +246,7 @@ export function getSearchResultScore(
   if (title === normalizedQuery) {
     return 0;
   }
-  if (title.startsWith(normalizedQuery)) {
+  if (title.startsWith(normalizedQuery) && (normalizedQuery.length > 3 || title.startsWith(`${normalizedQuery} `))) {
     return 1;
   }
   if (` ${title} `.includes(` ${normalizedQuery} `)) {

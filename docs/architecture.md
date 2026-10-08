@@ -12,6 +12,7 @@ ZyloXP is a client-side React application deployed as static files. There is no 
 | `src/PcbDesigner.tsx` | SVG board rendering, placement, routing, inspection, undo/redo, and local projects. |
 | `src/pcbStorage.ts` | Board schema, capacity limits, topology validation, and safe local-storage reads/writes. |
 | `src/ProgressBackup.tsx` | Versioned backup export and validated restore across supported storage groups. |
+| `src/progressRestore.ts` | Restore preflight, rollback, and an autosave guard for the restoring tab. |
 | `src/RecentLearning.tsx` | Recent activity and resume links. |
 | `src/authSession.ts`, `src/localAppLock.ts` | Local workspace session lifetime and optional device privacy lock. These are not server-side authentication. |
 | `public/sw.js` | Application-shell and visited-asset caching. |
@@ -23,6 +24,10 @@ Footprints have stable IDs, board coordinates, rotations, and pad definitions. A
 
 Draft writes are debounced during editing and flushed when leaving the workspace or hiding the page. Restoration validates component IDs, bounds, rotations, layers, widths, and endpoint references. Invalid boards are rejected as a whole. Named projects and the active draft use separate storage keys and both participate in progress backups.
 
+Board JSON imports use the same validator, have a 256 KB file limit, and require confirmation before replacing the draft. Opening a board enters the undo history. The six-board shelf rejects additional saves at capacity rather than silently evicting an existing board; failed storage writes do not appear as successful saves or deletions.
+
+Progress restore snapshots every included storage group before writing. A failed write attempts to roll back groups already changed and reports whether recovery succeeded. Successful restores pause autosave for included groups in the restoring tab through the page reload, preventing an old PCB draft from overwriting the restored one during `pagehide`. Other groups can still flush pending edits. This is not a cross-tab transaction: close other ZyloXP tabs before restoring. Local storage also cannot guarantee recovery from a browser crash during a multi-group write.
+
 The board is an educational layout editor. Its checks detect placement overlaps, edge proximity, duplicate routes, and missing guided connections. It does not implement a complete netlist engine, arbitrary route waypoints, copper clearance analysis, impedance modeling, or Gerber export.
 
 ## Routing and delivery
@@ -33,8 +38,8 @@ GitHub Actions installs the lockfile, audits production dependencies, runs stora
 
 ## Test coverage
 
-- Node tests cover PCB round trips, empty boards, corrupt topology, unavailable storage, independent project/draft persistence, and capacity limits.
-- Playwright covers the local-profile entry flow, keyboard-operated preview tabs, main workspace routes, horizontal overflow, draft recovery, backup export, grid movement, undo, and zoom.
+- Node tests cover PCB round trips, empty boards, corrupt topology, unavailable storage, independent project/draft persistence, import file bounds, and capacity limits. Restore tests cover preflight failure, rollback, failed rollback, retries, and the autosave guard.
+- Playwright covers the local-profile entry flow, keyboard-operated preview tabs, main workspace routes, horizontal overflow, draft recovery, backup export/restore, grid movement, undo, and zoom. Import tests exercise confirmation, cancellation, geometry preservation, invalid files, and a full saved-board shelf. Backup tests reproduce an open-draft restore and a storage failure followed by retry.
 - Browser tests run at 1440 x 1000 and 390 x 844. They disable service workers to isolate each test. Offline caching, Safari, Firefox, and full accessibility conformance are not covered by this suite.
 
 Run `pnpm verify` after installing the Playwright Chromium browser. Failed browser tests retain screenshots and traces in `test-results/`; set `PLAYWRIGHT_OUTPUT_DIR` to change that location.

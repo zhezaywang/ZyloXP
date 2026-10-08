@@ -21,8 +21,10 @@ import { useMemo, useState } from 'react';
 import type { LabRunSnapshot } from './LabBenchLog';
 import {
   STUDY_LIST_KINDS,
+  MAX_STUDY_LIST_ITEMS,
   getStudyListItemKey,
 } from './studyList';
+import { getSearchResultScore } from './searchRanking';
 import type {
   StudyListItem,
   StudyListKind,
@@ -186,7 +188,7 @@ export function StudyListWorkspace({
     [items],
   );
   const availableResources = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+    const normalizedQuery = query.trim();
 
     return catalog
       .filter((resource) => {
@@ -196,15 +198,15 @@ export function StudyListWorkspace({
 
         const matchesKind =
           kindFilter === 'All' || resource.kind === kindFilter;
-        const matchesQuery =
-          normalizedQuery.length === 0 ||
-          `${resource.title} ${resource.subtitle} ${resource.kind}`
-            .toLowerCase()
-            .includes(normalizedQuery);
-
-        return matchesKind && matchesQuery;
+        return matchesKind;
       })
-      .slice(0, normalizedQuery ? 8 : 6);
+      .flatMap((resource) => {
+        const score = normalizedQuery ? getSearchResultScore(resource, normalizedQuery) : 0;
+        return score === null ? [] : [{ resource, score }];
+      })
+      .sort((a, b) => a.score - b.score)
+      .slice(0, normalizedQuery ? 8 : 6)
+      .map(({ resource }) => resource);
   }, [catalog, kindFilter, query, savedKeys]);
   const activeCount = items.filter((item) => item.completedAt === null).length;
   const completedCount = items.length - activeCount;
@@ -236,6 +238,9 @@ export function StudyListWorkspace({
       </header>
 
       <section aria-labelledby="study-list-add-title" className="studyListBuilder">
+        {items.length >= MAX_STUDY_LIST_ITEMS && (
+          <p className="workspaceNotice" role="status">Study List is full ({MAX_STUDY_LIST_ITEMS} items). Remove an item or clear completed items to make room.</p>
+        )}
         <div className="studyListBuilderHeading">
           <div>
             <p className="eyebrow">Add from library</p>
@@ -281,6 +286,7 @@ export function StudyListWorkspace({
                 <button
                   aria-label={`Add ${resource.title} to Study List`}
                   className="iconButton"
+                  disabled={items.length >= MAX_STUDY_LIST_ITEMS}
                   onClick={() => onAdd(resource)}
                   title="Add to Study List"
                   type="button"

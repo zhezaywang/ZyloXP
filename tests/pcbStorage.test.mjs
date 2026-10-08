@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { parsePcbBoard, readPcbDraft, writePcbDraft, readPcbProjects, PCB_DRAFT_KEY, PCB_STORAGE_KEY, MAX_COMPONENTS, MAX_TRACES } from '../src/pcbStorage.ts';
+import { parsePcbBoard, parsePcbFile, readPcbDraft, writePcbDraft, readPcbProjects, PCB_DRAFT_KEY, PCB_STORAGE_KEY, MAX_COMPONENTS, MAX_TRACES, MAX_PCB_FILE_BYTES } from '../src/pcbStorage.ts';
 
 const pads = { capacitor: 2, header: 6, led: 2, mcu: 8, regulator: 3, resistor: 2, usb: 4 };
 const fixture = () => ({
@@ -80,4 +80,22 @@ test('storage bounds match the editor capacity and reject oversized boards', () 
   assert.ok(parsePcbBoard(board, pads));
   assert.equal(parsePcbBoard({ ...board, components: [...board.components, { ...board.components[0], id: 'extra' }] }, pads), null);
   assert.equal(parsePcbBoard({ ...board, traces: [...board.traces, { ...board.traces[0], id: 'extra' }] }, pads), null);
+});
+
+test('board file import accepts exported and intentionally empty boards', () => {
+  const board = fixture();
+  assert.deepEqual(parsePcbFile(JSON.stringify(board), pads), board);
+  const empty = { ...board, components: [], traces: [] };
+  assert.deepEqual(parsePcbFile(JSON.stringify(empty), pads), empty);
+  assert.equal(parsePcbFile(JSON.stringify({ ...board, name: '   ' }), pads).name, 'Untitled PCB');
+});
+
+test('board file import rejects malformed, wrong-format, and oversized files', () => {
+  assert.throws(() => parsePcbFile('{bad', pads), /not valid JSON/);
+  assert.throws(() => parsePcbFile(JSON.stringify({ app: 'ZyloXP', data: {} }), pads), /not a valid ZyloXP board/);
+  const broken = fixture();
+  broken.traces[0].end.componentId = 'missing';
+  assert.throws(() => parsePcbFile(JSON.stringify(broken), pads), /components and connections/);
+  assert.throws(() => parsePcbFile(' '.repeat(MAX_PCB_FILE_BYTES + 1), pads), /256 KB/);
+  assert.throws(() => parsePcbFile(JSON.stringify({ ...fixture(), name: '\u03a9'.repeat(MAX_PCB_FILE_BYTES / 2) }), pads), /256 KB/);
 });

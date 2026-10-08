@@ -1,3 +1,5 @@
+import { secondOrderSettlingTime } from './visualMath';
+
 export type LabSimulationValues = {
   adcBitDepth: number;
   adcFilterCutoff: number;
@@ -310,11 +312,7 @@ export function calculateLabMetrics(values: LabSimulationValues): LabMetrics {
     ? 0.028 + 0.18 / Math.max(0.25, mosfetOverdrive ** 2)
     : 1_000_000;
   const mosfetDrainCurrent = mosfetOn
-    ? Math.min(
-        20,
-        values.mosfetBusVoltage /
-          (values.mosfetLoadResistance + mosfetOnResistance),
-      )
+    ? values.mosfetBusVoltage / (values.mosfetLoadResistance + mosfetOnResistance)
     : 0;
   const mosfetDrainVoltage = mosfetOn
     ? mosfetDrainCurrent * mosfetOnResistance
@@ -390,8 +388,7 @@ export function calculateLabMetrics(values: LabSimulationValues): LabMetrics {
             Math.sqrt(1 - pidDampingRatio ** 2),
         ) * 100
       : 0;
-  const pidSettlingTime =
-    4 / Math.max(0.08, pidDampingRatio * pidNaturalFrequency);
+  const pidSettlingTime = secondOrderSettlingTime(pidDampingRatio, pidNaturalFrequency);
   const pidRiseTime = 1.8 / Math.max(0.1, pidNaturalFrequency);
   const pidControlEffort = Math.min(
     100,
@@ -481,7 +478,7 @@ export function calculateLabMetrics(values: LabSimulationValues): LabMetrics {
     adcNyquistFrequency,
     adcPeakCode: Math.min(
       2 ** values.adcBitDepth - 1,
-      adcFilteredAmplitude / adcLsbVolts,
+      Math.floor((adcFullScalePeak + adcFilteredAmplitude) / adcLsbVolts),
     ),
     adcSamplesPerCycle:
       values.adcSampleRate / values.adcInputFrequency,

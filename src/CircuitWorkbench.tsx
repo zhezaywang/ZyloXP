@@ -152,17 +152,17 @@ function CircuitWorkbenchSchematic({
       <text className="workbenchSchematicTitle" x="34" y="38">
         {design.mode === 'series' ? 'SERIES DC NETWORK' : 'PARALLEL DC NETWORK'}
       </text>
-      <text className="workbenchSchematicMeta" textAnchor="end" x="866" y="38">
+      <text className="workbenchSchematicMeta" textAnchor="end" x="866" y="398">
         I(total) = {formatCurrent(totalCurrent)}
       </text>
 
-      <line className="circuitWire" x1="90" x2="90" y1="80" y2="176" />
-      <line className="circuitWire" x1="90" x2="90" y1="244" y2="340" />
+      <line className="circuitWire" x1="90" x2="90" y1="80" y2="186" />
+      <line className="circuitWire" x1="90" x2="90" y1="232" y2="340" />
       <line className="batteryPlate positive" x1="48" x2="132" y1="186" y2="186" />
       <line className="batteryPlate negative" x1="62" x2="118" y1="232" y2="232" />
       <text className="batteryPolarity" x="143" y="192">+</text>
       <text className="batteryPolarity" x="143" y="239">-</text>
-      <text className="circuitComponentLabel" textAnchor="middle" x="90" y="286">
+      <text className="circuitComponentLabel" textAnchor="middle" x="90" y="367">
         {design.voltage.toFixed(1)} V DC
       </text>
 
@@ -189,7 +189,10 @@ function CircuitWorkbenchSchematic({
                   {formatResistance(result.resistor.resistance)}
                 </text>
                 <text className="circuitReading" textAnchor="middle" x={position} y="126">
-                  {result.voltage.toFixed(2)} V / {formatPower(result.power)}
+                  {result.voltage.toFixed(2)} V
+                </text>
+                <text className="circuitReading" textAnchor="middle" x={position} y="147">
+                  {formatPower(result.power)}
                 </text>
                 <line
                   className="circuitWire"
@@ -205,7 +208,7 @@ function CircuitWorkbenchSchematic({
           <line className="circuitWire" x1="810" x2="90" y1="340" y2="340" />
           <path
             className="workbenchCurrentTrace"
-            d="M 104 80 H 796 V 340 H 104"
+            d="M 104 80 H 810 V 340 H 90 V 232"
             pathLength="100"
           />
         </>

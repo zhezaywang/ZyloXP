@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
-<!-- LaTeX/TikZ source: latex_sources/IMG-10001.tex -->
+<!-- App-local reviewed SVG; upstream LaTeX/TikZ source: latex_sources/IMG-10001.tex (not synchronized). -->
 <defs>
 <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
 <path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
@@ -28,16 +28,16 @@
 <rect class="accentFill" x="145" y="225" width="670" height="42" rx="4"/>
 <line class="accent" x1="175" y1="205" x2="785" y2="205" marker-end="url(#arrow)"/>
 <text class="small" x="480" y="184" text-anchor="middle">signal current</text>
-<text class="label" x="480" y="255" text-anchor="middle">trace length L</text>
+<text class="label" x="480" y="255" text-anchor="middle">trace length L = 4 inch</text>
 <rect class="soft" x="115" y="390" width="730" height="44" rx="0"/>
 <line class="wire" x1="785" y1="370" x2="175" y2="370" marker-end="url(#arrow)"/>
 <text class="small" x="480" y="352" text-anchor="middle">return current</text>
 <text class="label" x="480" y="422" text-anchor="middle">continuous reference plane</text>
-<line class="thin" x1="175" y1="295" x2="785" y2="295"/>
-<line class="thin" x1="175" y1="282" x2="175" y2="308"/>
-<line class="thin" x1="785" y1="282" x2="785" y2="308"/>
+<line class="thin" x1="145" y1="295" x2="815" y2="295"/>
+<line class="thin" x1="145" y1="275" x2="145" y2="308"/>
+<line class="thin" x1="815" y1="275" x2="815" y2="308"/>
 <text class="small" x="480" y="324" text-anchor="middle">one-way delay: tpd = L x d</text>
-<text class="small" x="480" y="464" text-anchor="middle">d is propagation delay per unit length</text>
+<text class="small" x="480" y="464" text-anchor="middle">propagation delay per unit length: d = 170 ps/in</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
 <text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A PCB trace is 4 inch long with delay 170 ps/in. What is the one-way propagation delay?</text>
 </svg>

@@ -8,11 +8,13 @@ import {
   X,
 } from 'lucide-react';
 import {
+  useEffect,
   useMemo,
   useRef,
   useState,
   type ChangeEvent,
 } from 'react';
+import { restoreProgressEntries } from './progressRestore';
 
 const BACKUP_SCHEMA_VERSION = 1;
 const MAX_BACKUP_FILE_BYTES = 2 * 1024 * 1024;
@@ -289,6 +291,7 @@ function formatBackupDate(createdAt: string) {
 
 export function ProgressBackup() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const fileRequestRef = useRef(0);
   const currentBackup = useMemo(createBackupFromStorage, []);
   const currentSummary = useMemo(
     () => summarizeBackup(currentBackup),
@@ -297,9 +300,17 @@ export function ProgressBackup() {
   const [pendingBackup, setPendingBackup] = useState<ZyloBackup | null>(null);
   const [status, setStatus] = useState<BackupStatus | null>(null);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [isReading, setIsReading] = useState(false);
+  const [requiresReload, setRequiresReload] = useState(false);
   const pendingSummary = pendingBackup
     ? summarizeBackup(pendingBackup)
     : null;
+  const pendingDraft = pendingBackup?.data['zyloxp-pcb-draft-v1'];
+  const pendingBoards = pendingBackup?.data['zyloxp-pcb-designs-v1'];
+  const includesLearning = pendingBackup?.data['zyloxp-learner-state-v1'] !== undefined;
+  const includesJournal = pendingBackup?.data['zyloxp-field-journal-v1'] !== undefined;
+
+  useEffect(() => () => { fileRequestRef.current += 1; }, []);
 
   function handleExport() {
     const backup = createBackupFromStorage();
@@ -340,8 +351,10 @@ export function ProgressBackup() {
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const backupFile = event.target.files?.[0];
     event.target.value = '';
+    const request = ++fileRequestRef.current;
     setPendingBackup(null);
     setStatus(null);
+    setIsReading(false);
 
     if (!backupFile) {
       return;
@@ -355,40 +368,49 @@ export function ProgressBackup() {
       return;
     }
 
+    setIsReading(true);
     try {
       const parsedBackup = parseZyloBackup(await backupFile.text());
-      setPendingBackup(parsedBackup);
+      if (request === fileRequestRef.current) setPendingBackup(parsedBackup);
     } catch (error) {
-      setStatus({
+      if (request === fileRequestRef.current) setStatus({
         message:
           error instanceof Error
             ? error.message
             : 'The selected backup could not be read.',
         tone: 'error',
       });
+    } finally {
+      if (request === fileRequestRef.current) setIsReading(false);
     }
   }
 
   function handleRestore() {
-    if (!pendingBackup) {
+    if (!pendingBackup || isRestoring || requiresReload) {
       return;
     }
 
     setIsRestoring(true);
     setStatus(null);
-    const previousValues = new Map<BackupStorageKey, string | null>();
     const keysToRestore = BACKUP_GROUPS.filter((group) =>
       Object.prototype.hasOwnProperty.call(pendingBackup.data, group.key),
     ).map((group) => group.key);
 
     try {
-      keysToRestore.forEach((key) => {
-        previousValues.set(key, window.localStorage.getItem(key));
-        window.localStorage.setItem(
-          key,
-          JSON.stringify(pendingBackup.data[key]),
-        );
-      });
+      const result = restoreProgressEntries(window.localStorage, keysToRestore.map((key) => [
+        key, JSON.stringify(pendingBackup.data[key]),
+      ]));
+      if (!result.ok) {
+        setIsRestoring(false);
+        setRequiresReload(!result.recovered);
+        setStatus({
+          message: result.recovered
+            ? 'Restore failed. Your previous local data was recovered. You can try again.'
+            : 'Restore stopped, and some local data could not be recovered. Keep your backup file and reload before retrying.',
+          tone: 'error',
+        });
+        return;
+      }
 
       setPendingBackup(null);
       setStatus({
@@ -397,20 +419,10 @@ export function ProgressBackup() {
       });
       window.location.reload();
     } catch {
-      previousValues.forEach((previousValue, key) => {
-        try {
-          if (previousValue === null) {
-            window.localStorage.removeItem(key);
-          } else {
-            window.localStorage.setItem(key, previousValue);
-          }
-        } catch {
-          // The visible error below still gives the learner a recovery path.
-        }
-      });
       setIsRestoring(false);
+      setRequiresReload(true);
       setStatus({
-        message: 'Restore failed, so your current progress was kept.',
+        message: 'Restore could not finish. Keep your backup file and reload before retrying.',
         tone: 'error',
       });
     }
@@ -454,6 +466,7 @@ export function ProgressBackup() {
       <div className="backupActions">
         <button
           className="secondaryButton backupAction"
+          disabled={isRestoring || requiresReload}
           onClick={handleExport}
           type="button"
         >
@@ -462,6 +475,7 @@ export function ProgressBackup() {
         </button>
         <button
           className="secondaryButton backupAction"
+          disabled={isRestoring || requiresReload}
           onClick={() => fileInputRef.current?.click()}
           type="button"
         >
@@ -470,12 +484,16 @@ export function ProgressBackup() {
         </button>
         <input
           accept=".json,application/json"
+          aria-label="Choose a progress backup file"
+          disabled={isRestoring || requiresReload}
           hidden
           onChange={handleFileChange}
           ref={fileInputRef}
           type="file"
         />
       </div>
+
+      {isReading && <p className="backupIncludes" role="status">Reading backup...</p>}
 
       {pendingBackup && pendingSummary && (
         <div className="backupPreview">
@@ -486,7 +504,9 @@ export function ProgressBackup() {
               <span>{formatBackupDate(pendingBackup.createdAt)}</span>
             </div>
             <button
+              aria-label="Cancel restore"
               className="backupPreviewClose"
+              disabled={isRestoring || requiresReload}
               onClick={() => setPendingBackup(null)}
               title="Cancel restore"
               type="button"
@@ -495,34 +515,38 @@ export function ProgressBackup() {
             </button>
           </div>
 
-          <div className="backupSnapshot preview">
-            <div>
-              <strong>{pendingSummary.xp.toLocaleString()}</strong>
-              <span>XP</span>
+          {(includesLearning || includesJournal) && (
+            <div className="backupSnapshot preview">
+              {includesLearning && (
+                <>
+                  <div><strong>{pendingSummary.xp.toLocaleString()}</strong><span>XP</span></div>
+                  <div><strong>{pendingSummary.prompts.toLocaleString()}</strong><span>Prompts</span></div>
+                  <div><strong>{pendingSummary.labRuns.toLocaleString()}</strong><span>Lab runs</span></div>
+                </>
+              )}
+              {includesJournal && (
+                <div><strong>{pendingSummary.notes.toLocaleString()}</strong><span>Notes</span></div>
+              )}
             </div>
-            <div>
-              <strong>{pendingSummary.prompts.toLocaleString()}</strong>
-              <span>Prompts</span>
-            </div>
-            <div>
-              <strong>{pendingSummary.labRuns.toLocaleString()}</strong>
-              <span>Lab runs</span>
-            </div>
-            <div>
-              <strong>{pendingSummary.notes.toLocaleString()}</strong>
-              <span>Notes</span>
-            </div>
-          </div>
+          )}
+
+          {isRecord(pendingDraft) && typeof pendingDraft.name === 'string' && (
+            <p className="backupIncludes">PCB draft: <strong>{pendingDraft.name.slice(0, 60)}</strong></p>
+          )}
+          {Array.isArray(pendingBoards) && (
+            <p className="backupIncludes">Saved PCB boards: <strong>{pendingBoards.length}</strong></p>
+          )}
 
           <p className="backupIncludes">
-            Restores {pendingSummary.groupLabels.join(', ')}. Other local data
-            stays unchanged.
+            Replaces {pendingSummary.groupLabels.join(', ')} on this device.
+            Other local data stays unchanged. Download a backup first to keep a copy of your current progress.
+            Close other ZyloXP tabs before restoring.
           </p>
 
           <div className="backupPreviewActions">
             <button
               className="secondaryButton"
-              disabled={isRestoring}
+              disabled={isRestoring || requiresReload}
               onClick={() => setPendingBackup(null)}
               type="button"
             >
@@ -530,7 +554,7 @@ export function ProgressBackup() {
             </button>
             <button
               className="primaryButton"
-              disabled={isRestoring}
+              disabled={isRestoring || requiresReload}
               onClick={handleRestore}
               type="button"
             >
@@ -553,6 +577,9 @@ export function ProgressBackup() {
           )}
           {status.message}
         </p>
+      )}
+      {requiresReload && (
+        <button className="secondaryButton" onClick={() => window.location.reload()} type="button">Reload app</button>
       )}
     </section>
   );

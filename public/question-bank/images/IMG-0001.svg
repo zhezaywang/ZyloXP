@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
-<!-- LaTeX/TikZ source: latex_sources/IMG-0001.tex -->
+<!-- App-local reviewed SVG; upstream LaTeX/TikZ source: latex_sources/IMG-0001.tex (not synchronized). -->
 <defs>
 <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
 <path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
@@ -25,15 +25,14 @@
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
 <text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Ohm&#x27;s law problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-0001 | DC Circuit Analysis | EE-00001</text>
-<line class="wire" x1="205" y1="320" x2="205" y2="388"/>
-<line class="wire" x1="230" y1="334" x2="230" y2="374"/>
-<text class="small" x="188" y="312" text-anchor="start">+</text>
-<text class="small" x="238" y="392" text-anchor="start">-</text>
-<path class="wire" d="M230,354 H315" fill="none"/>
+<circle class="thin" cx="205" cy="354" r="34"/>
+<text class="label" x="205" y="343" text-anchor="middle">+</text>
+<text class="label" x="205" y="377" text-anchor="middle">-</text>
+<path class="wire" d="M205 320 V285 H290 V354 H315"/>
 <polyline class="wire" points="315,354 337,354 337,354 351.667,336 366.333,372 381,336 395.667,372 410.333,336 425,372 439.667,336 454.333,372 469,336 483.667,372 498.333,336 513,354 535,354" fill="none"/>
 <path class="wire" d="M535,354 H700 V430 H205 V388" fill="none"/>
-<text class="label" x="404" y="328" text-anchor="start">R</text>
-<text class="label" x="166" y="364" text-anchor="start">Vs</text>
+<text class="label" x="425" y="328" text-anchor="middle">R = 8 ohm</text>
+<text class="label" x="160" y="360" text-anchor="end">Vs = 8 V</text>
 <text class="small" x="382" y="466" text-anchor="start">Ohm and Kirchhoff relationships</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
 <text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">An 8 V source is applied across a 8 ohm resistor. What current flows?</text>

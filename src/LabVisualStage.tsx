@@ -1,6 +1,5 @@
 import {
   Activity,
-  CheckCircle2,
   Image as ImageIcon,
   Maximize2,
   Minimize2,
@@ -14,6 +13,8 @@ import { calculateLabMetrics } from './labMetrics';
 import type { LabMetrics, LabSimulationValues } from './labMetrics';
 import { resolvePublicAssetPath } from './publicAsset';
 import { useVisualInspector } from './useVisualInspector';
+import { ReferenceImage } from './ReferenceImage';
+import { getResistorBandColors, plotPath, pwmTransitions, rcChargePlot, sampleSineWave, secondOrderStep } from './visualMath';
 
 type LabSchematicProps = {
   compact?: boolean;
@@ -40,38 +41,6 @@ type LabVisualIds = {
   shadow: string;
   source: string;
 };
-
-const resistorDigitColors = [
-  '#161c1f',
-  '#7a3f1d',
-  '#d94747',
-  '#e98120',
-  '#e5bf32',
-  '#2e9d62',
-  '#3478c8',
-  '#7650a8',
-  '#77848b',
-  '#f5f1df',
-];
-
-function getResistorBandColors(resistanceOhms: number) {
-  const safeResistance = Math.max(1, Math.round(resistanceOhms));
-  const multiplier = Math.max(
-    0,
-    Math.min(9, Math.floor(Math.log10(safeResistance)) - 1),
-  );
-  const significant = Math.max(
-    10,
-    Math.min(99, Math.round(safeResistance / 10 ** multiplier)),
-  );
-
-  return [
-    resistorDigitColors[Math.floor(significant / 10)],
-    resistorDigitColors[significant % 10],
-    resistorDigitColors[multiplier],
-    '#d4af37',
-  ];
-}
 
 function makeScopeSinePath({
   amplitude,
@@ -124,7 +93,7 @@ function makeClippedScopeSinePath({
   width?: number;
   x?: number;
 }) {
-  const safeClipRatio = Math.max(0.08, Math.min(1, clipRatio));
+  const safeClipRatio = Math.max(0, Math.min(1, clipRatio));
 
   return Array.from({ length: samples + 1 }, (_, index) => {
     const progress = index / samples;
@@ -383,6 +352,7 @@ function makePidStepResponsePath({
   x = 24,
   yBase = 158,
   yTop = 50,
+  scaleMaximum = setpoint,
 }: {
   dampingRatio: number;
   duration?: number;
@@ -394,36 +364,16 @@ function makePidStepResponsePath({
   x?: number;
   yBase?: number;
   yTop?: number;
+  scaleMaximum?: number;
 }) {
-  const safeSetpoint = Math.max(1, setpoint);
-  const finalRatio = finalValue / safeSetpoint;
+  const finalRatio = finalValue / Math.max(1, scaleMaximum);
 
   return Array.from({ length: samples + 1 }, (_, index) => {
     const progress = index / samples;
     const time = progress * duration;
-    let responseRatio: number;
-
-    if (dampingRatio < 1) {
-      const safeDamping = Math.max(0.05, dampingRatio);
-      const dampedFrequency =
-        naturalFrequency * Math.sqrt(1 - safeDamping ** 2);
-      const phase = Math.acos(safeDamping);
-
-      responseRatio =
-        finalRatio *
-        (1 -
-          (Math.exp(-safeDamping * naturalFrequency * time) /
-            Math.sqrt(1 - safeDamping ** 2)) *
-            Math.sin(dampedFrequency * time + phase));
-    } else {
-      const responseRate =
-        naturalFrequency / Math.max(1, 0.6 + dampingRatio * 0.55);
-      responseRatio = finalRatio * (1 - Math.exp(-responseRate * time));
-    }
-
-    const clampedRatio = Math.max(-0.04, Math.min(1.35, responseRatio));
+    const responseRatio = finalRatio * secondOrderStep(time, dampingRatio, naturalFrequency);
     const pointX = x + progress * width;
-    const pointY = yBase - clampedRatio * (yBase - yTop);
+    const pointY = yBase - responseRatio * (yBase - yTop);
 
     return `${index === 0 ? 'M' : 'L'}${pointX.toFixed(2)} ${pointY.toFixed(
       2,
@@ -434,6 +384,9 @@ function makePidStepResponsePath({
 function makeResonanceResponsePath({
   capacitanceMicrofarads,
   centerFrequency,
+  minimumFrequency,
+  maximumFrequency,
+  markerFrequency,
   height,
   inductanceMillihenries,
   resistance,
@@ -443,6 +396,9 @@ function makeResonanceResponsePath({
 }: {
   capacitanceMicrofarads: number;
   centerFrequency: number;
+  minimumFrequency: number;
+  maximumFrequency: number;
+  markerFrequency: number;
   height: number;
   inductanceMillihenries: number;
   resistance: number;
@@ -452,12 +408,10 @@ function makeResonanceResponsePath({
 }) {
   const inductance = inductanceMillihenries / 1000;
   const capacitance = capacitanceMicrofarads * 1e-6;
-  const minimumFrequency = centerFrequency / 4;
-  const maximumFrequency = centerFrequency * 4;
   const logarithmicSpan = Math.log(maximumFrequency / minimumFrequency);
-
-  return Array.from({ length: 101 }, (_, index) => {
-    const progress = index / 100;
+  const progressValues = Array.from({ length: 321 }, (_, index) => index / 320);
+  progressValues.push(Math.log(centerFrequency / minimumFrequency) / logarithmicSpan, Math.log(markerFrequency / minimumFrequency) / logarithmicSpan);
+  return progressValues.sort((a, b) => a - b).map((progress, index) => {
     const frequency =
       minimumFrequency * Math.exp(progress * logarithmicSpan);
     const angularFrequency = 2 * Math.PI * frequency;
@@ -496,28 +450,10 @@ function makeBjtOutputCurvePath({
 }) {
   const targetCurrent =
     (baseCurrentMicroamps * beta) / 1000;
-
-  return Array.from({ length: 61 }, (_, index) => {
-    const progress = index / 60;
-    const collectorVoltage = progress * supplyVoltage;
-    const kneeResponse =
-      1 - Math.exp(-collectorVoltage / 0.22);
-    const earlyEffect =
-      1 + 0.025 * (collectorVoltage / supplyVoltage);
-    const collectorCurrent = Math.min(
-      maximumCurrent,
-      targetCurrent * kneeResponse * earlyEffect,
-    );
-    const pointX = x + progress * width;
-    const pointY =
-      y +
-      height -
-      Math.min(1, collectorCurrent / maximumCurrent) * height;
-
-    return `${index === 0 ? 'M' : 'L'}${pointX.toFixed(2)} ${pointY.toFixed(
-      2,
-    )}`;
-  }).join(' ');
+  const kneeX = x + 0.18 / supplyVoltage * width;
+  const levelY = y + height - Math.min(1, targetCurrent / maximumCurrent) * height;
+  // Match the metric model: fixed VCE(sat), then constant beta * IB.
+  return `M${kneeX} ${y + height} V${levelY} H${x + width}`;
 }
 
 function LabBattery({
@@ -574,7 +510,7 @@ function LabBattery({
 }
 
 function LabResistor({
-  bandColors = resistorDigitColors.slice(1, 5),
+  bandColors = [],
   ids,
   label,
   length = 120,
@@ -643,7 +579,7 @@ function LabResistor({
               key={`${color}-${index}`}
               style={{ fill: color }}
               width={index === 3 ? 3 : 5}
-              x={bodyX + [22, 34, 48, 61][index]}
+              x={bodyX + bodyWidth * [0.22, 0.38, 0.54, 0.76][index]}
               y={y - 11}
             />
           ))}
@@ -675,7 +611,7 @@ function LabCapacitor({
 }) {
   return (
     <g className="labCapacitorAssembly">
-      <line className="labWire" x1={x} y1={y - 50} x2={x} y2={y - 13} />
+      <line className="labWire" x1={x} y1={y - 50} x2={x} y2={y - 10} />
       <rect
         className="labCapacitorBody"
         filter={`url(#${ids.shadow})`}
@@ -688,7 +624,7 @@ function LabCapacitor({
       <rect className="labCapacitorCharge" height={28} rx={8} width={52} x={x - 26} y={y - 14} />
       <line className="labAccent" x1={x - 25} y1={y - 10} x2={x + 25} y2={y - 10} />
       <line className="labAccent" x1={x - 25} y1={y + 10} x2={x + 25} y2={y + 10} />
-      <line className="labWire" x1={x} y1={y + 13} x2={x} y2={y + 50} />
+      <line className="labWire" x1={x} y1={y + 10} x2={x} y2={y + 50} />
       <text className="labValue" x={x + 34} y={y + 5}>
         {label}
       </text>
@@ -752,7 +688,7 @@ function LabInstrument({
         {label}
       </text>
       <text className="labInstrumentCategory" x={x + 16} y={y + 34}>
-        CAT III · TRUE RMS
+        IDEAL DC MODEL
       </text>
       <circle className="labInstrumentLedHalo" cx={x + 148} cy={y + 19} r={9} />
       <circle className="labInstrumentLed" cx={x + 148} cy={y + 19} r={5} />
@@ -769,7 +705,7 @@ function LabInstrument({
       <text className="labInstrumentMode" x={x + 24} y={y + 58}>
         {detail}
       </text>
-      <text className="labInstrumentGhost" x={x + 146} y={y + 87} textAnchor="end">
+      <text aria-hidden="true" className="labInstrumentGhost" x={x + 146} y={y + 87} textAnchor="end">
         8.8.8.8
       </text>
       <text className="labInstrumentValue" x={x + 146} y={y + 87} textAnchor="end">
@@ -881,6 +817,7 @@ function RcLab({
   metrics: LabMetrics;
   values: LabSimulationValues;
 }) {
+  const charge = rcChargePlot(30, 164, 194, 106);
   return (
     <g className="labScene labRcScene">
       <text className="labSectionLabel" x={34} y={50}>
@@ -889,9 +826,9 @@ function RcLab({
       <path className="labWire" d="M70 100 V132 M70 100 H112 M158 100 H178" />
       <circle className="labSwitchNode" cx={114} cy={100} r={5} />
       <circle className="labSwitchNode" cx={156} cy={100} r={5} />
-      <line className="labSwitchBlade" x1={115} y1={99} x2={150} y2={81} />
+      <line className="labSwitchBlade" x1={114} y1={100} x2={156} y2={100} />
       <text className="labTiny" x={135} y={70} textAnchor="middle">
-        close at t = 0
+        closed at t = 0
       </text>
       <LabResistor
         bandColors={getResistorBandColors(values.rcResistance * 1000)}
@@ -902,8 +839,9 @@ function RcLab({
         x={178}
         y={100}
       />
-      <path className="labWire" d="M296 100 H316 V272 H70 V228" />
-      <LabCapacitor ids={ids} label={`C = ${values.capacitance} µF`} x={316} y={185} />
+      <path className="labWire" d="M296 100 H316 V135 M316 235 V272 H70 V228" />
+      <LabCapacitor ids={ids} label="" x={316} y={185} />
+      <text className="labValue" x={304} y={300} textAnchor="end">C = {values.capacitance} µF</text>
       <LabBattery ids={ids} label="STEP Vs" x={70} y={180} />
       <LabFlow d="M166 100 H304" />
       <text className="labValue" x={278} y={157}>
@@ -945,23 +883,23 @@ function RcLab({
         <path className="labScopeAxis" d="M30 164 H224 M30 164 V58" />
         <path
           className="labChargeTraceGhost"
-          d="M30 160 C52 116 78 87 115 72 C145 60 181 56 224 55"
+          d={charge.path}
         />
         <path
           className="labChargeTrace"
-          d="M30 160 C52 116 78 87 115 72 C145 60 181 56 224 55"
+          d={charge.path}
         />
-        <path className="labTauGuide" d="M30 97 H78 V164" />
+        <path className="labTauGuide" d={`M30 ${charge.tauY} H${charge.tauX} V164`} />
         <text className="labScopeAnnotation" x={84} y={92}>
           63.2% Vs
         </text>
-        <text className="labScopeAnnotation" x={78} y={177} textAnchor="middle">
+        <text className="labScopeAnnotation" x={charge.tauX} y={177} textAnchor="middle">
           τ
         </text>
-        <text className="labScopeReadout" x={16} y={204}>
+        <text className="labScopeReadout" x={16} y={193}>
           τ = {metrics.rcTimeConstant.toFixed(0)} ms
         </text>
-        <text className="labScopeReadout secondary" x={236} y={204} textAnchor="end">
+        <text className="labScopeReadout secondary" x={236} y={193} textAnchor="end">
           fc = {metrics.rcCutoff.toFixed(2)} Hz
         </text>
         <circle className="labScopeKnob" cx={34} cy={207} r={7} />
@@ -996,7 +934,7 @@ function LowPassFilterLab({
   metrics: LabMetrics;
   values: LabSimulationValues;
 }) {
-  const outputTraceAmplitude = Math.max(2.5, 40 * metrics.filterGain);
+  const outputTraceAmplitude = 40 * metrics.filterGain;
 
   return (
     <g className="labScene labFilterScene">
@@ -1058,12 +996,13 @@ function LowPassFilterLab({
       <path className="labWire" d="M310 186 H348 M310 186 V192" />
       <LabCapacitor
         ids={ids}
-        label={`C = ${values.capacitance} µF`}
+        label=""
         x={310}
         y={242}
       />
-      <path className="labWire" d="M310 292 V316 H82 V214" />
-      <LabFlow d="M114 186 H300 V308 H88" />
+      <text className="labValue" x={330} y={342} textAnchor="end">C = {values.capacitance} µF</text>
+      <path className="labWire" d="M310 292 V316 H82 V202" />
+      <circle className="labJack" cx={82} cy={202} r={5} />
       <text className="labValue" x={310} y={164} textAnchor="middle">
         VOUT
       </text>
@@ -1167,29 +1106,8 @@ function DigitalTimingLab({
   const analyzerX = 46;
   const captureRatio = 0.5;
   const captureX = analyzerX + analyzerWidth * captureRatio;
-  const setupWidth = Math.max(
-    5,
-    Math.min(
-      34,
-      (values.digitalSetupTime / metrics.digitalPeriod) *
-        (analyzerWidth / 4),
-    ),
-  );
-  const dataArrivalRatio = Math.max(
-    0.22,
-    Math.min(
-      0.7,
-      captureRatio -
-        (metrics.digitalTimingMargin / metrics.digitalPeriod) * 0.25,
-    ),
-  );
-  const qDelayRatio = Math.max(
-    0.012,
-    Math.min(
-      0.16,
-      (values.digitalPropagationDelay / metrics.digitalPeriod) * 0.25,
-    ),
-  );
+  const setupWidth = Math.min(captureX - analyzerX, values.digitalSetupTime / metrics.digitalPeriod * analyzerWidth / 4);
+  const dataArrivalRatio = 0.25 + values.digitalPropagationDelay / metrics.digitalPeriod / 4;
 
   return (
     <g className="labScene labDigitalScene">
@@ -1254,7 +1172,7 @@ function DigitalTimingLab({
             D FLIP-FLOP
           </text>
           <text className="labLogicChipPart" x={47} y={65} textAnchor="middle">
-            74LVC74
+            D FLIP-FLOP
           </text>
           <text className="labLogicPinLabel" x={8} y={35}>
             D
@@ -1336,6 +1254,7 @@ function DigitalTimingLab({
           d={makeLogicLevelPath({
             highY: 58,
             lowY: 76,
+            startHigh: true,
             transitions: [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875],
           })}
         />
@@ -1344,16 +1263,16 @@ function DigitalTimingLab({
           d={makeLogicLevelPath({
             highY: 100,
             lowY: 118,
-            transitions: [0.16, dataArrivalRatio, 0.8],
+            transitions: [dataArrivalRatio],
           })}
         />
         <path
           className={`labLogicWave output ${timingHealthy ? 'pass' : 'fail'}`}
-          d={makeLogicLevelPath({
+          d={timingHealthy ? makeLogicLevelPath({
             highY: 142,
             lowY: 160,
-            transitions: [0.18, 0.5 + qDelayRatio, 0.82],
-          })}
+            transitions: [captureRatio],
+          }) : `M${analyzerX} 160 H${captureX}`}
         />
         {!timingHealthy && (
           <text className="labLogicUnknown" x={captureX + 12} y={154}>
@@ -1361,7 +1280,7 @@ function DigitalTimingLab({
           </text>
         )}
         <text className="labLogicCursorLabel" x={captureX} y={190} textAnchor="middle">
-          CAPTURE
+          CAPTURE ↑
         </text>
         <text className="labAnalyzerPrimary" x={16} y={216}>
           {metrics.digitalTimingMargin.toFixed(1)} ns MARGIN
@@ -1401,10 +1320,8 @@ function OpAmpSignalLab({
   metrics: LabMetrics;
   values: LabSimulationValues;
 }) {
-  const outputAmplitude = Math.min(
-    42,
-    16 + Math.min(6.5, Math.abs(metrics.opAmpGain)) * 4,
-  );
+  const voltsToPixels = 30 / Math.max(0.01, Math.abs(metrics.opAmpOutput), Math.abs(values.opAmpInputVoltage));
+  const outputAmplitude = Math.abs(metrics.opAmpIdealOutput) * voltsToPixels;
   const clipRatio =
     Math.abs(metrics.opAmpIdealOutput) > 0
       ? Math.min(
@@ -1467,7 +1384,7 @@ function OpAmpSignalLab({
           <circle className="labScopeJack channelOne" cx={58} cy={104} r={6} />
         </g>
 
-        <path className="labWire" d="M96 156 H108" />
+        <path className="labWire" d="M76 156 H108" />
         <LabResistor
           bandColors={getResistorBandColors(values.opAmpInputResistance * 1000)}
           ids={ids}
@@ -1480,7 +1397,7 @@ function OpAmpSignalLab({
         <path className="labWire" d="M216 156 H238" />
 
         <path className="labOpAmpSymbol" d="M238 104 V206 L316 156 Z" />
-        <text className="labOpAmpPolarity" x={247} y={148}>
+        <text className="labOpAmpPolarity" x={243} y={160}>
           −
         </text>
         <text className="labOpAmpPolarity" x={247} y={188}>
@@ -1504,8 +1421,8 @@ function OpAmpSignalLab({
           y={74}
         />
 
-        <path className="labSupplyLead positive" d="M276 104 V86" />
-        <path className="labSupplyLead negative" d="M276 206 V224" />
+        <path className="labSupplyLead positive" d="M276 129.33 V86" />
+        <path className="labSupplyLead negative" d="M276 180.67 V224" />
         <text className="labSupplyLabel positive" x={284} y={94}>
           +{values.opAmpSupplyVoltage} V
         </text>
@@ -1556,7 +1473,7 @@ function OpAmpSignalLab({
         <path
           className="labOpAmpInputTrace"
           d={makeScopeSinePath({
-            amplitude: 15,
+            amplitude: Math.abs(values.opAmpInputVoltage) * voltsToPixels,
             centerY: 79,
             cycles: 2.2,
             width: 190,
@@ -1744,7 +1661,9 @@ function BjtBiasLab({
           <circle className="labScopeKnob" cx={88} cy={60} r={6} />
         </g>
 
-        <path className="labBjtPowerWire" d="M100 82 H250 V54" />
+        <path className="labBjtPowerWire" d="M42 115 V136 H146 V45 H250 V54" />
+        <path className="labBjtReturnWire" d="M76 115 V132" />
+        <path className="labGround" d="M66 132H86 M70 138H82 M74 143H78" />
         <rect
           className="labBjtCollectorResistorHalo"
           height={80}
@@ -1764,10 +1683,9 @@ function BjtBiasLab({
           x={236}
           y={54}
         />
-        <line className="labBjtResistorBand brown" x1={237} x2={263} y1={68} y2={68} />
-        <line className="labBjtResistorBand red" x1={237} x2={263} y1={82} y2={82} />
-        <line className="labBjtResistorBand black" x1={237} x2={263} y1={96} y2={96} />
-        <line className="labBjtResistorBand gold" x1={239} x2={261} y1={107} y2={107} />
+        {getResistorBandColors(values.bjtCollectorResistance * 1000).map((color, index) => (
+          <line className="labBjtResistorBand" key={index} style={{ stroke: color }} x1={237} x2={263} y1={[68, 82, 96, 107][index]} y2={[68, 82, 96, 107][index]} />
+        ))}
         <text className="labBjtComponentLabel" x={283} y={78}>
           RC
         </text>
@@ -1792,28 +1710,27 @@ function BjtBiasLab({
           NPN
         </text>
         <text className="labBjtPartNumber" x={250} y={165} textAnchor="middle">
-          2N3904
+          MODEL
         </text>
         <text className="labBjtBetaLabel" x={250} y={178} textAnchor="middle">
           β {metrics.bjtAdjustedBeta.toFixed(0)}
         </text>
-        <line className="labBjtPin collector" x1={238} x2={238} y1={190} y2={209} />
-        <line className="labBjtPin base" x1={250} x2={250} y1={191} y2={209} />
         <line className="labBjtPin emitter" x1={262} x2={262} y1={190} y2={209} />
-        <text className="labBjtPinLabel" x={238} y={219} textAnchor="middle">
+        <text className="labBjtPinLabel" x={268} y={125} textAnchor="middle">
           C
         </text>
-        <text className="labBjtPinLabel" x={250} y={219} textAnchor="middle">
+        <text className="labBjtPinLabel" x={212} y={151} textAnchor="middle">
           B
         </text>
-        <text className="labBjtPinLabel" x={262} y={219} textAnchor="middle">
+        <text className="labBjtPinLabel" x={278} y={210} textAnchor="middle">
           E
         </text>
 
         <path className="labBjtBiasWire" d="M130 177 H196 V160 H220" />
-        <path className="labBjtReturnWire" d="M262 209 V221 H100 V116" />
+        <path className="labBjtReturnWire" d="M262 209 V220 M41 203V220" />
+        <path className="labGround" d="M31 220H51 M35 226H47 M39 231H43" />
         <path className="labGround" d="M247 220 H277 M252 226 H272 M258 231 H266" />
-        <LabFlow className={`bjtCollectorFlow ${operatingClass}`} d="M101 82 H250 V120" />
+        <LabFlow className={`bjtCollectorFlow ${operatingClass}`} d="M42 115 V136 H146 V45 H250 V120" />
         <LabFlow className={`bjtBaseFlow ${operatingClass}`} d="M132 177 H196 V160 H216" />
         <LabFlow className={`bjtEmitterFlow ${operatingClass}`} d="M262 194 V216" />
 
@@ -1891,7 +1808,7 @@ function BjtBiasLab({
           r={5}
         />
         <text className="labBjtScreenLabel" x={22} y={49}>
-          IC / VCE · BASE-CURRENT STEPS
+          IC / VCE · PIECEWISE DC MODEL
         </text>
         <text className="labBjtAxisLabel" x={22} y={151}>
           0 V
@@ -1967,13 +1884,7 @@ function MosfetSwitchingLab({
   values: LabSimulationValues;
 }) {
   const dutyRatio = values.mosfetDutyCycle / 100;
-  const gateTransitions = [
-    0.05,
-    0.05 + dutyRatio * 0.4,
-    0.5,
-    0.5 + dutyRatio * 0.4,
-    0.95,
-  ];
+  const gateTransitions = pwmTransitions(dutyRatio);
   const drainTransitions = metrics.mosfetOn ? gateTransitions : [];
   const hot = metrics.mosfetJunctionTemperature > 125;
   const fullyDriven = metrics.mosfetOn && values.mosfetGateVoltage >= 6;
@@ -2017,20 +1928,12 @@ function MosfetSwitchingLab({
         <path className="labWire labMosfetPowerWire" d="M86 72 H117" />
         <g className="labMosfetLoad" transform="translate(117 48)">
           <rect className="labMosfetLoadBody" height={48} rx={7} width={116} />
-          <path className="labMosfetLoadCoil" d="M14 24 H28 C32 8 42 8 46 24 C50 40 60 40 64 24 C68 8 78 8 82 24 H102" />
+          <path className="labMosfetLoadCoil" d="M14 24 H26 L32 14 L44 34 L56 14 L68 34 L80 14 L86 24 H102" />
           <text className="labMosfetLoadLabel" x={58} y={62} textAnchor="middle">
-            {values.mosfetLoadResistance} Ω LOAD
+            {values.mosfetLoadResistance} Ω RESISTIVE LOAD
           </text>
         </g>
-        <path className="labWire labMosfetPowerWire" d="M233 72 H287 V115" />
-
-        <g className="labMosfetFlyback">
-          <path className="labMosfetClampWire" d="M124 45 V35 H278 V45" />
-          <path className="labMosfetDiode" d="M188 35 L202 25 V45 Z M207 24 V46" />
-          <text className="labMosfetClampLabel" x={232} y={29}>
-            FLYBACK
-          </text>
-        </g>
+        <path className="labWire labMosfetPowerWire" d="M233 72 H287 V119" />
 
         <circle
           className={`labMosfetHeat ${hot ? 'hot' : ''}`}
@@ -2058,13 +1961,11 @@ function MosfetSwitchingLab({
             cy={181}
             r={5}
           />
-          <line className="labMosfetPin" x1={266} x2={266} y1={195} y2={218} />
-          <line className="labMosfetPin" x1={287} x2={287} y1={195} y2={218} />
           <line className="labMosfetPin" x1={308} x2={308} y1={195} y2={218} />
-          <text className="labMosfetPinLabel" x={266} y={229} textAnchor="middle">
+          <text className="labMosfetPinLabel" x={257} y={170}>
             G
           </text>
-          <text className="labMosfetPinLabel" x={287} y={229} textAnchor="middle">
+          <text className="labMosfetPinLabel" x={295} y={116}>
             D
           </text>
           <text className="labMosfetPinLabel" x={308} y={229} textAnchor="middle">
@@ -2091,7 +1992,8 @@ function MosfetSwitchingLab({
             d={makeLogicLevelPath({
               highY: 35,
               lowY: 48,
-              transitions: [0.12, 0.55, 0.82],
+              startHigh: true,
+              transitions: gateTransitions,
               width: 36,
               x: 16,
             })}
@@ -2111,11 +2013,11 @@ function MosfetSwitchingLab({
           RG {values.mosfetGateResistance} Ω
         </text>
         <path className="labMosfetGateTrace" d="M243 163 H251" />
-        <path className="labWire labMosfetReturn" d="M308 218 H53 V165" />
+        <path className="labWire labMosfetReturn" d="M308 218 H53 V165 M142 198 V218" />
 
         <LabFlow
           className={`mosfetPowerFlow ${metrics.mosfetOn ? '' : 'off'}`}
-          d="M88 72 H278 V112 M308 199 V218 H58 V168"
+          d="M86 72 H287 V119 M308 195 V218 H53 V165"
         />
         <LabFlow className="mosfetGateFlow" d="M194 163 H248" />
       </g>
@@ -2161,8 +2063,9 @@ function MosfetSwitchingLab({
         <path
           className="labMosfetGateWave"
           d={makeLogicLevelPath({
-            highY: 64,
+            highY: 94 - 30 * values.mosfetGateVoltage / 12,
             lowY: 94,
+            startHigh: true,
             transitions: gateTransitions,
             width: 170,
             x: 28,
@@ -2172,8 +2075,8 @@ function MosfetSwitchingLab({
           className={`labMosfetDrainWave ${metrics.mosfetOn ? '' : 'off'}`}
           d={makeLogicLevelPath({
             highY: 128,
-            lowY: 158,
-            startHigh: true,
+            lowY: 158 - 30 * metrics.mosfetDrainVoltage / values.mosfetBusVoltage,
+            startHigh: !metrics.mosfetOn,
             transitions: drainTransitions,
             width: 170,
             x: 28,
@@ -2202,7 +2105,7 @@ function MosfetSwitchingLab({
         <line x1={296} x2={296} y1={6} y2={32} />
         <line x1={444} x2={444} y1={6} y2={32} />
         <text className="labMosfetMetricLabel" x={12} y={15}>
-          DRAIN CURRENT
+          ON-STATE CURRENT
         </text>
         <text className="labMosfetMetricValue" x={136} y={27} textAnchor="end">
           {metrics.mosfetDrainCurrent.toFixed(2)} A
@@ -2239,31 +2142,15 @@ function AdcSamplingLab({
   metrics: LabMetrics;
   values: LabSimulationValues;
 }) {
-  const sampleCount = Math.max(
-    5,
-    Math.min(18, Math.round(metrics.adcSamplesPerCycle * 2)),
-  );
-  const analogCycles = Math.max(
-    1.2,
-    Math.min(4.2, values.adcInputFrequency * 0.7),
-  );
-  const displayedCycles = Math.max(
-    0.8,
-    Math.min(3.4, metrics.adcDisplayedFrequency * 0.9),
-  );
+  const duration = 1;
+  const fullScalePeak = values.adcReferenceVoltage / 2;
+  const scopePeak = Math.max(fullScalePeak, metrics.adcFilteredAmplitude);
+  const amplitude = 20 * metrics.adcFilteredAmplitude / scopePeak;
   const analogPath = makeScopeSinePath({
-    amplitude: 20,
+    amplitude,
     centerY: 80,
-    cycles: analogCycles,
-    samples: 100,
-    width: 176,
-    x: 18,
-  });
-  const reconstructedPath = makeScopeSinePath({
-    amplitude: 17,
-    centerY: 80,
-    cycles: displayedCycles,
-    samples: 100,
+    cycles: values.adcInputFrequency * duration,
+    samples: 320,
     width: 176,
     x: 18,
   });
@@ -2275,14 +2162,15 @@ function AdcSamplingLab({
     width: 54,
     x: 12,
   });
-  const samplePoints = Array.from({ length: sampleCount }, (_, index) => {
-    const progress = sampleCount === 1 ? 0 : index / (sampleCount - 1);
-    return {
-      x: 18 + progress * 176,
-      y:
-        80 -
-        Math.sin(progress * Math.PI * 2 * analogCycles) * 20,
-    };
+  const levels = 2 ** values.adcBitDepth;
+  const lsb = values.adcReferenceVoltage / levels;
+  const samplePoints = sampleSineWave({
+    frequency: values.adcInputFrequency, sampleRate: values.adcSampleRate,
+    duration, x: 18, y: 80, width: 176, amplitude,
+  }).map((point) => {
+    const input = fullScalePeak + (80 - point.y) * scopePeak / 20;
+    const code = Math.max(0, Math.min(levels - 1, Math.floor(input / lsb)));
+    return { ...point, y: 80 - (code * lsb - fullScalePeak) / scopePeak * 20 };
   });
   const sampleHoldPath = samplePoints
     .map((point, index) =>
@@ -2299,7 +2187,7 @@ function AdcSamplingLab({
         Math.max(0.05, metrics.adcNyquistFrequency),
     ) *
       172;
-  const codeLeds = Math.min(12, Math.max(4, Math.round(values.adcBitDepth)));
+  const codeLeds = Math.round(values.adcBitDepth);
   const healthy =
     !metrics.adcAliased &&
     !metrics.adcClipped &&
@@ -2358,9 +2246,8 @@ function AdcSamplingLab({
           <text className="labAdcModuleLabel" x={49} y={17} textAnchor="middle">
             ANTI-ALIAS LPF
           </text>
-          <path className="labAdcFilterTrace" d="M12 48 H27 L32 39 L42 57 L52 39 L62 57 L67 48 H84" />
-          <line className="labAdcCapacitor" x1={70} x2={70} y1={38} y2={58} />
-          <line className="labAdcCapacitor" x1={76} x2={76} y1={38} y2={58} />
+          <path className="labAdcFilterTrace" d="M12 40 H20 L25 34 L33 46 L41 34 L49 46 L54 40 H84" />
+          <path className="labAdcCapacitor" d="M72 40V48 M64 48H80 M64 54H80 M72 54V61 M63 61H81 M66 65H78" />
           <text className="labAdcFilterValue" x={49} y={75} textAnchor="middle">
             fc {values.adcFilterCutoff.toFixed(1)} kHz
           </text>
@@ -2387,14 +2274,14 @@ function AdcSamplingLab({
           <text className="labAdcConverterMeta" x={22} y={76}>
             VREF {values.adcReferenceVoltage.toFixed(1)} V
           </text>
-          <g className="labAdcCodeLeds" transform="translate(13 96)">
+        <g className="labAdcCodeLeds" transform="translate(13 96)">
             {Array.from({ length: codeLeds }, (_, index) => (
               <circle
-                className={index % 3 === 0 ? 'active' : ''}
+                className={(metrics.adcPeakCode >> (codeLeds - index - 1)) & 1 ? 'active' : ''}
                 cx={4 + index * (92 / Math.max(1, codeLeds - 1))}
                 cy={0}
                 key={`adc-bit-${index}`}
-                r={3}
+                r={codeLeds > 12 ? 2 : 3}
               />
             ))}
           </g>
@@ -2431,6 +2318,10 @@ function AdcSamplingLab({
             ΔV {metrics.adcLsbMillivolts.toFixed(2)} mV
           </text>
         </g>
+
+        <text className="labAdcSourceMeta" x={14} y={155}>
+          INPUT BIAS { (values.adcReferenceVoltage / 2).toFixed(2) } V
+        </text>
       </g>
 
       <path className="labProbeLead channelOne" d="M330 150 C370 58 380 85 398 104" />
@@ -2471,7 +2362,6 @@ function AdcSamplingLab({
         <path className="labAdcScopeGrid" d="M32 46 V174 M68 46 V174 M104 46 V174 M140 46 V174 M176 46 V174 M18 64 H200 M18 96 H200 M18 118 H200 M18 144 H200 M18 172 H200" />
         <g transform="translate(0 0)">
           <path className="labAdcAnalogTrace" d={analogPath} />
-          <path className="labAdcReconstructedTrace" d={reconstructedPath} />
           <path className="labAdcSampleHold" d={sampleHoldPath} />
           {samplePoints.map((point, index) => (
             <circle
@@ -2499,6 +2389,9 @@ function AdcSamplingLab({
         />
         <text className="labAdcScopeLabel analog" x={20} y={54}>
           ANALOG + SAMPLES
+        </text>
+        <text className="labAdcScopeLabel analog" x={194} y={54} textAnchor="end">
+          {duration} ms
         </text>
         <text className="labAdcScopeLabel spectrum" x={20} y={128}>
           FFT
@@ -2563,8 +2456,8 @@ function ResonanceLab({
   metrics: LabMetrics;
   values: LabSimulationValues;
 }) {
-  const minimumFrequency = metrics.resonanceFrequency / 4;
-  const maximumFrequency = metrics.resonanceFrequency * 4;
+  const minimumFrequency = Math.min(metrics.resonanceFrequency / 4, values.resonanceFrequency / 1.2, metrics.resonanceLowerCutoff / 1.2);
+  const maximumFrequency = Math.max(metrics.resonanceFrequency * 4, values.resonanceFrequency * 1.2, metrics.resonanceUpperCutoff * 1.2);
   const logarithmicSpan = Math.log(maximumFrequency / minimumFrequency);
   const frequencyToScreenX = (frequency: number) =>
     22 +
@@ -2583,6 +2476,9 @@ function ResonanceLab({
   const responsePath = makeResonanceResponsePath({
     capacitanceMicrofarads: values.resonanceCapacitance,
     centerFrequency: metrics.resonanceFrequency,
+    minimumFrequency,
+    maximumFrequency,
+    markerFrequency: values.resonanceFrequency,
     height: 75,
     inductanceMillihenries: values.resonanceInductance,
     resistance: values.resonanceResistance,
@@ -2677,10 +2573,9 @@ function ResonanceLab({
           x={112}
           y={78}
         />
-        <line className="labResonanceBand brown" x1={128} x2={128} y1={79} y2={105} />
-        <line className="labResonanceBand red" x1={143} x2={143} y1={79} y2={105} />
-        <line className="labResonanceBand black" x1={158} x2={158} y1={79} y2={105} />
-        <line className="labResonanceBand gold" x1={170} x2={170} y1={79} y2={105} />
+        {getResistorBandColors(values.resonanceResistance).map((color, index) => (
+          <line className="labResonanceBand" key={index} style={{ stroke: color }} x1={[128, 143, 158, 170][index]} x2={[128, 143, 158, 170][index]} y1={79} y2={105} />
+        ))}
         <text className="labResonanceComponentLabel" x={146} y={126} textAnchor="middle">
           R {values.resonanceResistance.toFixed(0)} Ω
         </text>
@@ -2788,8 +2683,8 @@ function ResonanceLab({
         />
         <line
           className="labResonanceCenterLine"
-          x1={99}
-          x2={99}
+          x1={frequencyToScreenX(metrics.resonanceFrequency)}
+          x2={frequencyToScreenX(metrics.resonanceFrequency)}
           y1={50}
           y2={140}
         />
@@ -2809,10 +2704,10 @@ function ResonanceLab({
           r={4.5}
         />
         <text className="labResonanceAxisLabel" x={22} y={151}>
-          f₀/4
+          {minimumFrequency.toFixed(0)} Hz
         </text>
         <text className="labResonanceAxisLabel" x={176} y={151} textAnchor="end">
-          4f₀
+          {maximumFrequency.toFixed(0)} Hz
         </text>
         <text className="labResonanceScreenMode" x={23} y={49}>
           SERIES CURRENT · LOG SWEEP
@@ -2891,21 +2786,16 @@ function TransformerLab({
     !metrics.transformerSaturated &&
     metrics.transformerLoadPercent <= 100 &&
     metrics.transformerTemperatureRise <= 55;
+  const voltageScale = 22 / Math.max(values.transformerPrimaryVoltage, metrics.transformerSecondaryVoltage);
   const primaryWave = makeScopeSinePath({
-    amplitude: 17,
+    amplitude: values.transformerPrimaryVoltage * voltageScale,
     centerY: 76,
     cycles: 2.4,
     samples: 90,
     width: 168,
     x: 22,
   });
-  const secondaryAmplitude = Math.max(
-    8,
-    Math.min(
-      19,
-      8 + metrics.transformerSecondaryVoltage / 15,
-    ),
-  );
+  const secondaryAmplitude = metrics.transformerSecondaryVoltage * voltageScale;
   const secondaryWave = makeScopeSinePath({
     amplitude: secondaryAmplitude,
     centerY: 76,
@@ -3013,10 +2903,6 @@ function TransformerLab({
           />
         </g>
 
-        <path className="labTransformerPrimaryWire" d="M96 89 H119 M96 141 H119" />
-        <LabFlow className="transformerPrimaryFlow" d="M98 89 H116" />
-        <LabFlow className="transformerPrimaryFlow return" d="M116 141 H98" />
-
         <g className="labTransformerAssembly" transform="translate(118 42)">
           <circle
             className={`labTransformerHeat ${
@@ -3061,7 +2947,7 @@ function TransformerLab({
               <path
                 d={`M35 ${35 + index * 13} C17 ${35 + index * 13} 17 ${
                   45 + index * 13
-                } 35 ${45 + index * 13}`}
+                } 35 ${45 + index * 13} V${48 + index * 13}`}
                 key={`transformer-primary-coil-${index}`}
               />
             ))}
@@ -3071,7 +2957,7 @@ function TransformerLab({
               <path
                 d={`M103 ${35 + index * 13} C121 ${35 + index * 13} 121 ${
                   45 + index * 13
-                } 103 ${45 + index * 13}`}
+                } 103 ${45 + index * 13} V${48 + index * 13}`}
                 key={`transformer-secondary-coil-${index}`}
               />
             ))}
@@ -3115,9 +3001,12 @@ function TransformerLab({
           </text>
         </g>
 
-        <path className="labTransformerSecondaryWire" d="M256 89 H270 M256 141 H270" />
-        <LabFlow className="transformerSecondaryFlow" d="M258 89 H268" />
-        <LabFlow className="transformerSecondaryFlow return" d="M268 141 H258" />
+        <path className="labTransformerPrimaryWire" d="M96 89 H108 V77 H153 M153 155 H108 V141 H96" />
+        <path className="labTransformerSecondaryWire" d="M221 77 H260 V89 H270 M221 155 H260 V141 H270" />
+        <LabFlow className="transformerPrimaryFlow" d="M96 89 H108 V77 H153" />
+        <LabFlow className="transformerPrimaryFlow return" d="M153 155 H108 V141 H96" />
+        <LabFlow className="transformerSecondaryFlow" d="M221 77 H260 V89 H270" />
+        <LabFlow className="transformerSecondaryFlow return" d="M270 141 H260 V155 H221" />
 
         <g className="labTransformerLoad" transform="translate(270 53)">
           <rect className="labTransformerLoadBody" height={112} rx={7} width={80} />
@@ -3363,16 +3252,34 @@ function PidServoLab({
     metrics.pidOvershoot <= 15 &&
     metrics.pidControlEffort < 95;
   const saturated = metrics.pidControlEffort >= 95;
+  const duration = Math.max(4, metrics.pidSettlingTime * 1.5);
+  const scaleMaximum = Math.max(values.pidSetpoint, metrics.pidFinalValue * (1 + metrics.pidOvershoot / 100)) * 1.08;
+  const commandY = 158 - values.pidSetpoint / scaleMaximum * 108;
+  const finalY = 158 - metrics.pidFinalValue / scaleMaximum * 108;
+  const toleranceHeight = metrics.pidFinalValue * 0.04 / scaleMaximum * 108;
+  const animationName = `pid-${useId().replaceAll(':', '').replaceAll('«', '').replaceAll('»', '')}`;
+  const animationFrames = Array.from({ length: 121 }, (_, index) => {
+    const angle = metrics.pidFinalValue * secondOrderStep(index / 120 * duration, metrics.pidDampingRatio, metrics.pidNaturalFrequency);
+    return `${index / 1.2}%{transform:rotate(${angle}deg)}`;
+  }).join('');
+  const markerFrames = Array.from({ length: 121 }, (_, index) => {
+    const response = metrics.pidFinalValue * secondOrderStep(index / 120 * duration, metrics.pidDampingRatio, metrics.pidNaturalFrequency);
+    return `${index / 1.2}%{transform:translate(${24 + index / 120 * 178}px,${158 - response / scaleMaximum * 108}px)}`;
+  }).join('');
+  const endpointY = 158 - metrics.pidFinalValue * secondOrderStep(duration, metrics.pidDampingRatio, metrics.pidNaturalFrequency) / scaleMaximum * 108;
   const responsePath = makePidStepResponsePath({
     dampingRatio: metrics.pidDampingRatio,
     finalValue: metrics.pidFinalValue,
     naturalFrequency: metrics.pidNaturalFrequency,
     setpoint: values.pidSetpoint,
+    scaleMaximum,
+    duration,
+    samples: 480,
   });
-  const rotorAngle = Math.min(90, Math.max(20, values.pidSetpoint));
 
   return (
-    <g className="labScene labPidScene">
+    <g className="labScene labPidScene" style={{ '--pid-duration': `${duration}s` } as CSSProperties}>
+      <style>{`@keyframes ${animationName}{${animationFrames}}@keyframes ${animationName}-marker{${markerFrames}}`}</style>
       <text className="labSectionLabel" x={34} y={43}>
         CLOSED-LOOP POSITION CONTROL AND STEP RESPONSE
       </text>
@@ -3404,10 +3311,11 @@ function PidServoLab({
             className="labPidCommandNeedle"
             style={
               {
-                '--pid-command-angle': `${rotorAngle - 45}deg`,
+                '--pid-command-angle': `${values.pidSetpoint}deg`,
               } as CSSProperties
             }
           >
+            <circle cx={35} cy={45} r={18} style={{ fill: 'transparent', stroke: 'none' }} />
             <line x1={35} x2={35} y1={45} y2={30} />
           </g>
           <text className="labPidCommandValue" x={35} y={71} textAnchor="middle">
@@ -3460,10 +3368,13 @@ function PidServoLab({
             className={`labPidRotor ${stable ? 'stable' : 'ringing'}`}
             style={
               {
-                '--pid-angle': `${rotorAngle}deg`,
+                '--pid-angle': `${metrics.pidFinalValue}deg`,
+                '--pid-animation': animationName,
+                '--pid-duration': `${duration}s`,
               } as CSSProperties
             }
           >
+            <circle cx={42} cy={50} r={34} style={{ fill: 'transparent', stroke: 'none' }} />
             <line x1={42} x2={42} y1={50} y2={21} />
             <circle cx={42} cy={20} r={4} />
           </g>
@@ -3477,15 +3388,15 @@ function PidServoLab({
           <circle className="labPidEncoderDisc" cx={18} cy={19} r={10} />
           <path className="labPidEncoderTicks" d="M18 6 V11 M18 27 V32 M5 19 H10 M26 19 H31" />
           <text className="labPidEncoderLabel" x={38} y={17}>
-            ENCODER
+            ENCODER FINAL
           </text>
           <text className="labPidEncoderValue" x={38} y={30}>
             {metrics.pidFinalValue.toFixed(1)}°
           </text>
         </g>
 
-        <path className="labPidFeedbackTrace" d="M232 189 H52 V134" />
-        <text className="labPidFeedbackLabel" x={58} y={181}>
+        <path className="labPidFeedbackTrace" d="M287 152 V170 M232 189 H166 V162" />
+        <text className="labPidFeedbackLabel" x={58} y={213}>
           POSITION FEEDBACK
         </text>
         <LabFlow className="pidCommandFlow" d="M90 96 H103" />
@@ -3493,7 +3404,7 @@ function PidServoLab({
           className={`pidDriveFlow ${saturated ? 'saturated' : ''}`}
           d="M228 96 H242"
         />
-        <LabFlow className="pidFeedbackFlow" d="M228 189 H55 V138" />
+        <LabFlow className="pidFeedbackFlow" d="M232 189 H166 V162" />
       </g>
 
       <path className="labProbeLead channelOne" d="M178 220 C318 46 350 75 392 104" />
@@ -3532,12 +3443,17 @@ function PidServoLab({
           y={36}
         />
         <path className="labScopeGrid" d="M24 48 V166 M62 48 V166 M100 48 V166 M138 48 V166 M176 48 V166 M24 78 H200 M24 108 H200 M24 138 H200 M24 166 H200" />
-        <rect className="labPidToleranceBand" height={12} rx={3} width={178} x={24} y={44} />
-        <path className="labPidSetpointLine" d="M24 50 H202" />
+        <rect className="labPidToleranceBand" height={toleranceHeight} rx={1} width={178} x={24} y={finalY - toleranceHeight / 2}>
+          <title>2% band around the final response value</title>
+        </rect>
+        <path className="labPidSetpointLine" d={`M24 ${commandY} H202`} />
         <path className="labPidResponseTrace" d={responsePath} />
-        <text className="labPidScopeLabel command" x={26} y={62}>
+        <circle className="labPidResponseMarker" cx={0} cy={0} r={2.5}
+          style={{ '--pid-marker-animation': `${animationName}-marker`, transform: `translate(202px, ${endpointY}px)` } as CSSProperties} />
+        <text className="labPidScopeLabel command" x={26} y={48}>
           COMMAND
         </text>
+        <text className="labPidScopeLabel command" x={202} y={170} textAnchor="end">{duration.toFixed(1)} s</text>
         <text className="labPidScopeLabel response" x={26} y={151}>
           RESPONSE
         </text>
@@ -3605,17 +3521,18 @@ function TransmissionLineLab({
 }) {
   const phaseRadians =
     (metrics.transmissionReflectionPhase * Math.PI) / 180;
-  const vectorRadius = 39 * metrics.transmissionReflectionMagnitude;
+  const vectorRadius = 43 * metrics.transmissionReflectionMagnitude;
   const vectorX = 62 + Math.cos(phaseRadians) * vectorRadius;
   const vectorY = 100 - Math.sin(phaseRadians) * vectorRadius;
   const isMatched = metrics.transmissionVswr <= 1.22;
-  const reflectedAmplitude =
-    11 * metrics.transmissionReflectionMagnitude;
+  const lengthRadians = values.transmissionElectricalLength * Math.PI / 180;
+  const timePhase = Math.PI / 4;
+  const returnLossLabel = metrics.transmissionReflectionMagnitude === 0 ? '∞ dB' : `${metrics.transmissionReturnLoss.toFixed(1)} dB`;
 
   return (
     <g className="labScene labTransmissionScene">
       <text className="labSectionLabel" x={34} y={43}>
-        50 Ω TRANSMISSION LINE REFLECTION MEASUREMENT
+        {values.transmissionCharacteristicImpedance} Ω TRANSMISSION LINE REFLECTION MEASUREMENT
       </text>
 
       <g className="labTransmissionVna" transform="translate(18 62)">
@@ -3679,7 +3596,7 @@ function TransmissionLineLab({
           RL
         </text>
         <text className="labTransmissionScreenValue small" x={118} y={146}>
-          {metrics.transmissionReturnLoss.toFixed(1)} dB
+          {returnLossLabel}
         </text>
 
         <circle className="labScopeKnob" cx={38} cy={190} r={14} />
@@ -3717,27 +3634,14 @@ function TransmissionLineLab({
         </text>
         <path
           className="labTransmissionWave incident"
-          d={makeScopeSinePath({
-            amplitude: 10,
-            centerY: 174,
-            cycles: 3.2,
-            width: 250,
-            x: 244,
-          })}
+          d={plotPath((position) => 174 - 10 * Math.cos(timePhase + lengthRadians * (1 - position)), 244, 250)}
         />
         <text className="labTransmissionWaveLabel reflected" x={419} y={211}>
           ← REFLECTED
         </text>
         <path
           className="labTransmissionWave reflected"
-          d={makeScopeSinePath({
-            amplitude: reflectedAmplitude,
-            centerY: 198,
-            cycles: 3.2,
-            phase: metrics.transmissionReflectionPhase,
-            width: 250,
-            x: 244,
-          })}
+          d={plotPath((position) => 198 - 10 * metrics.transmissionReflectionCoefficient * Math.cos(timePhase - lengthRadians * (1 - position)), 244, 250)}
         />
 
         <rect className="labTransmissionImpedanceTag" height={25} rx={4} width={82} x={228} y={112} />
@@ -3806,7 +3710,7 @@ function TransmissionLineLab({
           RETURN LOSS
         </text>
         <text className="labTransmissionMetricValue" x={212} y={51}>
-          {metrics.transmissionReturnLoss.toFixed(1)} dB
+          {returnLossLabel}
         </text>
         <text className="labTransmissionMetricLabel" x={312} y={22}>
           DELIVERED
@@ -3861,27 +3765,21 @@ function ThreePhaseLab({
           </text>
           <path
             className={`labPhaseLine ${phase.className}`}
-            d={`M88 ${phase.y} H${phase.label === 'B' ? 390 : 330}`}
+            d={`M88 ${phase.y} H320`}
           />
           <circle className="labCtSensorOuter" cx={180} cy={phase.y} r={16} />
           <circle className="labCtSensor" cx={180} cy={phase.y} r={10} />
           <path className="labCtLead" d={`M180 ${phase.y - 16} V${phase.y - 27} H194`} />
-          <LabFlow
-            className={phase.className}
-            d={`M96 ${phase.y} H${phase.label === 'B' ? 380 : 322}`}
-          />
           <text className="labTiny" x={180} y={phase.y - 20} textAnchor="middle">
             I{index + 1}
           </text>
         </g>
       ))}
-      <path className="labDeltaLoad" d="M330 92 L390 162 L330 232 Z" />
-      <path className="labDeltaLoadInner" d="M337 108 L378 162 L337 216 Z" />
-      <circle className="labNode" cx={330} cy={92} r={5} />
-      <circle className="labNode" cx={390} cy={162} r={5} />
-      <circle className="labNode" cx={330} cy={232} r={5} />
+      <rect className="labDeltaLoad" x={320} y={75} width={80} height={177} rx={4} />
+      <text className="labTiny" x={360} y={156} textAnchor="middle">3-PHASE</text>
+      <text className="labTiny" x={360} y={175} textAnchor="middle">LOAD</text>
       <text className="labValue" x={352} y={270} textAnchor="middle">
-        balanced Δ load
+        balanced load
       </text>
       <text className="labValue" x={112} y={286}>
         VLL = {values.lineVoltage} V
@@ -3925,9 +3823,9 @@ function ThreePhaseLab({
           y={38}
         />
         <path className="labAnalyzerGrid" d="M22 69 H146 M22 96 H146 M55 47 V137 M101 47 V137" />
-        <path className="labAnalyzerWave phaseA" d="M24 121 C34 107 44 107 54 121 S74 135 84 121" />
-        <path className="labAnalyzerWave phaseB" d="M54 121 C64 107 74 107 84 121 S104 135 114 121" />
-        <path className="labAnalyzerWave phaseC" d="M84 121 C94 107 104 107 114 121 S134 135 144 121" />
+        {[0, -120, 120].map((phase, index) => (
+          <path key={phase} className={`labAnalyzerWave phase${'ABC'[index]}`} d={makeScopeSinePath({ amplitude: 9, centerY: 122, cycles: 2, phase, width: 120, x: 24 })} />
+        ))}
         <rect className="labAnalyzerSweep" x={18} y={44} width={14} height={96} rx={7} />
         <text className="labInstrumentMode" x={22} y={58}>
           3V / 3I · RMS
@@ -3938,7 +3836,7 @@ function ThreePhaseLab({
         <text className="labInstrumentUnit" x={146} y={107} textAnchor="end">
           kW
         </text>
-        <text className="labAnalyzerSecondary" x={22} y={132}>
+        <text className="labAnalyzerSecondary" x={22} y={142}>
           φ = {metrics.phaseAngle.toFixed(1)}°
         </text>
         <text className="labMetricLabel" x={16} y={170}>
@@ -4203,7 +4101,7 @@ export function LabVisualStage({
 }: LabVisualStageProps) {
   const [mode, setMode] = useState<'live' | 'reference'>('live');
   const [running, setRunning] = useState(true);
-  const { expanded, toggleExpanded } = useVisualInspector(lab.id);
+  const { expanded, toggleExpanded, inspectorRef } = useVisualInspector(lab.id);
   const safeValues = stabilizeLabValues(values);
   const metrics = stabilizeLabMetrics(calculateLabMetrics(safeValues));
   const output =
@@ -4235,6 +4133,8 @@ export function LabVisualStage({
 
   return (
     <section
+      ref={inspectorRef}
+      tabIndex={expanded ? -1 : undefined}
       aria-label={
         expanded
           ? `${lab.title} expanded live instrument visual`
@@ -4255,8 +4155,9 @@ export function LabVisualStage({
         </div>
 
         <div className="visualStageActions">
-          <div className="visualModeSwitch" aria-label="Lab visual mode">
+          <div className="visualModeSwitch" role="group" aria-label="Lab visual mode">
             <button
+              aria-pressed={mode === 'live'}
               className={mode === 'live' ? 'active' : ''}
               onClick={() => setMode('live')}
               type="button"
@@ -4265,6 +4166,7 @@ export function LabVisualStage({
               {baseline ? 'Baseline' : 'Live'}
             </button>
             <button
+              aria-pressed={mode === 'reference'}
               className={mode === 'reference' ? 'active' : ''}
               onClick={() => setMode('reference')}
               type="button"
@@ -4337,13 +4239,13 @@ export function LabVisualStage({
           </div>
         ) : (
           <div className="verifiedDiagramView labReferenceView">
-            <img
+            <ReferenceImage
               src={resolvePublicAssetPath(lab.diagram)}
               alt={`${lab.title} engineering reference diagram`}
             />
             <span>
-              <CheckCircle2 size={14} />
-              Verified engineering diagram
+              <ImageIcon size={14} />
+              Reference schematic
             </span>
           </div>
         )}

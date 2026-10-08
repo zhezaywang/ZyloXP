@@ -24,6 +24,30 @@ export function sortFieldNotes(notes: FieldNote[]) {
   );
 }
 
+export function normalizeFieldNotes(value: unknown, now = Date.now()): FieldNote[] {
+  if (!Array.isArray(value)) return [];
+  const usedIds = new Set<string>();
+  const timestamp = (value: unknown, fallback: number) =>
+    typeof value === 'number' && Number.isFinite(value) && value > 0 && value <= now ? value : fallback;
+  return sortFieldNotes(value.flatMap((storedNote, index) => {
+    if (!storedNote || typeof storedNote !== 'object') return [];
+    const note = storedNote as Partial<FieldNote>;
+    if (typeof note.title !== 'string' || typeof note.body !== 'string' || !isFieldNoteCategory(note.category)) return [];
+    const title = note.title.trim().slice(0, 80);
+    const body = note.body.trim().slice(0, 1200);
+    if (!title || !body) return [];
+    const createdAt = timestamp(note.createdAt, now);
+    const updatedAt = Math.max(createdAt, timestamp(note.updatedAt, createdAt));
+    let id = typeof note.id === 'string' ? note.id.trim().slice(0, 100) : '';
+    if (!id || usedIds.has(id)) {
+      id = `field-note-${createdAt}-${index}`;
+      while (usedIds.has(id)) id += '-copy';
+    }
+    usedIds.add(id);
+    return [{ body, category: note.category, createdAt, updatedAt, id, pinned: note.pinned === true, title }];
+  })).slice(0, MAX_FIELD_NOTES);
+}
+
 export function readFieldNotes(): FieldNote[] {
   if (typeof window === 'undefined') {
     return [];
@@ -37,63 +61,7 @@ export function readFieldNotes(): FieldNote[] {
       return [];
     }
 
-    const parsedNotes = JSON.parse(storedNotes) as unknown;
-    if (!Array.isArray(parsedNotes)) {
-      return [];
-    }
-
-    return sortFieldNotes(
-      parsedNotes
-        .flatMap((storedNote, index) => {
-          if (!storedNote || typeof storedNote !== 'object') {
-            return [];
-          }
-
-          const note = storedNote as Partial<FieldNote>;
-          if (
-            typeof note.title !== 'string' ||
-            typeof note.body !== 'string' ||
-            !isFieldNoteCategory(note.category)
-          ) {
-            return [];
-          }
-
-          const title = note.title.trim().slice(0, 80);
-          const body = note.body.trim().slice(0, 1200);
-          if (!title || !body) {
-            return [];
-          }
-
-          const createdAt =
-            typeof note.createdAt === 'number' &&
-            Number.isFinite(note.createdAt) &&
-            note.createdAt > 0
-              ? note.createdAt
-              : Date.now();
-          const updatedAt =
-            typeof note.updatedAt === 'number' &&
-            Number.isFinite(note.updatedAt) &&
-            note.updatedAt > 0
-              ? Math.max(createdAt, note.updatedAt)
-              : createdAt;
-
-          return [
-            {
-              body,
-              category: note.category,
-              createdAt,
-              id:
-                typeof note.id === 'string' && note.id.trim()
-                  ? note.id.slice(0, 100)
-                  : `field-note-${createdAt}-${index}`,
-              pinned: note.pinned === true,
-              title,
-              updatedAt,
-            },
-          ];
-        })
-        .slice(0, MAX_FIELD_NOTES),
-    );
+    return normalizeFieldNotes(JSON.parse(storedNotes));
   } catch {
     return [];
   }

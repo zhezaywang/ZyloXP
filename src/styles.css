@@ -5185,6 +5185,7 @@ body,
 }
 
 .backupSnapshot.preview {
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   padding: 9px 10px;
   border: 1px solid var(--zylo-border);
   border-radius: 7px;
@@ -5197,6 +5198,7 @@ body,
   font-size: 0.76rem;
   font-weight: 750;
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .backupPreviewActions {
@@ -6507,7 +6509,7 @@ body,
   object-fit: contain;
 }
 
-.verifiedDiagramView span {
+.verifiedDiagramView > span {
   display: inline-flex;
   align-items: center;
   justify-self: start;
@@ -8557,13 +8559,13 @@ body,
 }
 
 .labScopeReadout {
-  fill: #d8eef3;
+  fill: #173f50;
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-size: 11px;
 }
 
 .labScopeReadout.secondary {
-  fill: #9cc4d0;
+  fill: #315867;
 }
 
 .labPhaseSource {
@@ -28250,16 +28252,19 @@ circle.labInstrumentScrew {
   color: #986100;
 }
 
-.labSchematic.running .labPidResponseTrace {
-  animation: labPidResponseDraw 4.4s ease-in-out infinite;
+.labPidResponseMarker {
+  fill: #f0c84b;
+  stroke: #102f40;
+  stroke-width: 0.7;
 }
 
-.labSchematic.running .labPidRotor.stable {
-  animation: labPidRotorSettle 4.4s ease-in-out infinite;
+.labSchematic.running .labPidResponseMarker {
+  animation: var(--pid-marker-animation) var(--pid-duration) linear infinite;
 }
 
+.labSchematic.running .labPidRotor.stable,
 .labSchematic.running .labPidRotor.ringing {
-  animation: labPidRotorRing 4.4s ease-in-out infinite;
+  animation: var(--pid-animation) var(--pid-duration) linear infinite;
 }
 
 .labSchematic.running .labPidEncoderDisc {
@@ -33001,6 +33006,70 @@ circle.labInstrumentScrew {
 }
 
 /* Field journal */
+.workspaceNotice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 12px 0;
+  padding: 12px 16px;
+  border: 1px solid #b5cedd;
+  border-radius: 6px;
+  background: #edf5fa;
+  color: #244759;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.workspaceNotice > span { flex: 1 1 240px; }
+.workspaceNotice.warning { border-color: #cbb786; background: #fcf7e8; color: #655018; }
+.workspaceNotice button { flex: 0 1 auto; white-space: normal; }
+
+.referenceImageResource {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 8 / 5;
+  width: 100%;
+  min-width: 0;
+  background: #f2f7fa;
+}
+
+.referenceImageResource > img {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+}
+
+.referenceImageLoading {
+  position: absolute;
+  inset: 12%;
+  border: 1px solid #c9dbe5;
+  border-radius: 6px;
+  background: #e4eef4;
+}
+
+.referenceImageResource[aria-busy='true'] > img { opacity: 0; }
+.referenceImageError {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px;
+  color: #456271;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.referenceImageError strong { color: #183849; }
+.referenceImageError button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 .fieldJournal {
   display: grid;
   gap: 14px;

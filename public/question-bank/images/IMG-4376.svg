@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
-<!-- LaTeX/TikZ source: latex_sources/IMG-4376.tex -->
+<!-- App-local reviewed SVG; upstream LaTeX/TikZ source: latex_sources/IMG-4376.tex (not synchronized). -->
 <defs>
 <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
 <path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
@@ -33,8 +33,11 @@
 <path class="wire" d="M550,215 H760" fill="none"/>
 <path class="wire" d="M550,215 C595,230 595,260 550,275 C595,290 595,320 550,335 C595,350 595,380 550,395" fill="none"/>
 <path class="wire" d="M550,395 H760" fill="none"/>
-<text class="small" x="260" y="186" text-anchor="middle">Np</text>
-<text class="small" x="620" y="186" text-anchor="middle">Ns</text>
+<circle cx="325" cy="225" r="5" fill="#174A5B"/>
+<circle cx="535" cy="225" r="5" fill="#174A5B"/>
+<text class="small" x="260" y="186" text-anchor="middle">Np = 140</text>
+<text class="small" x="620" y="186" text-anchor="middle">Ns = 80</text>
+<text class="small" x="140" y="304" text-anchor="middle">Vp = 480 V</text>
 <text class="tiny" x="128" y="222" text-anchor="end">Vp+</text>
 <text class="tiny" x="128" y="401" text-anchor="end">Vp-</text>
 <text class="tiny" x="782" y="222" text-anchor="start">Vs+</text>

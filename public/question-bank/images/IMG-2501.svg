@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
-<!-- LaTeX/TikZ source: latex_sources/IMG-2501.tex -->
+<!-- App-local reviewed SVG; upstream LaTeX/TikZ source: latex_sources/IMG-2501.tex (not synchronized). -->
 <defs>
 <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
 <path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
@@ -27,12 +27,15 @@
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-2501 | Electromagnetics | EE-50001</text>
 <circle class="accentFill" cx="260" cy="310" r="36" fill="none"/>
 <circle class="accentFill" cx="700" cy="310" r="36" fill="none"/>
-<text class="label" x="260" y="316" text-anchor="middle">q1</text>
-<text class="label" x="700" y="316" text-anchor="middle">q2</text>
+<text class="label" x="260" y="316" text-anchor="middle">+</text>
+<text class="label" x="700" y="316" text-anchor="middle">+</text>
+<text class="label" x="260" y="377" text-anchor="middle">q1 = 3 uC</text>
+<text class="label" x="700" y="377" text-anchor="middle">q2 = 4 uC</text>
 <line class="thin" x1="310" y1="310" x2="650" y2="310"/>
-<line class="thin" x1="310" y1="270" x2="650" y2="270" marker-end="url(#arrow)"/>
-<line class="thin" x1="650" y1="270" x2="310" y2="270" marker-end="url(#arrow)"/>
-<text class="small" x="480" y="254" text-anchor="middle">separation r</text>
+<line class="thin" x1="260" y1="270" x2="700" y2="270" marker-end="url(#arrow)"/>
+<line class="thin" x1="700" y1="270" x2="260" y2="270" marker-end="url(#arrow)"/>
+<path class="thin" d="M260 274 V256 M700 274 V256"/>
+<text class="small" x="480" y="245" text-anchor="middle">center separation r = 0.2 m</text>
 <line class="accent" x1="224" y1="310" x2="145" y2="310" marker-end="url(#arrow)"/>
 <line class="accent" x1="736" y1="310" x2="815" y2="310" marker-end="url(#arrow)"/>
 <text class="small" x="155" y="290" text-anchor="start">F on q1</text>

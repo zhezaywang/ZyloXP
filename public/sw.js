@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'zyloxp-';
-const SHELL_CACHE = `${CACHE_PREFIX}shell-v4`;
+const SHELL_CACHE = `${CACHE_PREFIX}shell-v7`;
 const CACHEABLE_DESTINATIONS = new Set([
   'font',
   'image',

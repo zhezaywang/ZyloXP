@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
-<!-- LaTeX/TikZ source: latex_sources/IMG-3126.tex -->
+<!-- App-local reviewed SVG; upstream LaTeX/TikZ source: latex_sources/IMG-3126.tex (not synchronized). -->
 <defs>
 <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
 <path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
@@ -26,9 +26,9 @@
 <text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Lossless characteristic impedance problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-3126 | Transmission Lines | EE-62501</text>
 <line class="wire" x1="110" y1="250" x2="205" y2="250"/>
-<polyline class="wire" points="205,250 227,250 227,250 236.25,240 245.5,260 254.75,240 264,260 273.25,240 282.5,260 291.75,240 301,260 310.25,240 319.5,260 328.75,240 338,250 360,250" fill="none"/>
+<path class="wire" d="M205 250 H222 q16 -32 32 0 q16 -32 32 0 q16 -32 32 0 q16 -32 32 0 H360"/>
 <line class="wire" x1="360" y1="250" x2="520" y2="250"/>
-<polyline class="wire" points="520,250 542,250 542,250 551.25,240 560.5,260 569.75,240 579,260 588.25,240 597.5,260 606.75,240 616,260 625.25,240 634.5,260 643.75,240 653,250 675,250" fill="none"/>
+<path class="wire" d="M520 250 H537 q16 -32 32 0 q16 -32 32 0 q16 -32 32 0 q16 -32 32 0 H675"/>
 <line class="wire" x1="675" y1="250" x2="850" y2="250" marker-end="url(#arrow)"/>
 <line class="wire" x1="110" y1="410" x2="850" y2="410"/>
 <line class="wire" x1="430" y1="250" x2="430" y2="300"/>

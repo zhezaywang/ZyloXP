@@ -95,9 +95,10 @@ import type {
   CheckpointExamConfig,
   CheckpointExamState,
 } from './CheckpointExam';
-import { getCheckpointDurationMinutes } from './checkpointExamTiming';
+import { canAnswerCheckpoint, getCheckpointDurationMinutes } from './checkpointExamTiming';
 import type { PortfolioEvidence } from './EvidencePortfolio';
 import { stageFieldJournalDraft } from './fieldJournalDraft';
+import { isProgressRestoreInProgress } from './progressRestore';
 import type { FieldJournalDraftSeed } from './fieldJournalDraft';
 import {
   FIELD_JOURNAL_STORAGE_KEY,
@@ -161,11 +162,13 @@ import type {
 import {
   STUDY_LIST_STORAGE_KEY,
   addStudyListResource,
+  canAddStudyListResource,
   getStudyListItemKey,
   isStudyListKind,
   normalizeStudyListItems,
   readStudyListItems,
   saveStudyListItems,
+  restoreStudyListItems,
 } from './studyList';
 import type {
   StudyListItem,
@@ -175,6 +178,7 @@ import {
   RecentLearning,
   readRecentLearningItems,
   saveRecentLearningItems,
+  RECENT_LEARNING_STORAGE_KEY,
   upsertRecentLearningItem,
 } from './RecentLearning';
 import type { RecentLearningItem } from './RecentLearning';
@@ -7432,6 +7436,8 @@ function App() {
   const [studyListItems, setStudyListItems] = useState<StudyListItem[]>(
     readStudyListItems,
   );
+  const studyListItemsRef = useRef(studyListItems);
+  studyListItemsRef.current = studyListItems;
   const [notebookLibraryView, setNotebookLibraryView] =
     useState<NotebookLibraryView>(() =>
       readStoredNotebookLibraryView() ??
@@ -9895,6 +9901,7 @@ function App() {
   }, [recentSearchResults]);
 
   useEffect(() => {
+    if (isProgressRestoreInProgress(RECENT_LEARNING_STORAGE_KEY)) return;
     try {
       saveRecentLearningItems(recentLearningItems);
     } catch {
@@ -9903,6 +9910,7 @@ function App() {
   }, [recentLearningItems]);
 
   useEffect(() => {
+    if (isProgressRestoreInProgress(STUDY_LIST_STORAGE_KEY)) return;
     try {
       saveStudyListItems(studyListItems);
     } catch {
@@ -10818,6 +10826,7 @@ function App() {
     const serializedLearnerState = JSON.stringify(learnerState);
 
     if (
+      isProgressRestoreInProgress(LEARNER_STORAGE_KEY) ||
       learnerSaveBlockedRef.current ||
       serializedLearnerState === persistedLearnerStateRef.current
     ) {
@@ -10908,6 +10917,7 @@ function App() {
   ]);
 
   useEffect(() => {
+    if (isProgressRestoreInProgress(HEART_STORAGE_KEY)) return;
     try {
       window.localStorage.setItem(HEART_STORAGE_KEY, JSON.stringify(heartState));
     } catch {
@@ -10976,15 +10986,29 @@ function App() {
   }
 
   function handleAddStudyListItem(resource: StudyListResource) {
+    if (!canAddStudyListResource(studyListItemsRef.current, resource)) {
+      showToast('Study List is full. Remove an item or clear completed items first.');
+      return;
+    }
     setStudyListItems((items) => addStudyListResource(items, resource));
     showToast(`${resource.title} added to your Study List.`);
   }
 
+  function handleRestoreStudyListItems(removed: StudyListItem[], originalOrder: StudyListItem[]) {
+    const restored = restoreStudyListItems(studyListItemsRef.current, removed, originalOrder);
+    if (!restored) {
+      showToast('Not enough room to undo. Remove an item first; your current queue is unchanged.', {
+        label: 'Retry undo', run: () => handleRestoreStudyListItems(removed, originalOrder),
+      });
+      return;
+    }
+    setStudyListItems(restored);
+    showToast('Study List restored.');
+  }
+
   function handleRemoveStudyListItem(item: StudyListItem) {
     const itemKey = getStudyListItemKey(item);
-    const itemIndex = studyListItems.findIndex(
-      (candidate) => getStudyListItemKey(candidate) === itemKey,
-    );
+    const originalOrder = studyListItems;
 
     setStudyListItems((items) =>
       items.filter(
@@ -10993,24 +11017,7 @@ function App() {
     );
     showToast(`${item.title} removed from your Study List.`, {
       label: 'Undo',
-      run: () =>
-        setStudyListItems((items) => {
-          if (
-            items.some(
-              (candidate) => getStudyListItemKey(candidate) === itemKey,
-            )
-          ) {
-            return items;
-          }
-
-          const nextItems = [...items];
-          nextItems.splice(
-            Math.max(0, Math.min(itemIndex, items.length)),
-            0,
-            item,
-          );
-          return nextItems;
-        }),
+      run: () => handleRestoreStudyListItems([item], originalOrder),
     });
   }
 
@@ -11061,25 +11068,7 @@ function App() {
       } cleared.`,
       {
         label: 'Undo',
-        run: () =>
-          setStudyListItems((items) => {
-            const currentItems = new Map(
-              items.map((item) => [getStudyListItemKey(item), item]),
-            );
-            const previousKeys = new Set(
-              itemsBeforeClear.map(getStudyListItemKey),
-            );
-
-            return [
-              ...itemsBeforeClear.map(
-                (item) =>
-                  currentItems.get(getStudyListItemKey(item)) ?? item,
-              ),
-              ...items.filter(
-                (item) => !previousKeys.has(getStudyListItemKey(item)),
-              ),
-            ];
-          }),
+        run: () => handleRestoreStudyListItems(completedItems, itemsBeforeClear),
       },
     );
   }
@@ -12144,7 +12133,7 @@ function App() {
     setCheckpointExam((currentExam) => {
       if (
         !currentExam ||
-        currentExam.completedAt !== null ||
+        !canAnswerCheckpoint(currentExam) ||
         !currentExam.answers[questionId]
       ) {
         return currentExam;
@@ -15449,7 +15438,7 @@ function App() {
           </aside>
         )}
 
-        {toast && !hasExternalProgressUpdate && (
+        {toast && !hasExternalProgressUpdate && overlay === null && (
           <aside
             aria-atomic="true"
             aria-live="polite"

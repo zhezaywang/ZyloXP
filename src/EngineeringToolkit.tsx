@@ -16,6 +16,9 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { FieldJournalDraftSeed } from './fieldJournalDraft';
+import { rcChargePlot } from './visualMath';
+
+const rcPreview = rcChargePlot(0, 100, 100, 100);
 
 type ToolkitMode = 'ac' | 'design' | 'ohm' | 'power' | 'resistor' | 'units';
 type DesignTool = 'led' | 'rc';
@@ -1658,11 +1661,11 @@ export function EngineeringToolkit({
                   <span className="rcAxis vertical" />
                   <svg preserveAspectRatio="none" viewBox="0 0 100 100">
                     <path
-                      d="M 0 94 C 8 58, 19 37, 30 24 C 45 8, 68 4, 100 3"
+                      d={rcPreview.path}
                       pathLength="1"
                     />
                   </svg>
-                  <span className="rcTauMarker">
+                  <span className="rcTauMarker" style={{ left: `calc(${rcPreview.tauX}% + ${23 - 31 * rcPreview.tauX / 100}px)`, top: `calc(${rcPreview.tauY}% + ${11 - 31 * rcPreview.tauY / 100}px)` }}>
                     <i />
                     <small>1 tau · 63.2%</small>
                   </span>

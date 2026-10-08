@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
-<!-- LaTeX/TikZ source: latex_sources/IMG-5001.tex -->
+<!-- App-local reviewed SVG; upstream LaTeX/TikZ source: latex_sources/IMG-5001.tex (not synchronized). -->
 <defs>
 <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
 <path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
@@ -36,16 +36,17 @@
 <path class="wire" d="M390,235 L410,235 C410,215 442.5,215 442.5,235 C442.5,215 475,215 475,235 C475,215 507.5,215 507.5,235 C507.5,215 540,215 540,235 L560,235" fill="none"/>
 <line class="wire" x1="560" y1="235" x2="790" y2="235"/>
 <circle class="accentFill" cx="390" cy="235" r="5" fill="none"/>
-<path class="wire" d="M390,240 V315" fill="none"/>
-<rect class="soft" x="350" y="315" width="80" height="62" rx="8"/>
-<text class="small" x="390" y="352" text-anchor="middle">D</text>
-<path class="wire" d="M390,377 V425 H130 V354" fill="none"/>
+<path class="wire" d="M390 240 V324 M370 324 H410 M370 356 L390 324 L410 356 Z"/>
+<text class="small" x="430" y="345" text-anchor="start">D1</text>
+<path class="wire" d="M390 356 V425 H130 V354"/>
+<path class="wire" d="M390 425 H715"/>
 <line class="wire" x1="620" y1="235" x2="620" y2="305"/>
 <line class="wire" x1="595" y1="305" x2="645" y2="305"/>
 <line class="wire" x1="595" y1="325" x2="645" y2="325"/>
 <line class="wire" x1="620" y1="325" x2="620" y2="425"/>
 <polyline class="wire" points="715,235 715,270 700,282 730,296 700,310 730,324 700,338 715,350 715,425" fill="none"/>
 <text class="small" x="475" y="198" text-anchor="middle">L</text>
+<text class="small" x="290" y="180" text-anchor="middle">D = 0.75</text>
 <text class="small" x="650" y="318" text-anchor="start">C</text>
 <text class="small" x="750" y="318" text-anchor="start">Rload</text>
 <text class="small" x="802" y="240" text-anchor="start">Vout</text>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
-<!-- LaTeX/TikZ source: latex_sources/IMG-7501.tex -->
+<!-- App-local reviewed SVG; upstream LaTeX/TikZ source: latex_sources/IMG-7501.tex (not synchronized). -->
 <defs>
 <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
 <path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
@@ -52,7 +52,8 @@
 <circle class="accentFill" cx="610" cy="262.382" r="5" fill="#FDECC8"/>
 <text class="small" x="664" y="305" text-anchor="start">t</text>
 <text class="small" x="140" y="205" text-anchor="start">x(t)</text>
-<text class="small" x="310" y="440" text-anchor="start">Sampling, spectra, and system response</text>
+<text class="small" x="480" y="166" text-anchor="middle">Baseband limit fmax = 2 kHz; theoretical Nyquist rate = 2 fmax</text>
+<text class="small" x="480" y="440" text-anchor="middle">Illustrative oversampling: fs &gt; 2 fmax</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
 <text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A signal is band-limited to 2 kHz. What is the theoretical Nyquist rate? Practical sampling must be higher.</text>
 </svg>

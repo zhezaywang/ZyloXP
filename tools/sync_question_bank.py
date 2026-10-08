@@ -7,6 +7,7 @@ import csv
 import json
 import re
 import shutil
+import xml.etree.ElementTree as ET
 from collections import Counter, OrderedDict
 from pathlib import Path
 
@@ -20,6 +21,23 @@ FACT_CHECK_JSON = BANK_DIR / "fact_check_report.json"
 REFINEMENT_JSON = BANK_DIR / "content_refinement_report.json"
 OUTPUT_TS = ROOT / "src" / "questionBank.generated.ts"
 PUBLIC_IMAGE_DIR = ROOT / "public" / "question-bank" / "images"
+# App-local references are reviewed alongside the live teaching diagrams.
+REVIEWED_REFERENCE_IMAGES = {
+    "IMG-0001.svg", "IMG-0626.svg", "IMG-1251.svg", "IMG-1876.svg",
+    "IMG-2501.svg", "IMG-3126.svg", "IMG-3751.svg", "IMG-4376.svg",
+    "IMG-5001.svg", "IMG-5626.svg", "IMG-6251.svg", "IMG-6876.svg",
+    "IMG-7501.svg", "IMG-8126.svg", "IMG-8751.svg", "IMG-9376.svg",
+    "IMG-10001.svg", "IMG-10626.svg", "IMG-11251.svg", "IMG-11876.svg",
+}
+
+
+def sync_reference_image(source: Path, destination: Path, prompt: str) -> None:
+    if destination.name in REVIEWED_REFERENCE_IMAGES:
+        description = ET.parse(destination).findtext("{http://www.w3.org/2000/svg}desc")
+        if description != prompt:
+            raise ValueError(f"Question changed: review the corrected diagram {destination.name} before syncing")
+        return
+    shutil.copy2(source, destination)
 
 
 def load_json(path: Path):
@@ -127,7 +145,7 @@ def main() -> None:
         destination_image = PUBLIC_IMAGE_DIR / source_image.name
         if not source_image.exists():
             raise FileNotFoundError(source_image)
-        shutil.copy2(source_image, destination_image)
+        sync_reference_image(source_image, destination_image, clean_prompt(row))
 
         generated_topics.append(
             {

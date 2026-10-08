@@ -26,7 +26,7 @@ export type RecentLearningItem = {
   viewedAt: number;
 };
 
-const RECENT_LEARNING_STORAGE_KEY = 'zyloxp-recent-learning-v1';
+export const RECENT_LEARNING_STORAGE_KEY = 'zyloxp-recent-learning-v1';
 const RECENT_LEARNING_LIMIT = 6;
 const RECENT_LEARNING_PAGES = new Set<AppPage>([
   'career',

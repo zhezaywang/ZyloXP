@@ -513,10 +513,10 @@ export const labScenarios: LabScenario[] = [
     topic: 'Control Systems',
     diagram: '/lab-pid-reference.svg',
     metric: 'Settling time',
-    result: 'ts ≈ 4 / (ζωn)',
+    result: '2% settling time of the modeled response',
     status: 'Ready',
     assumptions:
-      'Normalized second-order servo plant with bounded actuator effort, ideal position feedback, and a unit-step command.',
+      'Reduced-order tuning model: gains map heuristically to damping, bandwidth, final offset and drive effort. This is not a time-domain PID solver or a hardware stability check.',
     formula: 'u(t) = Kp e(t) + Ki ∫e(t)dt + Kd de(t)/dt',
     visualLabel: 'PID controller, servo plant, encoder, and response analyzer',
   },

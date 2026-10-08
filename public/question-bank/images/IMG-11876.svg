@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
-<!-- LaTeX/TikZ source: latex_sources/IMG-11876.tex -->
+<!-- App-local reviewed SVG; upstream LaTeX/TikZ source: latex_sources/IMG-11876.tex (not synchronized). -->
 <defs>
 <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
 <path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
@@ -26,14 +26,17 @@
 <text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">CT secondary current problem diagram</text>
 <text x="48" y="80" font-family="Inter,Arial,sans-serif" font-size="13" fill="#D6EEF2">IMG-11876 | Electrical Safety and Protection | EE-237501</text>
 <line class="wire" x1="105" y1="225" x2="680" y2="225" marker-end="url(#arrow)"/>
-<text class="small" x="112" y="204" text-anchor="start">primary conductor</text>
+<text class="small" x="112" y="204" text-anchor="start">Ip = 50 A</text>
 <circle class="thin" cx="300" cy="225" r="44" fill="none"/>
-<text class="label" x="300" y="233" text-anchor="middle">CT</text>
+<circle class="thin" cx="300" cy="225" r="25"/>
+<text class="label" x="300" y="164" text-anchor="middle">CT 400:5</text>
+<path class="wire" d="M275 260 q12.5 25 25 0 q12.5 25 25 0"/>
 <rect class="soft" x="680" y="180" width="150" height="90" rx="8"/>
 <text class="label" x="755" y="233" text-anchor="middle">Breaker</text>
 <line class="wire" x1="830" y1="225" x2="875" y2="225" marker-end="url(#arrow)"/>
 <path class="wire" d="M275,260 V355 H405" fill="none"/>
 <path class="wire" d="M325,260 V405 H405" fill="none"/>
+<path class="thin" d="M325 405 V439 M308 439 H342 M314 448 H336 M320 457 H330"/>
 <rect class="box" x="405" y="330" width="150" height="100" rx="8"/>
 <text class="small" x="480" y="374" text-anchor="middle">Protective</text>
 <text class="label" x="480" y="402" text-anchor="middle">relay</text>

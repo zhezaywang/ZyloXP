@@ -3,6 +3,11 @@ type CheckpointTimingConfig = {
   timing: 'deep' | 'standard' | 'untimed';
 };
 
+export function canAnswerCheckpoint(exam: { completedAt: number | null; expiresAt: number | null } | null, now = Date.now()) {
+  return exam !== null && exam.completedAt === null &&
+    (exam.expiresAt === null || now < exam.expiresAt);
+}
+
 export function getCheckpointDurationMinutes(config: CheckpointTimingConfig) {
   if (config.timing === 'untimed') {
     return 0;

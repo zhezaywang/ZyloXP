@@ -104,3 +104,152 @@ test('PCB controls fit the board and undo keyboard edits', async ({ page }, test
   await expect(page.getByRole('group', { name: 'Board zoom' })).toContainText('100%');
   await expectContained(page);
 });
+
+test('PCB export opens through a confirmed, undoable import', async ({ page }, testInfo) => {
+  await enterWorkspace(page, '#/labs/pcb');
+  const name = page.getByRole('textbox', { name: 'Board name', exact: true });
+  await name.fill('Portable sensor board');
+  await page.getByRole('button', { name: 'U2 MCU', exact: true }).press('ArrowRight');
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export board JSON' }).click();
+  const download = await downloadPromise;
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
+  const buffer = Buffer.concat(chunks);
+  const exported = JSON.parse(buffer.toString('utf8'));
+  await page.getByRole('button', { name: 'New board', exact: true }).click();
+  const input = page.getByLabel('Choose a PCB board file');
+  const preview = page.getByRole('region', { name: 'Board import preview' });
+  await input.setInputFiles({ name: download.suggestedFilename(), mimeType: 'application/json', buffer });
+  await expect(preview).toContainText('Portable sensor board');
+  await expect(preview.getByRole('button', { name: 'Open board' })).toBeFocused();
+  await expect(name).toHaveValue('Untitled PCB');
+  await expectContained(page);
+  await preview.screenshot({ path: testInfo.outputPath('pcb-import-preview.png') });
+  await preview.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(preview).toHaveCount(0);
+  await expect(name).toHaveValue('Untitled PCB');
+  await expect(page.getByRole('button', { name: 'Import board JSON' })).toBeFocused();
+  await input.setInputFiles({ name: 'board.json', mimeType: 'application/json', buffer });
+  await preview.getByRole('button', { name: 'Open board' }).click();
+  await expect(name).toHaveValue('Portable sensor board');
+  await page.getByRole('button', { name: 'Undo board edit' }).click();
+  await expect(name).toHaveValue('Untitled PCB');
+  await page.getByRole('button', { name: 'Redo board edit' }).click();
+  await expect(name).toHaveValue('Portable sensor board');
+  await page.reload();
+  await expect(name).toHaveValue('Portable sensor board');
+  const restored = await page.evaluate(() => JSON.parse(localStorage.getItem('zyloxp-pcb-draft-v1')!));
+  expect(restored.components).toEqual(exported.components);
+  expect(restored.traces).toEqual(exported.traces);
+});
+
+test('PCB rejects damaged imports and never evicts a saved board at capacity', async ({ page }) => {
+  await enterWorkspace(page, '#/labs/pcb');
+  const name = page.getByRole('textbox', { name: 'Board name', exact: true });
+  const input = page.getByLabel('Choose a PCB board file');
+  await input.setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{bad') });
+  await expect(page.getByRole('alert')).toContainText('not valid JSON');
+  await expect(name).toHaveValue('Sensor Node Rev A');
+  await input.setInputFiles({ name: 'large.json', mimeType: 'application/json', buffer: Buffer.alloc(256 * 1024 + 1) });
+  await expect(page.getByRole('alert')).toContainText('256 KB');
+  await expect(page.getByRole('region', { name: 'Board import preview' })).toHaveCount(0);
+  for (let index = 1; index <= 6; index += 1) {
+    await name.fill(`Revision ${index}`);
+    await page.getByRole('button', { name: 'Save board', exact: true }).click();
+  }
+  const before = await page.evaluate(() => localStorage.getItem('zyloxp-pcb-designs-v1'));
+  await name.fill('Revision 7');
+  await page.getByRole('button', { name: 'Save board', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Saved boards are full');
+  expect(await page.evaluate(() => localStorage.getItem('zyloxp-pcb-designs-v1'))).toBe(before);
+  await expect(page.getByRole('region', { name: 'Saved boards' }).locator('article')).toHaveCount(6);
+  await page.getByRole('button', { name: 'Delete Revision 1', exact: true }).click();
+  await page.getByRole('button', { name: 'Save board', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Saved boards' })).toContainText('Revision 7');
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expectContained(page);
+});
+
+test('restoring a PCB backup replaces the open draft and survives another reload', async ({ page }, testInfo) => {
+  await enterWorkspace(page, '#/labs/pcb');
+  const name = page.getByRole('textbox', { name: 'Board name', exact: true });
+  await name.fill('Draft before restore');
+  await expect(page.locator('.pcbDraftStatus')).toContainText('Draft saved');
+  const draft = await page.evaluate(() => JSON.parse(localStorage.getItem('zyloxp-pcb-draft-v1')!));
+  const restored = { ...draft, name: 'Restored from backup', components: [], traces: [] };
+  if (await page.getByRole('button', { name: 'More', exact: true }).isVisible()) {
+    await page.getByRole('button', { name: 'More', exact: true }).click();
+  }
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  const backup = page.getByRole('region', { name: 'Progress backup' });
+  await backup.locator('input[type="file"]').setInputFiles({
+    name: 'restore.json', mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ app: 'ZyloXP', schemaVersion: 1, createdAt: new Date().toISOString(),
+      data: { 'zyloxp-pcb-draft-v1': restored } })),
+  });
+  await expect(backup).toContainText('Backup ready to restore');
+  await expect(page.locator('.toast:not(.progressSyncToast)')).toHaveCount(0);
+  await expect(backup.locator('.backupPreview')).toContainText('PCB draft: Restored from backup');
+  await expect(backup.locator('.backupSnapshot.preview')).toHaveCount(0);
+  await backup.locator('.backupPreview').screenshot({ path: testInfo.outputPath('backup-restore-preview.png') });
+  await backup.getByRole('button', { name: 'Restore included data' }).click();
+  await expect(name).toHaveValue('Restored from backup');
+  await page.reload();
+  await expect(name).toHaveValue('Restored from backup');
+  const after = await page.evaluate(() => JSON.parse(localStorage.getItem('zyloxp-pcb-draft-v1')!));
+  expect(after.components).toEqual([]);
+  expect(after.traces).toEqual([]);
+});
+
+test('failed backup restore preserves local progress and can be retried', async ({ page }) => {
+  await enterWorkspace(page, '#/labs/pcb');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('zyloxp-pcb-draft-v1'))).not.toBeNull();
+  await expect(page.locator('.pcbDraftStatus')).toContainText('Draft saved');
+  const before = await page.evaluate(() => ({
+    learning: localStorage.getItem('zyloxp-learner-state-v1')!,
+    hearts: localStorage.getItem('zyloxp-heart-state-v1')!,
+    draft: localStorage.getItem('zyloxp-pcb-draft-v1')!,
+  }));
+  if (await page.getByRole('button', { name: 'More', exact: true }).isVisible()) {
+    await page.getByRole('button', { name: 'More', exact: true }).click();
+  }
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  const backup = page.getByRole('region', { name: 'Progress backup' });
+  const data = {
+    'zyloxp-learner-state-v1': { ...JSON.parse(before.learning), earnedXp: 450 },
+    'zyloxp-heart-state-v1': JSON.parse(before.hearts),
+    'zyloxp-pcb-draft-v1': { ...JSON.parse(before.draft), name: 'Recovered board' },
+  };
+  const payload = { app: 'ZyloXP', createdAt: new Date().toISOString(), schemaVersion: 1, data };
+  await backup.getByLabel('Choose a progress backup file').setInputFiles({
+    name: 'future.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ ...payload, schemaVersion: 99 })),
+  });
+  await expect(backup.getByRole('alert')).toContainText('version is not supported');
+  await expect(backup.getByRole('button', { name: 'Restore included data' })).toHaveCount(0);
+  await backup.getByLabel('Choose a progress backup file').setInputFiles({
+    name: 'valid.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(payload)),
+  });
+  await page.evaluate(() => {
+    const original = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key === 'zyloxp-heart-state-v1') {
+        Storage.prototype.setItem = original;
+        throw new DOMException('Storage is full', 'QuotaExceededError');
+      }
+      original.call(this, key, value);
+    };
+  });
+  await backup.getByRole('button', { name: 'Restore included data' }).click();
+  await expect(backup.getByRole('alert')).toContainText('Your previous local data was recovered');
+  const after = await page.evaluate(() => ({
+    learning: localStorage.getItem('zyloxp-learner-state-v1'),
+    hearts: localStorage.getItem('zyloxp-heart-state-v1'),
+    draft: localStorage.getItem('zyloxp-pcb-draft-v1'),
+  }));
+  expect(after).toEqual(before);
+  await backup.getByRole('button', { name: 'Restore included data' }).click();
+  await expect(page.getByRole('textbox', { name: 'Board name', exact: true })).toHaveValue('Recovered board');
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('zyloxp-learner-state-v1')!).earnedXp)).toBe(450);
+});

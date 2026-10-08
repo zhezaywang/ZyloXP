@@ -1,7 +1,6 @@
 import {
   Activity,
   Atom,
-  CheckCircle2,
   Image as ImageIcon,
   Maximize2,
   Minimize2,
@@ -15,6 +14,7 @@ import { getQuestionAtlasConcept } from './electricalAtlasData';
 import { resolvePublicAssetPath } from './publicAsset';
 import { QuestionSchematic } from './QuestionSchematic';
 import { useVisualInspector } from './useVisualInspector';
+import { ReferenceImage } from './ReferenceImage';
 
 const QuestionAtlasCompanion = lazy(() =>
   import('./ElectricalAtlas').then((module) => ({
@@ -53,13 +53,15 @@ export function QuestionVisualStage({
     'schematic',
   );
   const [isPowered, setIsPowered] = useState(true);
-  const { expanded, toggleExpanded } = useVisualInspector(question.id);
+  const { expanded, toggleExpanded, inspectorRef } = useVisualInspector(question.id);
   const atlasConcept = getQuestionAtlasConcept(question.topic);
   const result = revealed ? question.options[question.correctIndex] : '—';
   const target = question.formula.split('=')[0]?.trim() || 'result';
 
   return (
     <section
+      ref={inspectorRef}
+      tabIndex={expanded ? -1 : undefined}
       aria-label={
         expanded
           ? `${question.subtopic} expanded engineering visual`
@@ -82,8 +84,9 @@ export function QuestionVisualStage({
         </div>
 
         <div className="visualStageActions">
-          <div className="visualModeSwitch" aria-label="Question visual mode">
+          <div className="visualModeSwitch" role="group" aria-label="Question visual mode">
             <button
+              aria-pressed={mode === 'schematic'}
               className={mode === 'schematic' ? 'active' : ''}
               onClick={() => setMode('schematic')}
               type="button"
@@ -93,6 +96,7 @@ export function QuestionVisualStage({
             </button>
             {atlasConcept && (
               <button
+                aria-pressed={mode === 'concept'}
                 className={mode === 'concept' ? 'active' : ''}
                 onClick={() => setMode('concept')}
                 type="button"
@@ -102,6 +106,7 @@ export function QuestionVisualStage({
               </button>
             )}
             <button
+              aria-pressed={mode === 'source'}
               className={mode === 'source' ? 'active' : ''}
               onClick={() => setMode('source')}
               type="button"
@@ -172,13 +177,13 @@ export function QuestionVisualStage({
           </Suspense>
         ) : (
           <div className="verifiedDiagramView">
-            <img
+            <ReferenceImage
               src={resolvePublicAssetPath(question.diagram)}
               alt={question.diagramAlt}
             />
             <span>
-              <CheckCircle2 size={14} />
-              Verified engineering diagram
+              <ImageIcon size={14} />
+              Reference schematic
             </span>
           </div>
         )}

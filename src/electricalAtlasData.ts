@@ -143,7 +143,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     equation: 'VTH = INRN · RN = RTH',
     summary:
       'Replace a complex linear network with one source and one resistance at the terminals that matter.',
-    interactiveLabel: 'Equivalent-source comparator',
+    interactiveLabel: 'Thevenin source and load',
     diagramKind: 'network',
     principles: [
       'The open-circuit voltage becomes the Thevenin voltage.',
@@ -276,7 +276,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     equation: 'Y = f(A, B, state)',
     summary:
       'Move from truth tables to combinational logic and then to systems whose output depends on stored state.',
-    interactiveLabel: 'Logic and timing analyzer',
+    interactiveLabel: 'Propagation-delay timing',
     diagramKind: 'digital',
     principles: [
       'Combinational outputs depend only on current inputs.',
@@ -295,7 +295,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     equation: 'LSB = VREF / 2ᴺ',
     summary:
       'Translate between continuous voltage and discrete codes while tracking resolution, range, and conversion error.',
-    interactiveLabel: 'Quantizer staircase',
+    interactiveLabel: 'Sampling before quantization',
     diagramKind: 'sampling',
     principles: [
       'Bit depth sets the ideal code width.',
@@ -352,7 +352,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     equation: 'x(t) ⇄ X(f)',
     summary:
       'Represent a waveform as frequency components so filtering, modulation, and bandwidth become visible.',
-    interactiveLabel: 'Harmonic waveform builder',
+    interactiveLabel: 'Single Fourier component',
     diagramKind: 'phasor',
     principles: [
       'Time-domain shape and frequency-domain content describe the same signal.',

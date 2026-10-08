@@ -71,7 +71,7 @@ function readFiniteNumber(value: unknown, fallback = 0) {
     : fallback;
 }
 
-export function normalizeFocusSession(value: unknown): FocusSession | null {
+export function normalizeFocusSession(value: unknown, now = Date.now()): FocusSession | null {
   if (!value || typeof value !== 'object') {
     return null;
   }
@@ -87,19 +87,19 @@ export function normalizeFocusSession(value: unknown): FocusSession | null {
   }
 
   const startedAt = Math.max(0, readFiniteNumber(stored.startedAt));
-  if (startedAt === 0) {
+  if (startedAt === 0 || startedAt > now) {
     return null;
   }
 
   const endedAt =
     typeof stored.endedAt === 'number' && Number.isFinite(stored.endedAt)
-      ? Math.max(startedAt, stored.endedAt)
+      ? Math.min(now, Math.max(startedAt, stored.endedAt))
       : null;
   const pausedAt =
     endedAt === null &&
     typeof stored.pausedAt === 'number' &&
     Number.isFinite(stored.pausedAt)
-      ? Math.max(startedAt, stored.pausedAt)
+      ? Math.min(now, Math.max(startedAt, stored.pausedAt))
       : null;
 
   return {
@@ -122,19 +122,18 @@ export function normalizeFocusSession(value: unknown): FocusSession | null {
     objectiveId: stored.objectiveId.slice(0, 80),
     objectiveTitle: stored.objectiveTitle.slice(0, 120),
     pausedAt,
-    pausedDurationMs: Math.max(
-      0,
-      readFiniteNumber(stored.pausedDurationMs),
-    ),
+    pausedDurationMs: Math.min((endedAt ?? pausedAt ?? now) - startedAt,
+      Math.max(0, readFiniteNumber(stored.pausedDurationMs))),
     startedAt,
   };
 }
 
-export function normalizeFocusHistory(value: unknown): FocusSessionRecord[] {
+export function normalizeFocusHistory(value: unknown, now = Date.now()): FocusSessionRecord[] {
   if (!Array.isArray(value)) {
     return [];
   }
 
+  const seen = new Set<string>();
   return value
     .flatMap((item) => {
       if (!item || typeof item !== 'object') {
@@ -153,7 +152,7 @@ export function normalizeFocusHistory(value: unknown): FocusSessionRecord[] {
       }
 
       const completedAt = Math.max(0, readFiniteNumber(stored.completedAt));
-      if (completedAt === 0) {
+      if (completedAt === 0 || completedAt > now || !stored.id.trim()) {
         return [];
       }
 
@@ -166,11 +165,9 @@ export function normalizeFocusHistory(value: unknown): FocusSessionRecord[] {
           ),
           durationMinutes: stored.durationMinutes,
           energy: stored.energy,
-          focusedSeconds: Math.max(
-            0,
-            Math.round(readFiniteNumber(stored.focusedSeconds)),
-          ),
-          id: stored.id.slice(0, 80),
+          focusedSeconds: Math.min(stored.durationMinutes * 60,
+            Math.max(0, Math.round(readFiniteNumber(stored.focusedSeconds)))),
+          id: stored.id.trim().slice(0, 80),
           objectiveTitle: stored.objectiveTitle.slice(0, 120),
           outcome: stored.outcome,
           takeaway:
@@ -181,6 +178,11 @@ export function normalizeFocusHistory(value: unknown): FocusSessionRecord[] {
       ];
     })
     .sort((left, right) => right.completedAt - left.completedAt)
+    .filter((record) => {
+      if (seen.has(record.id)) return false;
+      seen.add(record.id);
+      return true;
+    })
     .slice(0, 20);
 }
 

@@ -22,6 +22,9 @@ import {
 } from 'react';
 import {
   readPendingFieldJournalDraft,
+  clearPendingFieldJournalDraft,
+  readFieldJournalEditor,
+  saveFieldJournalEditor,
 } from './fieldJournalDraft';
 import type {
   FieldJournalDraft as FieldNoteDraft,
@@ -35,6 +38,7 @@ import {
   sortFieldNotes,
 } from './fieldNotes';
 import type { FieldNote } from './fieldNotes';
+import { isProgressRestoreInProgress } from './progressRestore';
 
 type JournalFilter = 'all' | FieldNoteCategory;
 
@@ -96,13 +100,19 @@ export function FieldJournal({
   const [pendingDraft] = useState<FieldNoteDraft | null>(
     readPendingFieldJournalDraft,
   );
+  const [savedEditor] = useState(readFieldJournalEditor);
   const [filter, setFilter] = useState<JournalFilter>('all');
   const [query, setQuery] = useState('');
   const [draft, setDraft] = useState<FieldNoteDraft>(
-    pendingDraft ?? EMPTY_DRAFT,
+    pendingDraft ?? savedEditor?.draft ?? EMPTY_DRAFT,
   );
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [editorOpen, setEditorOpen] = useState(Boolean(pendingDraft));
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(
+    !pendingDraft && notes.some((note) => note.id === savedEditor?.editingNoteId) ? savedEditor!.editingNoteId : null,
+  );
+  const [editorOpen, setEditorOpen] = useState(Boolean(pendingDraft || savedEditor));
+  const [saveError, setSaveError] = useState(false);
+  const [draftError, setDraftError] = useState(false);
+  const [capacityError, setCapacityError] = useState(false);
   const [deletedNote, setDeletedNote] = useState<FieldNote | null>(null);
   const editorRef = useRef<HTMLFormElement | null>(null);
   const noteRefs = useRef(new Map<string, HTMLElement>());
@@ -122,16 +132,28 @@ export function FieldJournal({
 
   const pinnedCount = notes.filter((note) => note.pinned).length;
 
-  useEffect(() => {
+  function persistNotes() {
+    if (isProgressRestoreInProgress(FIELD_JOURNAL_STORAGE_KEY)) return;
     try {
       window.localStorage.setItem(
         FIELD_JOURNAL_STORAGE_KEY,
         JSON.stringify(notes),
       );
+      setSaveError(false);
     } catch {
-      // Keep the journal available in memory when storage is unavailable.
+      setSaveError(true);
     }
-  }, [notes]);
+  }
+
+  useEffect(persistNotes, [notes]);
+
+  useEffect(() => {
+    if (pendingDraft) clearPendingFieldJournalDraft();
+  }, [pendingDraft]);
+
+  useEffect(() => {
+    setDraftError(!saveFieldJournalEditor(editorOpen ? { draft, editingNoteId } : null));
+  }, [draft, editingNoteId, editorOpen]);
 
   useEffect(() => {
     onNotesChange?.(notes);
@@ -186,6 +208,7 @@ export function FieldJournal({
     setDraft(EMPTY_DRAFT);
     setEditingNoteId(null);
     setEditorOpen(false);
+    setCapacityError(false);
   }
 
   function openEditor(note?: FieldNote) {
@@ -217,6 +240,10 @@ export function FieldJournal({
     if (!title || !body) {
       return;
     }
+    if (!editingNoteId && notes.length >= MAX_FIELD_NOTES) {
+      setCapacityError(true);
+      return;
+    }
 
     const updatedAt = Date.now();
     setNotes((currentNotes) => {
@@ -246,12 +273,11 @@ export function FieldJournal({
         updatedAt,
       };
 
-      return sortFieldNotes([note, ...currentNotes]).slice(
-        0,
-        MAX_FIELD_NOTES,
-      );
+      return sortFieldNotes([note, ...currentNotes]);
     });
     setDeletedNote(null);
+    setFilter('all');
+    setQuery('');
     resetEditor();
   }
 
@@ -268,6 +294,7 @@ export function FieldJournal({
   }
 
   function handleDelete(note: FieldNote) {
+    setCapacityError(false);
     setNotes((currentNotes) =>
       currentNotes.filter((candidate) => candidate.id !== note.id),
     );
@@ -282,13 +309,18 @@ export function FieldJournal({
     if (!deletedNote) {
       return;
     }
+    if (notes.length >= MAX_FIELD_NOTES && !notes.some((note) => note.id === deletedNote.id)) {
+      setCapacityError(true);
+      return;
+    }
 
     setNotes((currentNotes) =>
       sortFieldNotes([
         deletedNote,
         ...currentNotes.filter((note) => note.id !== deletedNote.id),
-      ]).slice(0, MAX_FIELD_NOTES),
+      ]),
     );
+    setCapacityError(false);
     setDeletedNote(null);
   }
 
@@ -304,7 +336,7 @@ export function FieldJournal({
         </div>
         <div className="fieldJournalCounts" aria-label="Journal summary">
           <span>
-            <strong>{notes.length}</strong> notes
+            <strong>{notes.length}/{MAX_FIELD_NOTES}</strong> notes
           </span>
           <span>
             <strong>{pinnedCount}</strong> pinned
@@ -319,6 +351,17 @@ export function FieldJournal({
           {editorOpen ? 'Close editor' : 'New note'}
         </button>
       </header>
+
+      {saveError && (
+        <div className="workspaceNotice warning" role="alert">
+          <span>Notes could not be saved on this device. Keep this page open until saving succeeds.</span>
+          <button className="secondaryButton" onClick={persistNotes} type="button">Retry saving</button>
+        </div>
+      )}
+      {draftError && editorOpen && <p className="workspaceNotice warning" role="alert">Draft recovery is unavailable in this tab. Save the note before leaving.</p>}
+      {(capacityError || notes.length >= MAX_FIELD_NOTES) && (
+        <p className="workspaceNotice" role="status">Journal is full ({MAX_FIELD_NOTES} notes). Edit an existing note or remove one to make room.</p>
+      )}
 
       {editorOpen && (
         <form
@@ -410,7 +453,7 @@ export function FieldJournal({
             </button>
             <button
               className="primaryButton"
-              disabled={!draft.title.trim() || !draft.body.trim()}
+              disabled={!draft.title.trim() || !draft.body.trim() || (!editingNoteId && notes.length >= MAX_FIELD_NOTES)}
               type="submit"
             >
               <Check size={17} />

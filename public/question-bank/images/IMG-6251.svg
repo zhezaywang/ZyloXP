@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
-<!-- LaTeX/TikZ source: latex_sources/IMG-6251.tex -->
+<!-- App-local reviewed SVG; upstream LaTeX/TikZ source: latex_sources/IMG-6251.tex (not synchronized). -->
 <defs>
 <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
 <path d="M0,0 L0,6 L8,3 z" fill="#174A5B"/>
@@ -29,17 +29,17 @@
 <line class="wire" x1="430" y1="245" x2="430" y2="365"/>
 <line class="wire" x1="245" y1="305" x2="430" y2="305" marker-end="url(#arrow)"/>
 <line class="wire" x1="430" y1="270" x2="555" y2="205"/>
-<line class="wire" x1="555" y1="205" x2="700" y2="205" marker-end="url(#arrow)"/>
+<line class="wire" x1="700" y1="205" x2="555" y2="205" marker-end="url(#arrow)"/>
 <line class="wire" x1="430" y1="340" x2="555" y2="405"/>
 <line class="wire" x1="555" y1="405" x2="700" y2="405" marker-end="url(#arrow)"/>
 <line class="accent" x1="515" y1="384" x2="558" y2="406" marker-end="url(#arrow)"/>
-<text class="small" x="225" y="290" text-anchor="start">IB</text>
+<text class="small" x="245" y="280" text-anchor="start">IB = 20 uA</text>
 <text class="small" x="705" y="210" text-anchor="start">IC</text>
 <text class="small" x="705" y="410" text-anchor="start">IE</text>
 <text class="tiny" x="405" y="288" text-anchor="start">B</text>
 <text class="tiny" x="540" y="190" text-anchor="start">C</text>
 <text class="tiny" x="540" y="430" text-anchor="start">E</text>
-<text class="small" x="500" y="466" text-anchor="middle">NPN transistor in forward-active operation</text>
+<text class="small" x="500" y="466" text-anchor="middle">NPN, forward-active; beta = 90; IC and IB enter, IE leaves</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
 <text x="48" y="528" font-family="Inter,Arial,sans-serif" font-size="15" fill="#1F2933">A BJT has beta = 90 and base current 20 uA in active region. What is collector current?</text>
 </svg>

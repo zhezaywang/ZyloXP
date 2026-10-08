@@ -21,6 +21,7 @@ import {
   Trash2,
   TriangleAlert,
   Undo2,
+  Upload,
   Usb,
   ZoomIn,
   ZoomOut,
@@ -33,32 +34,31 @@ import {
   useState,
 } from 'react';
 import type {
+  ChangeEvent,
   KeyboardEvent as ReactKeyboardEvent,
   PointerEvent as ReactPointerEvent,
 } from 'react';
 import './PcbDesigner.css';
 import {
-  BOARD_WIDTH, BOARD_HEIGHT, MAX_COMPONENTS, MAX_TRACES, PCB_STORAGE_KEY,
-  readPcbDraft, readPcbProjects, writePcbDraft,
+  BOARD_WIDTH, BOARD_HEIGHT, MAX_COMPONENTS, MAX_TRACES, MAX_SAVED_BOARDS, MAX_PCB_FILE_BYTES, PCB_STORAGE_KEY, PCB_DRAFT_KEY,
+  parsePcbFile, readPcbDraft, readPcbProjects, writePcbDraft,
 } from './pcbStorage';
 import type { FootprintKind, PadEndpoint, PcbBoardSnapshot, PcbFootprint, PcbLayer, PcbTrace } from './pcbStorage';
+import { isProgressRestoreInProgress } from './progressRestore';
+import {
+  BOARD_EDGE_CLEARANCE, DRILL_RADIUS, FOOTPRINT_GEOMETRY, PAD_RADIUS, UNITS_PER_MM,
+  copperContactIssues, courtyardsOverlap, endpointKey, getCourtyardSize, getPadPosition,
+  getRotatedSize, hasRoutedConnection, rotatePoint, traceLengthMm, tracePath, tracePathBetween,
+} from './pcbGeometry';
+import type { FootprintGeometry } from './pcbGeometry';
 
 type PcbTool = 'place' | 'route' | 'select';
 
-type PadDefinition = {
-  name: string;
-  x: number;
-  y: number;
-};
-
-type FootprintDefinition = {
+type FootprintDefinition = FootprintGeometry & {
   description: string;
-  height: number;
   icon: LucideIcon;
   label: string;
-  pads: PadDefinition[];
   prefix: string;
-  width: number;
 };
 
 type EditorSnapshot = {
@@ -85,110 +85,60 @@ type PcbDesignerProps = {
   onSaved?: (savedCount: number) => void;
 };
 
-const BOARD_EDGE_CLEARANCE = 22;
 const TRACE_WIDTHS = [0.25, 0.5, 0.8, 1.2];
 const GRID_OPTIONS = [1, 2.5, 5];
-const BOARD_X_UNITS_PER_MM = BOARD_WIDTH / 160;
-const BOARD_Y_UNITS_PER_MM = BOARD_HEIGHT / 100;
+const BOARD_SIZE_LABEL = `${BOARD_WIDTH / UNITS_PER_MM} x ${BOARD_HEIGHT / UNITS_PER_MM} mm`;
 const MAX_HISTORY = 30;
 
 const FOOTPRINT_DEFINITIONS: Record<FootprintKind, FootprintDefinition> = {
   capacitor: {
-    description: '100 nF decoupling',
-    height: 34,
+    ...FOOTPRINT_GEOMETRY.capacitor,
+    description: 'Two-pad teaching capacitor',
     icon: CircuitBoard,
     label: 'Capacitor',
-    pads: [
-      { name: '1', x: -25, y: 0 },
-      { name: '2', x: 25, y: 0 },
-    ],
     prefix: 'C',
-    width: 70,
   },
   header: {
-    description: '2 x 3 programming header',
-    height: 70,
+    ...FOOTPRINT_GEOMETRY.header,
+    description: 'Six-pin teaching header; nonstandard pitch',
     icon: CircuitBoard,
     label: 'Header',
-    pads: [
-      { name: '1', x: -20, y: -20 },
-      { name: '2', x: 20, y: -20 },
-      { name: '3', x: -20, y: 0 },
-      { name: '4', x: 20, y: 0 },
-      { name: '5', x: -20, y: 20 },
-      { name: '6', x: 20, y: 20 },
-    ],
     prefix: 'J',
-    width: 70,
   },
   led: {
-    description: '0603 indicator LED',
-    height: 38,
+    ...FOOTPRINT_GEOMETRY.led,
+    description: 'Two-pad LED teaching footprint',
     icon: Lightbulb,
     label: 'LED',
-    pads: [
-      { name: 'A', x: -27, y: 0 },
-      { name: 'K', x: 27, y: 0 },
-    ],
     prefix: 'D',
-    width: 76,
   },
   mcu: {
-    description: 'QFN-32 microcontroller',
-    height: 126,
+    ...FOOTPRINT_GEOMETRY.mcu,
+    description: 'Eight-pin MCU teaching footprint',
     icon: Cpu,
     label: 'MCU',
-    pads: [
-      { name: '1', x: -68, y: -42 },
-      { name: '2', x: -68, y: -14 },
-      { name: '3', x: -68, y: 14 },
-      { name: '4', x: -68, y: 42 },
-      { name: '5', x: 68, y: 42 },
-      { name: '6', x: 68, y: 14 },
-      { name: '7', x: 68, y: -14 },
-      { name: '8', x: 68, y: -42 },
-    ],
     prefix: 'U',
-    width: 126,
   },
   regulator: {
-    description: '3.3 V LDO regulator',
-    height: 76,
+    ...FOOTPRINT_GEOMETRY.regulator,
+    description: 'IN/GND/OUT teaching footprint; not a package pinout',
     icon: CircuitBoard,
     label: 'Regulator',
-    pads: [
-      { name: 'IN', x: -52, y: -22 },
-      { name: 'GND', x: -52, y: 22 },
-      { name: 'OUT', x: 52, y: 0 },
-    ],
     prefix: 'U',
-    width: 100,
   },
   resistor: {
-    description: '0603 series resistor',
-    height: 34,
+    ...FOOTPRINT_GEOMETRY.resistor,
+    description: 'Two-pad resistor teaching footprint',
     icon: CircuitBoard,
     label: 'Resistor',
-    pads: [
-      { name: '1', x: -30, y: 0 },
-      { name: '2', x: 30, y: 0 },
-    ],
     prefix: 'R',
-    width: 82,
   },
   usb: {
-    description: 'USB-C power input',
-    height: 112,
+    ...FOOTPRINT_GEOMETRY.usb,
+    description: 'Four-signal teaching connector; not USB-C',
     icon: Usb,
-    label: 'USB-C',
-    pads: [
-      { name: 'VBUS', x: 55, y: -31 },
-      { name: 'D-', x: 55, y: -10 },
-      { name: 'D+', x: 55, y: 10 },
-      { name: 'GND', x: 55, y: 31 },
-    ],
+    label: 'Connector',
     prefix: 'J',
-    width: 110,
   },
 };
 
@@ -248,7 +198,7 @@ const SAMPLE_TRACES: PcbTrace[] = [
     end: { componentId: 'status-resistor', padIndex: 0 },
     id: 'trace-led-r',
     layer: 'top',
-    net: 'STATUS',
+    net: 'LED_K',
     start: { componentId: 'status-led', padIndex: 1 },
     width: 0.25,
   },
@@ -288,7 +238,7 @@ const SAMPLE_REQUIRED_CONNECTIONS: RequiredConnection[] = [
   {
     end: { componentId: 'status-resistor', padIndex: 0 },
     id: 'required-status-resistor',
-    net: 'STATUS',
+    net: 'LED_K',
     start: { componentId: 'status-led', padIndex: 1 },
   },
   {
@@ -333,10 +283,6 @@ function cloneEditorSnapshot(snapshot: EditorSnapshot): EditorSnapshot {
   };
 }
 
-function endpointKey(endpoint: PadEndpoint) {
-  return `${endpoint.componentId}:${endpoint.padIndex}`;
-}
-
 function connectionKey(start: PadEndpoint, end: PadEndpoint) {
   return [endpointKey(start), endpointKey(end)].sort().join('|');
 }
@@ -348,74 +294,6 @@ function endpointsMatch(
   rightEnd: PadEndpoint,
 ) {
   return connectionKey(leftStart, leftEnd) === connectionKey(rightStart, rightEnd);
-}
-
-function getRotatedSize(component: PcbFootprint) {
-  const definition = FOOTPRINT_DEFINITIONS[component.kind];
-  return component.rotation === 90 || component.rotation === 270
-    ? { height: definition.width, width: definition.height }
-    : { height: definition.height, width: definition.width };
-}
-
-function rotatePoint(x: number, y: number, rotation: PcbFootprint['rotation']) {
-  if (rotation === 90) {
-    return { x: -y, y: x };
-  }
-  if (rotation === 180) {
-    return { x: -x, y: -y };
-  }
-  if (rotation === 270) {
-    return { x: y, y: -x };
-  }
-  return { x, y };
-}
-
-function getPadPosition(component: PcbFootprint, padIndex: number) {
-  const pad = FOOTPRINT_DEFINITIONS[component.kind].pads[padIndex];
-  if (!pad) {
-    return { x: component.x, y: component.y };
-  }
-  const rotated = rotatePoint(pad.x, pad.y, component.rotation);
-  return { x: component.x + rotated.x, y: component.y + rotated.y };
-}
-
-function tracePath(trace: PcbTrace, components: PcbFootprint[]) {
-  const startComponent = components.find(
-    (component) => component.id === trace.start.componentId,
-  );
-  const endComponent = components.find(
-    (component) => component.id === trace.end.componentId,
-  );
-  if (!startComponent || !endComponent) {
-    return '';
-  }
-  const start = getPadPosition(startComponent, trace.start.padIndex);
-  const end = getPadPosition(endComponent, trace.end.padIndex);
-  return tracePathBetween(start, end);
-}
-
-function tracePathBetween(
-  start: { x: number; y: number },
-  end: { x: number; y: number },
-) {
-  const middleX = start.x + (end.x - start.x) * 0.52;
-  return `M ${start.x} ${start.y} H ${middleX} V ${end.y} H ${end.x}`;
-}
-
-function traceLengthMm(trace: PcbTrace, components: PcbFootprint[]) {
-  const startComponent = components.find(
-    (component) => component.id === trace.start.componentId,
-  );
-  const endComponent = components.find(
-    (component) => component.id === trace.end.componentId,
-  );
-  if (!startComponent || !endComponent) {
-    return 0;
-  }
-  const start = getPadPosition(startComponent, trace.start.padIndex);
-  const end = getPadPosition(endComponent, trace.end.padIndex);
-  return Math.abs(end.x - start.x) / BOARD_X_UNITS_PER_MM +
-    Math.abs(end.y - start.y) / BOARD_Y_UNITS_PER_MM;
 }
 
 const PAD_COUNTS = Object.fromEntries(
@@ -439,6 +317,7 @@ function readDraft() {
 }
 
 function persistDraft(snapshot: EditorSnapshot) {
+  if (isProgressRestoreInProgress(PCB_DRAFT_KEY)) return false;
   try {
     return writePcbDraft(window.localStorage, {
       ...snapshot, id: 'current-draft', savedAt: Date.now(),
@@ -469,6 +348,8 @@ function FootprintGraphic({
   const definition = FOOTPRINT_DEFINITIONS[component.kind];
   const bodyWidth = Math.max(32, definition.width - 28);
   const bodyHeight = Math.max(24, definition.height - 22);
+  const courtyard = getCourtyardSize(component.kind);
+  const rotatedSize = getRotatedSize(component);
 
   return (
     <g
@@ -478,15 +359,16 @@ function FootprintGraphic({
       onPointerDown={onPointerDown}
       role="button"
       tabIndex={0}
-      transform={`translate(${component.x} ${component.y}) rotate(${component.rotation})`}
+      transform={`translate(${component.x} ${component.y})`}
     >
+      <title>{definition.description}</title>
+      <g transform={`rotate(${component.rotation})`}>
       <rect
         className="pcbCourtyard"
-        height={definition.height + 14}
-        rx="4"
-        width={definition.width + 14}
-        x={-(definition.width + 14) / 2}
-        y={-(definition.height + 14) / 2}
+        height={courtyard.height}
+        width={courtyard.width}
+        x={-courtyard.width / 2}
+        y={-courtyard.height / 2}
       />
       {component.kind === 'usb' ? (
         <g className="pcbUsbBody">
@@ -497,8 +379,7 @@ function FootprintGraphic({
       ) : component.kind === 'led' ? (
         <g className="pcbLedBody">
           <circle r="18" />
-          <path d="M-7 8L0 -9L8 8Z" />
-          <path d="M12 -14l11 -8M17 -5l11 -8" />
+          <path className="pcbCathodeMark" d="M12 -12V12" />
         </g>
       ) : component.kind === 'capacitor' ? (
         <g className="pcbPassiveBody capacitor">
@@ -526,15 +407,18 @@ function FootprintGraphic({
             </>
           )}
           {component.kind === 'regulator' && (
-            <text textAnchor="middle" x="0" y="5">3V3</text>
+            <text textAnchor="middle" x="0" y="5">LDO</text>
           )}
         </g>
       )}
 
-      <text className="pcbReference" textAnchor="middle" x="0" y={-definition.height / 2 - 13}>
+      </g>
+      <text className="pcbReference" textAnchor="middle" textLength={component.reference.length > 6 ? Math.min(rotatedSize.width, component.reference.length * 8) : undefined} lengthAdjust="spacingAndGlyphs" x="0" y={Math.max(16 - component.y, -rotatedSize.height / 2 - 12)}>
         {component.reference}
       </text>
       {definition.pads.map((pad, padIndex) => {
+        const position = rotatePoint(pad.x, pad.y, component.rotation);
+        const labelOffset = rotatePoint((pad.x < 0 ? -1 : 1) * (PAD_RADIUS + 6), 0, component.rotation);
         const isRouteStart =
           routeStart?.componentId === component.id &&
           routeStart.padIndex === padIndex;
@@ -555,11 +439,12 @@ function FootprintGraphic({
             onPointerDown={(event) => onPadPointerDown(event, padIndex)}
             role="button"
             tabIndex={0}
-            transform={`translate(${pad.x} ${pad.y})`}
+            transform={`translate(${position.x} ${position.y})`}
           >
-            <circle className="pcbPadRing" r="10" />
-            <circle className="pcbPadHole" r="4" />
-            <text x="0" y="-14">{pad.name}</text>
+            <title>{component.reference}.{pad.name}: plated through hole, both copper layers</title>
+            <circle className="pcbPadRing" r={PAD_RADIUS} />
+            <circle className="pcbPadHole" r={DRILL_RADIUS} />
+            <text dominantBaseline={labelOffset.y < 0 ? 'auto' : labelOffset.y > 0 ? 'hanging' : 'central'} textAnchor={labelOffset.x < 0 ? 'end' : labelOffset.x > 0 ? 'start' : 'middle'} x={labelOffset.x} y={labelOffset.y}>{pad.name}</text>
           </g>
         );
       })}
@@ -593,9 +478,16 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
   const [zoom, setZoom] = useState(1);
   const [drcHasRun, setDrcHasRun] = useState(false);
   const [saveMessage, setSaveMessage] = useState(initialDraft ? 'Draft restored' : 'Sensor node starter');
-  const [draftStatus, setDraftStatus] = useState<'saving' | 'saved' | 'unavailable'>('saved');
+  const [draftStatus, setDraftStatus] = useState<'saving' | 'saved' | 'unavailable'>(initialDraft ? 'saved' : 'saving');
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [pendingImport, setPendingImport] = useState<PcbBoardSnapshot | null>(null);
+  const [projectError, setProjectError] = useState<string | null>(null);
+  const [importReading, setImportReading] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const importConfirmRef = useRef<HTMLButtonElement>(null);
+  const importButtonRef = useRef<HTMLButtonElement>(null);
+  const importRequestRef = useRef(0);
   const [undoStack, setUndoStack] = useState<EditorSnapshot[]>([]);
   const [redoStack, setRedoStack] = useState<EditorSnapshot[]>([]);
   const dragStateRef = useRef<{
@@ -614,8 +506,18 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
   editorSnapshotRef.current = { components, name, traces };
 
   useEffect(() => {
+    if (pendingImport) {
+      importConfirmRef.current?.focus({ preventScroll: true });
+      importConfirmRef.current?.scrollIntoView({ block: 'center', behavior: 'instant' });
+    }
+  }, [pendingImport]);
+
+  useEffect(() => () => { importRequestRef.current += 1; }, []);
+
+  useEffect(() => {
     setDraftStatus('saving');
     const timer = window.setTimeout(() => {
+      if (isProgressRestoreInProgress(PCB_DRAFT_KEY)) return;
       setDraftStatus(persistDraft(editorSnapshotRef.current) ? 'saved' : 'unavailable');
     }, 400);
     return () => window.clearTimeout(timer);
@@ -639,8 +541,9 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
     (component) => component.id === selectedId,
   ) ?? null;
   const selectedTrace = traces.find((trace) => trace.id === selectedTraceId) ?? null;
-  const gridUnitsX = gridMm * BOARD_X_UNITS_PER_MM;
-  const gridUnitsY = gridMm * BOARD_Y_UNITS_PER_MM;
+  const availableTraceWidths = [...new Set([...TRACE_WIDTHS, traceWidth, ...(selectedTrace ? [selectedTrace.width] : [])])].sort((a, b) => a - b);
+  const gridUnitsX = gridMm * UNITS_PER_MM;
+  const gridUnitsY = gridMm * UNITS_PER_MM;
   const requiredConnections = useMemo(
     () => SAMPLE_REQUIRED_CONNECTIONS.filter((connection) => {
       const startComponent = components.find(
@@ -652,6 +555,8 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
       return Boolean(
         startComponent &&
         endComponent &&
+        startComponent.kind === SAMPLE_COMPONENTS.find((component) => component.id === startComponent.id)?.kind &&
+        endComponent.kind === SAMPLE_COMPONENTS.find((component) => component.id === endComponent.id)?.kind &&
         FOOTPRINT_DEFINITIONS[startComponent.kind].pads[connection.start.padIndex] &&
         FOOTPRINT_DEFINITIONS[endComponent.kind].pads[connection.end.padIndex],
       );
@@ -660,9 +565,7 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
   );
   const unroutedConnections = useMemo(
     () => requiredConnections.filter(
-      (connection) => !traces.some((trace) =>
-        endpointsMatch(trace.start, trace.end, connection.start, connection.end),
-      ),
+      (connection) => !hasRoutedConnection(connection.start, connection.end, connection.net, traces),
     ),
     [requiredConnections, traces],
   );
@@ -676,10 +579,8 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
     if (!startComponent) {
       return '';
     }
-    return tracePathBetween(
-      getPadPosition(startComponent, routeStart.padIndex),
-      routeCursor,
-    );
+    const start = getPadPosition(startComponent, routeStart.padIndex);
+    return start ? tracePathBetween(start, routeCursor) : '';
   }, [components, routeCursor, routeStart]);
 
   const drcIssues = useMemo<DrcIssue[]>(() => {
@@ -703,17 +604,9 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
 
     for (let leftIndex = 0; leftIndex < components.length; leftIndex += 1) {
       const left = components[leftIndex];
-      const leftSize = getRotatedSize(left);
       for (let rightIndex = leftIndex + 1; rightIndex < components.length; rightIndex += 1) {
         const right = components[rightIndex];
-        const rightSize = getRotatedSize(right);
-        const overlapX =
-          Math.abs(left.x - right.x) <
-          (leftSize.width + rightSize.width) / 2 + 6;
-        const overlapY =
-          Math.abs(left.y - right.y) <
-          (leftSize.height + rightSize.height) / 2 + 6;
-        if (overlapX && overlapY) {
+        if (courtyardsOverlap(left, right)) {
           issues.push({
             detail: `${left.reference} and ${right.reference} have overlapping courtyards.`,
             id: `overlap-${left.id}-${right.id}`,
@@ -726,7 +619,7 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
 
     if (unroutedConnections.length > 0) {
       issues.push({
-        detail: `${unroutedConnections.length} required ${unroutedConnections.length === 1 ? 'connection remains' : 'connections remain'}; follow the dashed airwires.`,
+        detail: `${unroutedConnections.length} guided ${unroutedConnections.length === 1 ? 'connection remains' : 'connections remain'}.`,
         id: 'unrouted-required-connections',
         severity: 'warning',
         title: 'Unrouted connections',
@@ -735,7 +628,7 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
 
     const seenConnections = new Set<string>();
     traces.forEach((trace) => {
-      const key = connectionKey(trace.start, trace.end);
+      const key = `${trace.layer}:${connectionKey(trace.start, trace.end)}`;
       if (seenConnections.has(key)) {
         issues.push({
           detail: `${trace.net} duplicates an existing pad-to-pad route.`,
@@ -746,6 +639,7 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
       }
       seenConnections.add(key);
     });
+    issues.push(...copperContactIssues(components, traces, BOARD_WIDTH, BOARD_HEIGHT));
     if (routeStart) {
       issues.push({
         detail: 'Finish the active route or select the Route tool again to cancel it.',
@@ -766,12 +660,12 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
     },
     {
       complete: components.some((component) => component.kind === 'regulator'),
-      label: 'Add a 3.3 V regulator',
+      label: 'Add a regulator footprint',
     },
     {
       complete:
         components.filter((component) => component.kind === 'capacitor').length >= 2,
-      label: 'Place two decoupling capacitors',
+      label: 'Place two capacitors',
     },
     {
       complete: traces.length >= 6,
@@ -779,11 +673,11 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
     },
     {
       complete: requiredConnections.length > 0 && unroutedConnections.length === 0,
-      label: 'Finish every required net',
+      label: 'Join the guided pad pairs',
     },
     {
       complete: errorCount === 0,
-      label: 'Clear placement violations',
+      label: 'Clear detected geometry errors',
     },
   ];
   const completedChallengeChecks = challengeChecks.filter(
@@ -957,7 +851,7 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
       setSaveMessage('Board limit reached: 80 footprints');
       return;
     }
-    const definition = FOOTPRINT_DEFINITIONS[paletteKind];
+    const size = getCourtyardSize(paletteKind);
     const placementX = snapCoordinate(x, 'x');
     const placementY = snapCoordinate(y, 'y');
     const component: PcbFootprint = {
@@ -967,13 +861,13 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
       rotation: 0,
       x: clamp(
         placementX,
-        BOARD_EDGE_CLEARANCE + definition.width / 2,
-        BOARD_WIDTH - BOARD_EDGE_CLEARANCE - definition.width / 2,
+        BOARD_EDGE_CLEARANCE + size.width / 2,
+        BOARD_WIDTH - BOARD_EDGE_CLEARANCE - size.width / 2,
       ),
       y: clamp(
         placementY,
-        BOARD_EDGE_CLEARANCE + definition.height / 2,
-        BOARD_HEIGHT - BOARD_EDGE_CLEARANCE - definition.height / 2,
+        BOARD_EDGE_CLEARANCE + size.height / 2,
+        BOARD_HEIGHT - BOARD_EDGE_CLEARANCE - size.height / 2,
       ),
     };
     recordHistory();
@@ -1088,7 +982,7 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
       return;
     }
     const existingTrace = traces.find((trace) =>
-      endpointsMatch(trace.start, trace.end, routeStart, endpoint),
+      trace.layer === activeLayer && endpointsMatch(trace.start, trace.end, routeStart, endpoint),
     );
     if (existingTrace) {
       setSelectedId(null);
@@ -1108,11 +1002,28 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
       setRouteCursor(null);
       return;
     }
+    const endpointNets = new Set(traces.filter((trace) =>
+      [trace.start, trace.end].some((pad) => endpointKey(pad) === endpointKey(routeStart) || endpointKey(pad) === endpointKey(endpoint)),
+    ).map((trace) => trace.net));
+    for (const connection of requiredConnections) {
+      if ([connection.start, connection.end].some((pad) => endpointKey(pad) === endpointKey(routeStart) || endpointKey(pad) === endpointKey(endpoint))) {
+        endpointNets.add(connection.net);
+      }
+    }
+    if (requiredConnection) endpointNets.add(requiredConnection.net);
+    if (endpointNets.size > 1) {
+      setSaveMessage('Route blocked: the pads belong to different named nets');
+      setRouteStart(null);
+      setRouteCursor(null);
+      return;
+    }
+    let netIndex = traces.length + 1;
+    while (traces.some((trace) => trace.net === `N${netIndex}`)) netIndex += 1;
     const newTrace: PcbTrace = {
       end: endpoint,
       id: makeId('trace'),
       layer: activeLayer,
-      net: requiredConnection?.net ?? `N${traces.length + 1}`,
+      net: [...endpointNets][0] ?? `N${netIndex}`,
       start: routeStart,
       width: traceWidth,
     };
@@ -1131,14 +1042,16 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
     }
     recordHistory();
     setComponents((currentComponents) =>
-      currentComponents.map((component) =>
-        component.id === selectedId
-          ? {
-              ...component,
-              rotation: ((component.rotation + 90) % 360) as PcbFootprint['rotation'],
-            }
-          : component,
-      ),
+      currentComponents.map((component) => {
+        if (component.id !== selectedId) return component;
+        const rotated = { ...component, rotation: ((component.rotation + 90) % 360) as PcbFootprint['rotation'] };
+        const size = getRotatedSize(rotated);
+        return {
+          ...rotated,
+          x: clamp(rotated.x, BOARD_EDGE_CLEARANCE + size.width / 2, BOARD_WIDTH - BOARD_EDGE_CLEARANCE - size.width / 2),
+          y: clamp(rotated.y, BOARD_EDGE_CLEARANCE + size.height / 2, BOARD_HEIGHT - BOARD_EDGE_CLEARANCE - size.height / 2),
+        };
+      }),
     );
     markChanged();
   }
@@ -1315,21 +1228,27 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
   }
 
   function saveBoard() {
+    setProjectError(null);
+    if (savedDesigns.length >= MAX_SAVED_BOARDS) {
+      setProjectError('Saved boards are full. Export a copy or remove a saved board before saving another.');
+      return;
+    }
     const savedAt = Date.now();
     const snapshot: PcbBoardSnapshot = {
       components: cloneComponents(components),
-      id: `pcb-${savedAt}`,
+      id: makeId('pcb'),
       name: name.trim().slice(0, 60) || 'Untitled PCB',
       savedAt,
       traces: cloneTraces(traces),
     };
-    const nextDesigns = [snapshot, ...savedDesigns].slice(0, 6);
-    setSavedDesigns(nextDesigns);
+    const nextDesigns = [snapshot, ...savedDesigns];
     try {
       window.localStorage.setItem(PCB_STORAGE_KEY, JSON.stringify(nextDesigns));
+      setSavedDesigns(nextDesigns);
       setSaveMessage(`Saved ${new Date(savedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
     } catch {
-      setSaveMessage('Saved for this session');
+      setProjectError('This board could not be saved on this device. Export a copy to keep your work.');
+      return;
     }
     setDrcHasRun(true);
     onSaved?.(nextDesigns.length);
@@ -1348,16 +1267,19 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
     setActiveLayer('top');
     setTraceWidth(0.5);
     setDrcHasRun(false);
+    setZoom(1);
     setSaveMessage(`Loaded ${design.name}`);
   }
 
   function deleteSavedBoard(designId: string) {
     const nextDesigns = savedDesigns.filter((design) => design.id !== designId);
-    setSavedDesigns(nextDesigns);
     try {
       window.localStorage.setItem(PCB_STORAGE_KEY, JSON.stringify(nextDesigns));
+      setSavedDesigns(nextDesigns);
+      setProjectError(null);
     } catch {
-      // The visible shelf still updates for this session.
+      setProjectError('The saved board could not be removed. Your saved boards are unchanged.');
+      return;
     }
     onSaved?.(nextDesigns.length);
   }
@@ -1377,9 +1299,42 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
     const anchor = document.createElement('a');
     anchor.href = url;
     anchor.download = `${payload.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'zyloxp-pcb'}.json`;
+    document.body.appendChild(anchor);
     anchor.click();
-    URL.revokeObjectURL(url);
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
     setSaveMessage('Board JSON exported');
+  }
+
+  async function handleImportFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = '';
+    const request = ++importRequestRef.current;
+    setPendingImport(null);
+    setProjectError(null);
+    setImportReading(false);
+    if (!file) return;
+    if (file.size > MAX_PCB_FILE_BYTES) {
+      setProjectError('Choose a board file smaller than 256 KB.');
+      return;
+    }
+    setImportReading(true);
+    try {
+      const board = parsePcbFile(await file.text(), PAD_COUNTS);
+      if (request === importRequestRef.current) setPendingImport(board);
+    } catch (error) {
+      if (request === importRequestRef.current) {
+        setProjectError(error instanceof Error ? error.message : 'The board file could not be read.');
+      }
+    } finally {
+      if (request === importRequestRef.current) setImportReading(false);
+    }
+  }
+
+  function finishImport(open: boolean) {
+    if (open && pendingImport) loadBoard(pendingImport);
+    setPendingImport(null);
+    importButtonRef.current?.focus();
   }
 
   return (
@@ -1400,20 +1355,21 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
           </p>
         </div>
         <span className={`pcbDrcSummary ${errorCount > 0 ? 'error' : warningCount > 0 ? 'warning' : 'pass'}`}>
-          {errorCount > 0 ? <TriangleAlert size={20} /> : <CheckCircle2 size={20} />}
+          {errorCount > 0 || warningCount > 0 ? <TriangleAlert size={20} /> : <CheckCircle2 size={20} />}
           <span>
-            <small>Live DRC</small>
-            <strong>{errorCount > 0 ? `${errorCount} errors` : warningCount > 0 ? `${warningCount} ${warningCount === 1 ? 'warning' : 'warnings'}` : 'Board clear'}</strong>
+            <small>Geometry checks</small>
+            <strong>{errorCount > 0 ? `${errorCount} errors` : warningCount > 0 ? `${warningCount} ${warningCount === 1 ? 'warning' : 'warnings'}` : 'No detected issues'}</strong>
           </span>
         </span>
       </header>
 
       <section className="pcbMetricBand" aria-label="PCB design metrics">
-        <div><CircuitBoard size={18} /><span>Board</span><strong>160 x 100 mm</strong></div>
+        <div><CircuitBoard size={18} /><span>Board</span><strong>{BOARD_SIZE_LABEL}</strong></div>
         <div><Cpu size={18} /><span>Footprints</span><strong>{components.length}</strong></div>
         <div><Route size={18} /><span>Copper routes</span><strong>{traces.length}</strong></div>
-        <div><CheckCircle2 size={18} /><span>Connections</span><strong>{requiredConnections.length > 0 ? `${requiredConnections.length - unroutedConnections.length}/${requiredConnections.length} routed` : `${routedPadCount} pads`}</strong></div>
+        <div><CheckCircle2 size={18} /><span>Guided pairs</span><strong>{requiredConnections.length > 0 ? `${requiredConnections.length - unroutedConnections.length}/${requiredConnections.length} joined` : `${routedPadCount} routed pads`}</strong></div>
       </section>
+      <p className="pcbModelScope">Teaching layout, not fabrication-ready. Nonstandard plated-hole footprints; no verified device pinouts or complete circuit netlist.</p>
 
       <div className="pcbWorkspace">
         <aside className="pcbPalette" aria-label="Footprint palette" data-library-open={libraryOpen}>
@@ -1437,7 +1393,7 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
                     setEditorTool('place');
                     setLibraryOpen(false);
                   }}
-                  title={`Place ${definition.label}`}
+                  title={definition.description}
                   type="button"
                 >
                   <Icon size={18} />
@@ -1455,7 +1411,7 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
               <span>{completedChallengeChecks}/{challengeChecks.length}</span>
               <div>
                 <p className="eyebrow">Design brief</p>
-                <h3>Sensor node</h3>
+                <h3>Layout study</h3>
               </div>
             </header>
             <div className="pcbChallengeMeter"><span style={{ width: `${(completedChallengeChecks / challengeChecks.length) * 100}%` }} /></div>
@@ -1507,7 +1463,7 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
             <label className="pcbTraceWidth">
               <span>Trace</span>
               <select aria-label="Copper trace width" onChange={(event) => setTraceWidth(Number(event.currentTarget.value))} value={traceWidth}>
-                {TRACE_WIDTHS.map((width) => <option key={width} value={width}>{width.toFixed(2)} mm</option>)}
+                {availableTraceWidths.map((width) => <option key={width} value={width}>{width.toFixed(2)} mm</option>)}
               </select>
             </label>
             </div>
@@ -1537,34 +1493,9 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
                 <pattern height={gridUnitsY} id="pcb-grid" patternUnits="userSpaceOnUse" width={gridUnitsX}>
                   <path d={`M${gridUnitsX} 0H0V${gridUnitsY}`} fill="none" stroke="currentColor" strokeWidth="1" />
                 </pattern>
-                <filter id="pcb-component-shadow" x="-30%" y="-30%" width="160%" height="160%">
-                  <feDropShadow dx="0" dy="3" floodColor="#052a23" floodOpacity=".34" stdDeviation="3" />
-                </filter>
               </defs>
-              <rect className="pcbBoardEdge" height={BOARD_HEIGHT - 8} rx="18" width={BOARD_WIDTH - 8} x="4" y="4" />
-              <rect className="pcbBoardSurface" height={BOARD_HEIGHT - 24} onPointerDown={handleBoardPointerDown} rx="12" width={BOARD_WIDTH - 24} x="12" y="12" />
-              <rect className="pcbBoardGrid" height={BOARD_HEIGHT - 24} pointerEvents="none" rx="12" width={BOARD_WIDTH - 24} x="12" y="12" />
-              <g className="pcbBoardSilkscreen" pointerEvents="none">
-                <path d="M72 54H238M72 54V100M826 438V468H660" />
-                <text x="76" y="42">{name.trim().toUpperCase().slice(0, 32) || 'UNTITLED PCB'}</text>
-                <text textAnchor="end" x="820" y="510">160 x 100 mm · 2 LAYER</text>
-                <path d="M440 26h20M450 16v20" />
-              </g>
-              {[
-                [42, 42],
-                [858, 42],
-                [42, 498],
-                [858, 498],
-              ].map(([x, y]) => (
-                <g className="pcbMountingHole" key={`${x}-${y}`} pointerEvents="none">
-                  <circle cx={x} cy={y} r="15" />
-                  <circle cx={x} cy={y} r="7" />
-                </g>
-              ))}
-              <g className="pcbCopperZone" pointerEvents="none">
-                <path d="M44 452H856V486H44Z" />
-                <text x="65" y="477">GND PLANE</text>
-              </g>
+              <rect className="pcbBoardSurface" height={BOARD_HEIGHT} onPointerDown={handleBoardPointerDown} width={BOARD_WIDTH} />
+              <rect className="pcbBoardGrid" height={BOARD_HEIGHT} pointerEvents="none" width={BOARD_WIDTH} />
               <g className="pcbAirwireLayer" pointerEvents="none">
                 {unroutedConnections.map((connection) => {
                   const startComponent = components.find((component) => component.id === connection.start.componentId);
@@ -1574,32 +1505,27 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
                   }
                   const start = getPadPosition(startComponent, connection.start.padIndex);
                   const end = getPadPosition(endComponent, connection.end.padIndex);
+                  if (!start || !end) return null;
                   return (
                     <g key={connection.id}>
+                      <title>{connection.net}: unrouted guided pair</title>
                       <line x1={start.x} x2={end.x} y1={start.y} y2={end.y} />
-                      <text textAnchor="middle" x={(start.x + end.x) / 2} y={(start.y + end.y) / 2 - 7}>{connection.net}</text>
                     </g>
                   );
                 })}
               </g>
-              <g className="pcbTraceLayer bottom">
-                {traces.filter((trace) => trace.layer === 'bottom').map((trace) => (
+              {([activeLayer === 'top' ? 'bottom' : 'top', activeLayer] as PcbLayer[]).map((layer) => (
+              <g className={`pcbTraceLayer ${layer}`} key={layer} aria-hidden={!showInactiveLayer && activeLayer !== layer}>
+                {traces.filter((trace) => trace.layer === layer).map((trace) => (
                   <g className={`pcbTrace ${trace.id === selectedTraceId ? 'selected' : ''}`} key={trace.id}>
-                    <path aria-label={`${trace.net} route on ${trace.layer} copper`} role="button" tabIndex={showInactiveLayer || activeLayer === trace.layer ? 0 : -1} className="pcbTraceHit" d={tracePath(trace, components)} onPointerDown={(event) => handleTracePointerDown(event, trace)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleTracePointerDown(event, trace); } }} style={{ strokeWidth: 20 + trace.width * 7 }} />
-                    <path className="pcbTraceVisual" d={tracePath(trace, components)} pointerEvents="none" style={{ strokeWidth: 6 + trace.width * 7 }} />
+                    <path aria-label={`${trace.net} route on ${trace.layer} copper`} role="button" tabIndex={showInactiveLayer || activeLayer === trace.layer ? 0 : -1} className="pcbTraceHit" d={tracePath(trace, components)} onPointerDown={(event) => handleTracePointerDown(event, trace)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleTracePointerDown(event, trace); } }} style={{ strokeWidth: Math.max(16, trace.width * UNITS_PER_MM) }} />
+                    <path className="pcbTraceVisual" d={tracePath(trace, components)} pointerEvents="none" style={{ strokeWidth: trace.width * UNITS_PER_MM }} />
                   </g>
                 ))}
               </g>
-              <g className="pcbTraceLayer top">
-                {traces.filter((trace) => trace.layer === 'top').map((trace) => (
-                  <g className={`pcbTrace ${trace.id === selectedTraceId ? 'selected' : ''}`} key={trace.id}>
-                    <path aria-label={`${trace.net} route on ${trace.layer} copper`} role="button" tabIndex={showInactiveLayer || activeLayer === trace.layer ? 0 : -1} className="pcbTraceHit" d={tracePath(trace, components)} onPointerDown={(event) => handleTracePointerDown(event, trace)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleTracePointerDown(event, trace); } }} style={{ strokeWidth: 20 + trace.width * 7 }} />
-                    <path className="pcbTraceVisual" d={tracePath(trace, components)} pointerEvents="none" style={{ strokeWidth: 6 + trace.width * 7 }} />
-                  </g>
-                ))}
-              </g>
+              ))}
               {routePreviewPath && (
-                <path className={`pcbRoutePreview ${activeLayer}`} d={routePreviewPath} pointerEvents="none" style={{ strokeWidth: 6 + traceWidth * 7 }} />
+                <path className={`pcbRoutePreview ${activeLayer}`} d={routePreviewPath} pointerEvents="none" style={{ strokeWidth: traceWidth * UNITS_PER_MM }} />
               )}
               {components.map((component) => (
                 <FootprintGraphic
@@ -1618,6 +1544,9 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
                 />
               ))}
             </svg>
+          </div>
+          <div className="pcbLayerLegend" aria-label="Board layer legend">
+            <span className="top">Top copper</span><span className="bottom">Bottom copper</span><span className="airwire">Unrouted</span><span>Top view; holes connect both layers</span>
           </div>
 
           <footer className="pcbStageStatus" aria-live="polite">
@@ -1664,7 +1593,7 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
                   <label>
                     <span>Trace width</span>
                     <select onChange={(event) => updateSelectedTrace({ width: Number(event.currentTarget.value) })} value={selectedTrace.width}>
-                      {TRACE_WIDTHS.map((width) => <option key={width} value={width}>{width.toFixed(2)} mm</option>)}
+                      {availableTraceWidths.map((width) => <option key={width} value={width}>{width.toFixed(2)} mm</option>)}
                     </select>
                   </label>
                 </div>
@@ -1676,9 +1605,10 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
               <>
                 <dl className="pcbComponentDetails">
                   <div><dt>Footprint</dt><dd>{FOOTPRINT_DEFINITIONS[selectedComponent.kind].label}</dd></div>
-                  <div><dt>Rotation</dt><dd>{selectedComponent.rotation} deg</dd></div>
-                  <div><dt>Position</dt><dd>{(selectedComponent.x / BOARD_X_UNITS_PER_MM).toFixed(1)}, {(selectedComponent.y / BOARD_Y_UNITS_PER_MM).toFixed(1)} mm</dd></div>
+                  <div><dt>Rotation</dt><dd>{selectedComponent.rotation} deg CW</dd></div>
+                  <div><dt>Position</dt><dd>{(selectedComponent.x / UNITS_PER_MM).toFixed(1)}, {(selectedComponent.y / UNITS_PER_MM).toFixed(1)} mm</dd></div>
                   <div><dt>Pads</dt><dd>{FOOTPRINT_DEFINITIONS[selectedComponent.kind].pads.length}</dd></div>
+                  <div><dt>Pad / drill</dt><dd>{(2 * PAD_RADIUS / UNITS_PER_MM).toFixed(2)} / {(2 * DRILL_RADIUS / UNITS_PER_MM).toFixed(2)} mm</dd></div>
                 </dl>
                 <div className="pcbInspectorActions">
                   <button onClick={rotateSelected} type="button"><RotateCw size={16} />Rotate</button>
@@ -1692,28 +1622,29 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
 
           <section className={`pcbDrcPanel ${drcHasRun ? 'checked' : ''}`}>
             <header>
-              <span className={errorCount > 0 ? 'error' : 'pass'}>{errorCount > 0 ? <TriangleAlert size={18} /> : <CheckCircle2 size={18} />}</span>
+              <span className={errorCount > 0 ? 'error' : warningCount > 0 ? 'warning' : 'pass'}>{errorCount > 0 || warningCount > 0 ? <TriangleAlert size={18} /> : <CheckCircle2 size={18} />}</span>
               <div>
-                <p className="eyebrow">Design rules</p>
-                <h2>{errorCount > 0 ? 'Resolve placement' : 'No hard errors'}</h2>
+                <p className="eyebrow">Geometry only</p>
+                <h2>{errorCount > 0 ? 'Resolve geometry' : 'No detected errors'}</h2>
               </div>
-              <button onClick={() => setDrcHasRun(true)} type="button">Run DRC</button>
+              <button onClick={() => setDrcHasRun(true)} type="button">Check</button>
             </header>
             <div className="pcbDrcCounts">
               <span><strong>{errorCount}</strong> errors</span>
               <span><strong>{warningCount}</strong> warnings</span>
             </div>
             <ul>
-              {drcIssues.slice(0, 4).map((issue) => (
+              {drcIssues.map((issue) => (
                 <li className={issue.severity} key={issue.id}>
                   {issue.severity === 'error' ? <TriangleAlert size={15} /> : <Route size={15} />}
                   <span><strong>{issue.title}</strong><small>{issue.detail}</small></span>
                 </li>
               ))}
               {drcIssues.length === 0 && (
-                <li className="pass"><CheckCircle2 size={15} /><span><strong>Layout checks clear</strong><small>Placement and guided connections checked.</small></span></li>
+                <li className="pass"><CheckCircle2 size={15} /><span><strong>Geometry checks clear</strong><small>Placement, copper contact and guided pad pairs only.</small></span></li>
               )}
             </ul>
+            <p className="pcbCheckScope">No clearance, electrical, thermal or manufacturing validation. Guided pairs use named routes through shared pads, not a complete connectivity extraction.</p>
           </section>
 
           <section className="pcbProjectControls">
@@ -1724,7 +1655,22 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
             <div>
               <button className="pcbSaveButton" onClick={saveBoard} type="button"><Save size={16} />Save board</button>
               <button aria-label="Export board JSON" onClick={exportBoard} title="Export board JSON" type="button"><Download size={17} /></button>
+              <button aria-label="Import board JSON" onClick={() => importInputRef.current?.click()} ref={importButtonRef} title="Import board JSON" type="button"><Upload size={17} /></button>
             </div>
+            <input accept=".json,application/json" aria-label="Choose a PCB board file" hidden onChange={handleImportFile} ref={importInputRef} type="file" />
+            {importReading && <p className="pcbProjectMessage" role="status">Reading board...</p>}
+            {projectError && <p className="pcbProjectMessage error" role="alert">{projectError}</p>}
+            {pendingImport && (
+              <section aria-label="Board import preview" className="pcbImportPreview">
+                <strong>{pendingImport.name}</strong>
+                <p>{pendingImport.components.length} footprints / {pendingImport.traces.length} routes</p>
+                <p>Opening replaces your current draft. Saved boards stay unchanged.</p>
+                <div>
+                  <button className="pcbSaveButton" onClick={() => finishImport(true)} ref={importConfirmRef} type="button">Open board</button>
+                  <button onClick={() => finishImport(false)} type="button">Cancel</button>
+                </div>
+              </section>
+            )}
             <div className="pcbResetActions">
               <button onClick={resetSample} type="button"><RotateCcw size={15} />Sample</button>
               <button onClick={createBlankBoard} type="button"><Plus size={15} />New board</button>
@@ -1737,7 +1683,7 @@ export function PcbDesigner({ onSaved }: PcbDesignerProps) {
         <section className="pcbSavedShelf" aria-labelledby="pcb-saved-title">
           <header>
             <div><p className="eyebrow">Local projects</p><h2 id="pcb-saved-title">Saved boards</h2></div>
-            <span>{savedDesigns.length}/6 saved</span>
+            <span>{savedDesigns.length}/{MAX_SAVED_BOARDS} saved</span>
           </header>
           <div>
             {savedDesigns.map((design) => (

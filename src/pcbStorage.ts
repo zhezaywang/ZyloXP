@@ -31,6 +31,8 @@ export const BOARD_WIDTH = 900;
 export const BOARD_HEIGHT = 540;
 export const MAX_COMPONENTS = 80;
 export const MAX_TRACES = 240;
+export const MAX_SAVED_BOARDS = 6;
+export const MAX_PCB_FILE_BYTES = 256 * 1024;
 type PadCounts = Record<FootprintKind, number>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -92,6 +94,23 @@ export function parsePcbBoard(value: unknown, padCounts: PadCounts): PcbBoardSna
   return { id: value.id, name: value.name.trim().slice(0, 60) || 'Untitled PCB', savedAt: value.savedAt, components, traces };
 }
 
+export function parsePcbFile(serialized: string, padCounts: PadCounts): PcbBoardSnapshot {
+  if (new TextEncoder().encode(serialized).byteLength > MAX_PCB_FILE_BYTES) {
+    throw new Error('Choose a board file smaller than 256 KB.');
+  }
+  let value: unknown;
+  try {
+    value = JSON.parse(serialized);
+  } catch {
+    throw new Error('That file is not valid JSON.');
+  }
+  const board = parsePcbBoard(value, padCounts);
+  if (!board) {
+    throw new Error('This file is not a valid ZyloXP board. Check its components and connections.');
+  }
+  return board;
+}
+
 export function readPcbDraft(storage: Pick<Storage, 'getItem'>, padCounts: PadCounts) {
   try {
     return parsePcbBoard(JSON.parse(storage.getItem(PCB_DRAFT_KEY) ?? 'null'), padCounts);
@@ -113,7 +132,7 @@ export function readPcbProjects(storage: Pick<Storage, 'getItem'>, padCounts: Pa
   try {
     const value: unknown = JSON.parse(storage.getItem(PCB_STORAGE_KEY) ?? '[]');
     if (!Array.isArray(value)) return [];
-    return value.slice(0, 6).flatMap((item) => {
+    return value.slice(0, MAX_SAVED_BOARDS).flatMap((item) => {
       const board = parsePcbBoard(item, padCounts);
       return board ? [board] : [];
     });
