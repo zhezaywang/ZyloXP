@@ -1,5 +1,40 @@
 import { expect, test, type Page } from '@playwright/test';
 
+test('question header fits narrow screens with wide fonts and enlarged labels', async ({ page }, info) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto('/#/practice/question/EE-00001');
+  await page.getByRole('button', { name: 'Start learning', exact: true }).click();
+  const progress = page.locator('.lessonPageStats[aria-label="Prompt progress"]');
+  await expect(progress).toBeVisible();
+  await progress.evaluate((element) => {
+    const sizes = Array.from(element.querySelectorAll<HTMLElement>('button, span, strong'))
+      .map((child) => ({ child, size: parseFloat(getComputedStyle(child).fontSize) }));
+    for (const { child, size } of sizes) {
+      child.style.fontFamily = 'Verdana, monospace';
+      child.style.fontSize = `${size * 1.5}px`;
+    }
+  });
+  for (const width of [320, 390, 430]) {
+    await page.setViewportSize({ width, height: 740 });
+    const layout = await progress.evaluate((element) => {
+      const parent = element.getBoundingClientRect();
+      return Array.from(element.querySelectorAll('button, span, strong')).map((child) => {
+        const box = child.getBoundingClientRect();
+        return { text: child.textContent, inside: box.left >= parent.left && box.right <= parent.right,
+          clipped: child.scrollWidth > child.clientWidth + 1 };
+      });
+    });
+    expect(layout.filter((item) => !item.inside || item.clipped)).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  }
+  await page.setViewportSize({ width: 320, height: 740 });
+  await progress.screenshot({ path: info.outputPath('question-header-large-text.png') });
+  await progress.getByRole('button', { name: 'Save question', exact: true }).click();
+  await expect(progress.getByRole('button', { name: 'Saved', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await progress.getByRole('button', { name: 'Save formula', exact: true }).click();
+  await expect(progress.getByRole('button', { name: 'In notebook', exact: true })).toHaveAttribute('aria-pressed', 'true');
+});
+
 async function mediaTextCollisions(page: Page) {
   return page.locator('#main-content').evaluate((root) => {
     const visible = (element: Element) => {
