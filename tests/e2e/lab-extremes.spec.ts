@@ -49,9 +49,14 @@ for (const fixture of cases) {
       });
       expect(box.y).toBeGreaterThanOrEqual(49.99);
       expect(box.y + box.height).toBeLessThanOrEqual(158.01);
-      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      const shell = page.locator('.appShell');
       const rotor = visual.locator('.labPidRotor');
       const marker = visual.locator('.labPidResponseMarker');
+      await expect(shell).toHaveAttribute('data-motion', 'reduced');
+      await expect.poll(() => rotor.evaluate((element) => element.getAnimations().length)).toBe(0);
+      await expect.poll(() => marker.evaluate((element) => element.getAnimations().length)).toBe(0);
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      await expect(shell).toHaveAttribute('data-motion', 'full');
       await expect.poll(() => visual.evaluate((element) => {
         const timing = (selector: string) => {
           const target = element.querySelector(selector)!;
@@ -64,6 +69,7 @@ for (const fixture of cases) {
           synchronized: typeof rotor.duration === 'number' && rotor.duration > 0 && rotor.duration === marker.duration };
       })).toEqual({ rotorFrames: 121, markerFrames: 121, synchronized: true });
       await page.emulateMedia({ reducedMotion: 'reduce' });
+      await expect(shell).toHaveAttribute('data-motion', 'reduced');
       await expect.poll(() => rotor.evaluate((element) => element.getAnimations().length)).toBe(0);
       await expect.poll(() => marker.evaluate((element) => element.getAnimations().length)).toBe(0);
     }

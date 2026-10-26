@@ -243,7 +243,7 @@ def main() -> None:
         + export("generatedTopicSignals", generated_topics)
         + export("generatedLessonQuestions", generated_questions)
     )
-    OUTPUT_TS.write_text(output, encoding="utf-8")
+    OUTPUT_TS.write_text(output.rstrip() + "\n", encoding="utf-8")
 
     print(
         f"Synced {total_questions:,} questions, {len(generated_questions)} app samples, "

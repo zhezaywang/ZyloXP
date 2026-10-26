@@ -12778,6 +12778,8 @@ body,
 }
 
 /* Smart review planner and spaced recall */
+.sessionHistoryEntry { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+.sessionHistoryEntry > button { min-height: 44px; gap: 8px; white-space: normal; }
 .reviewPlannerBand {
   display: grid;
   gap: 14px;
@@ -18767,118 +18769,6 @@ body,
   align-items: start;
 }
 
-.checkpointBreakdown {
-  display: grid;
-  min-width: 0;
-  gap: 12px;
-}
-
-.checkpointBreakdown > header {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.checkpointBreakdown h2 {
-  margin: 3px 0 0;
-  font-size: 1.18rem;
-  letter-spacing: 0;
-}
-
-.checkpointBreakdown > header > span {
-  color: #9b461f;
-  font-size: 0.65rem;
-  font-weight: 900;
-}
-
-.checkpointBreakdown > div {
-  display: grid;
-  max-height: 650px;
-  gap: 8px;
-  overflow: auto;
-  padding-right: 5px;
-}
-
-.checkpointBreakdown article {
-  display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) auto auto;
-  gap: 9px;
-  align-items: center;
-  min-width: 0;
-  padding: 10px;
-  border: 1px solid #c6d7dd;
-  border-left: 4px solid #168267;
-  border-radius: 8px;
-  background: #fbfefd;
-}
-
-.checkpointBreakdown article.missed {
-  border-left-color: #ce6431;
-  background: #fffaf7;
-}
-
-.checkpointBreakdown article > span {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  place-items: center;
-  border: 2px solid #88c9af;
-  border-radius: 7px;
-  color: #08745a;
-  font-size: 0.65rem;
-  font-weight: 900;
-}
-
-.checkpointBreakdown article.missed > span {
-  border-color: #dda17d;
-  color: #99421e;
-}
-
-.checkpointBreakdown article > div {
-  display: grid;
-  min-width: 0;
-  gap: 2px;
-}
-
-.checkpointBreakdown article small {
-  color: #687e86;
-  font-size: 0.56rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.checkpointBreakdown article strong {
-  font-size: 0.72rem;
-}
-
-.checkpointBreakdown article p {
-  display: -webkit-box;
-  overflow: hidden;
-  margin: 0;
-  color: #72848b;
-  font-size: 0.6rem;
-  line-height: 1.35;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-}
-
-.checkpointBreakdown article em {
-  color: #617982;
-  font-size: 0.58rem;
-  font-style: normal;
-  font-weight: 800;
-  text-transform: capitalize;
-}
-
-.checkpointBreakdown article.correct > svg {
-  color: #168267;
-}
-
-.checkpointBreakdown article.missed > svg {
-  color: #ce6431;
-}
-
 .checkpointResultsRail {
   position: sticky;
   top: 16px;
@@ -19122,23 +19012,6 @@ body,
     border-bottom: 0;
   }
 
-  .checkpointBreakdown > header {
-    align-items: start;
-    flex-direction: column;
-  }
-
-  .checkpointBreakdown article {
-    grid-template-columns: 30px minmax(0, 1fr) auto;
-  }
-
-  .checkpointBreakdown article > em {
-    grid-column: 2;
-  }
-
-  .checkpointBreakdown article > svg {
-    grid-column: 3;
-    grid-row: 1 / span 2;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -20636,7 +20509,7 @@ body,
 .weeklyPlanChart > div > span i {
   display: block;
   width: 100%;
-  min-height: 4px;
+  min-height: 0;
   background: #b8cbd1;
   transform-origin: bottom;
   animation: weeklyPlanBarRise 420ms ease both;
@@ -32622,7 +32495,7 @@ circle.labInstrumentScrew {
 .labBenchBackdrop {
   position: fixed;
   inset: 0;
-  z-index: 55;
+  z-index: 80;
   display: grid;
   place-items: center;
   padding: 18px;
@@ -36957,7 +36830,7 @@ circle.labInstrumentScrew {
 
 .notebookLibraryNavigation nav {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
   gap: 8px;
 }
 
@@ -37053,6 +36926,20 @@ circle.labInstrumentScrew {
   box-shadow: inset 3px 0 #1597cc, 0 2px 0 #a8cfdf;
 }
 
+@media (max-width: 430px) {
+  .appShell .notebookLibraryNavigation nav button {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .appShell .notebookLibraryNavigation nav button > svg { display: none; }
+  .appShell .notebookLibraryNavigation nav button > span { grid-template-columns: minmax(0, 1fr); }
+  .appShell .notebookLibraryNavigation nav button strong { overflow-wrap: anywhere; }
+}
+
+@media (max-width: 360px) {
+  .appShell .notebookLibraryNavigation nav { grid-template-columns: minmax(0, 1fr); }
+  .appShell .notebookLibraryNavigation nav button { min-height: 44px; }
+}
+
 .notebookArtifactWorkspace {
   margin-top: 16px;
   overflow: hidden;
@@ -37060,6 +36947,61 @@ circle.labInstrumentScrew {
   border: 1px solid var(--zylo-border);
   border-radius: 8px;
   box-shadow: 0 3px 0 color-mix(in srgb, var(--zylo-shadow) 45%, transparent);
+}
+
+.notebookLibraryFilters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border, #bfd4df);
+}
+
+.notebookLibraryFilters > label {
+  display: grid;
+  flex: 1 1 170px;
+  min-width: 0;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.notebookLibraryFilters > .notebookLibrarySearch {
+  flex: 2 1 240px;
+}
+
+.notebookLibraryFilters input,
+.notebookLibraryFilters select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid #a9c6d5;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: inherit;
+  background: #f6fafc;
+  font: inherit;
+}
+
+.notebookLibrarySearch > span:last-child {
+  position: relative;
+}
+
+.notebookLibrarySearch svg {
+  position: absolute;
+  left: 11px;
+  top: 14px;
+  pointer-events: none;
+}
+
+.notebookLibrarySearch input {
+  padding-left: 36px;
+}
+
+.notebookLibraryFilters > [role="status"] {
+  padding-block: 12px;
+  font-size: 13px;
 }
 
 .notebookArtifactHeader {
@@ -40342,4 +40284,65 @@ button {
 @media (max-width: 620px) {
   .appShell .heroBand h1 { font-size: 1.75rem; }
   .appShell :is(.heroBand p, .zyGuideBubble p) { overflow-wrap: anywhere; }
+}
+
+/* Reserve the whole animated silhouette, not just the idle body width. */
+.appShell .zyGuide,
+.appShell .zyGuide.compact {
+  --zy-stage-width: 132px;
+  --zy-stage-height: 156px;
+  --zy-model-scale: 1;
+  grid-template-columns: var(--zy-stage-width) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.appShell .zyGuide.compact {
+  --zy-stage-width: 112px;
+  --zy-stage-height: 132px;
+  --zy-model-scale: 0.79;
+}
+
+.appShell .zyGuide .zyCharacterStage,
+.appShell .zyGuide.compact .zyCharacterStage {
+  width: var(--zy-stage-width);
+  max-width: none;
+  height: var(--zy-stage-height);
+}
+
+.appShell .zyGuide .zyCharacterStage > .zyCharacter,
+.appShell .zyGuide.compact .zyCharacterStage > .zyCharacter {
+  width: 100%;
+  height: 100%;
+}
+
+.appShell .zyGuide .zyModel,
+.appShell .zyGuide.compact .zyModel {
+  bottom: 8px;
+  transform: translateX(-50%) scale(var(--zy-model-scale));
+}
+
+.appShell .zyGuideMeta {
+  flex-wrap: wrap;
+}
+
+.appShell .zyGuideMeta > span {
+  flex: 1 1 7rem;
+  overflow-wrap: anywhere;
+}
+
+.appShell .zyGuideMeta > span > svg {
+  flex-shrink: 0;
+}
+
+.appShell .zyGuideActions {
+  margin-left: auto;
+}
+
+@media (max-width: 620px) {
+  .appShell .zyGuide,
+  .appShell .zyGuide.compact {
+    --zy-stage-width: 96px;
+    --zy-stage-height: 112px;
+    --zy-model-scale: 0.64;
+  }
 }

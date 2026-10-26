@@ -17,7 +17,6 @@ import {
   Sparkles,
   Target,
   Trophy,
-  XCircle,
   Zap,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -25,6 +24,8 @@ import type { ReactNode } from 'react';
 import { getCheckpointDurationMinutes } from './checkpointExamTiming';
 import type { LessonQuestion } from './data';
 import { QuestionSchematic } from './QuestionSchematic';
+import { CheckpointReview } from './CheckpointReview';
+import { getCheckpointResults, getConfidenceAlignment } from './checkpointResults';
 
 export type CheckpointDomainId =
   | 'all'
@@ -85,6 +86,7 @@ type CheckpointExamProps = {
   onCreate: (config: CheckpointExamConfig) => void;
   onNavigate: (questionIndex: number) => void;
   onOpenMistakeLab: () => void;
+  onPracticeQuestion: (questionId: string) => void;
   onReset: () => void;
   onSubmit: (expired?: boolean) => void;
   questions: LessonQuestion[];
@@ -160,6 +162,7 @@ export function CheckpointExam({
   onCreate,
   onNavigate,
   onOpenMistakeLab,
+  onPracticeQuestion,
   onReset,
   onSubmit,
   questions,
@@ -248,50 +251,10 @@ export function CheckpointExam({
       ? null
       : Math.max(0, exam.expiresAt - clock);
 
-  const results = useMemo(() => {
-    if (!exam || exam.completedAt === null) {
-      return [];
-    }
-
-    return questions.map((question) => {
-      const answer = exam.answers[question.id];
-      return {
-        answer,
-        correct:
-          answer?.optionIndex !== null &&
-          answer?.optionIndex === question.correctIndex,
-        question,
-      };
-    });
-  }, [exam, questions]);
+  const results = useMemo(() => getCheckpointResults(exam, questions), [exam, questions]);
   const correctCount = results.filter((result) => result.correct).length;
   const missedCount = results.length - correctCount;
-  const ratedResults = results.filter(
-    (result) => result.answer?.confidence !== null,
-  );
-  const confidenceExpected: Record<CheckpointConfidence, number> = {
-    low: 0.35,
-    medium: 0.65,
-    high: 0.85,
-  };
-  const confidenceAlignment =
-    ratedResults.length === 0
-      ? null
-      : Math.round(
-          100 -
-            (ratedResults.reduce((total, result) => {
-              const confidence = result.answer
-                ?.confidence as CheckpointConfidence;
-              return (
-                total +
-                Math.abs(
-                  Number(result.correct) - confidenceExpected[confidence],
-                )
-              );
-            }, 0) /
-              ratedResults.length) *
-              100,
-        );
+  const confidenceAlignment = getConfidenceAlignment(results);
 
   if (!exam) {
     return (
@@ -541,40 +504,7 @@ export function CheckpointExam({
         </section>
 
         <div className="checkpointResultsLayout">
-          <main className="checkpointBreakdown" aria-label="Exam breakdown">
-            <header>
-              <div>
-                <p className="eyebrow">Answer audit</p>
-                <h2>{results.length} exam decisions</h2>
-              </div>
-              <span>{missedCount} routed to recovery</span>
-            </header>
-            <div>
-              {results.map((result, index) => (
-                <article
-                  className={result.correct ? 'correct' : 'missed'}
-                  key={result.question.id}
-                >
-                  <span>{index + 1}</span>
-                  <div>
-                    <small>{result.question.topic}</small>
-                    <strong>{result.question.subtopic}</strong>
-                    <p>{result.question.prompt}</p>
-                  </div>
-                  <em>
-                    {result.answer?.confidence
-                      ? `${result.answer.confidence} confidence`
-                      : 'Not rated'}
-                  </em>
-                  {result.correct ? (
-                    <CheckCircle2 size={19} />
-                  ) : (
-                    <XCircle size={19} />
-                  )}
-                </article>
-              ))}
-            </div>
-          </main>
+          <CheckpointReview key={exam.id} results={results} onPractice={onPracticeQuestion} />
 
           <aside className="checkpointResultsRail">
             <div className="checkpointResultsCoach">{coach}</div>

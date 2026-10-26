@@ -136,6 +136,16 @@ function getChartValue(day: WeeklyPlanDay, metric: ChartMetric) {
   return metric === 'xp' ? day.xp : day.focusMinutes;
 }
 
+export function getWeeklyNextAction(plan: WeeklyPlan | null, progress: { xp: number; questions: number; challenges: number }): WeeklyPlanAction {
+  if (!plan) return 'route';
+  const gaps = [
+    { action: 'lab' as const, gap: 1 - progress.challenges / Math.max(1, plan.targetChallenges) },
+    { action: 'practice' as const, gap: 1 - progress.questions / Math.max(1, plan.targetQuestions) },
+    { action: 'route' as const, gap: 1 - progress.xp / Math.max(1, plan.targetXp) },
+  ];
+  return gaps.filter(({ gap }) => gap > 0).sort((a, b) => b.gap - a.gap)[0]?.action ?? 'route';
+}
+
 export function WeeklyPlanner({
   backLabel,
   careerRole,
@@ -171,12 +181,7 @@ export function WeeklyPlanner({
     1,
     ...days.map((day) => getChartValue(day, chartMetric)),
   );
-  const nextAction: WeeklyPlanAction =
-    plan && totalChallenges < plan.targetChallenges
-      ? 'lab'
-      : plan && totalQuestions < plan.targetQuestions
-        ? 'practice'
-        : 'route';
+  const nextAction = getWeeklyNextAction(plan, { xp: totalXp, questions: totalQuestions, challenges: totalChallenges });
   const nextMove =
     nextAction === 'lab'
       ? {
@@ -345,6 +350,8 @@ export function WeeklyPlanner({
                   <button
                     aria-label={`${day.dayLabel} ${day.dateLabel}`}
                     aria-pressed={studyDays.includes(day.dayIndex)}
+                    aria-describedby="weekly-days-minimum"
+                    disabled={studyDays.length <= 2 && studyDays.includes(day.dayIndex)}
                     className={studyDays.includes(day.dayIndex) ? 'active' : ''}
                     key={day.dateKey}
                     onClick={() => toggleStudyDay(day.dayIndex)}
@@ -355,7 +362,9 @@ export function WeeklyPlanner({
                   </button>
                 ))}
               </div>
-              <small>Keep at least two days selected.</small>
+              <small id="weekly-days-minimum" role="status">
+                {studyDays.length <= 2 ? 'Minimum reached: two study days.' : 'Minimum: two study days.'}
+              </small>
             </fieldset>
 
             <fieldset className="weeklyMinutesPicker">
@@ -457,14 +466,14 @@ export function WeeklyPlanner({
               <div
                 className="weeklyPlanChart"
                 role="img"
-                aria-label={`${chartMetric} activity for ${weekLabel}`}
+                aria-label={`${chartMetric} activity for ${weekLabel}. ${days.map((day) => `${day.dayLabel} ${day.dateLabel}: ${getChartValue(day, chartMetric)} ${chartMetric === 'focus' ? 'minutes' : chartMetric}${plan.studyDays.includes(day.dayIndex) ? ', planned study day' : ''}`).join('; ')}`}
               >
                 {days.map((day) => {
                   const value = getChartValue(day, chartMetric);
                   const barHeight =
                     value === 0
-                      ? 6
-                      : Math.max(14, Math.round((value / chartMaximum) * 100));
+                      ? 0
+                      : (value / chartMaximum) * 100;
 
                   return (
                     <div

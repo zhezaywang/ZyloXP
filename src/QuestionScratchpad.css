@@ -1,0 +1,44 @@
+.questionScratchpad > header,
+.questionScratchpad > footer { flex-wrap: wrap; }
+.questionScratchpad .scratchpadActions { display: flex; gap: 4px; margin-left: auto; }
+.scratchpadActions button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid #bed7e1;
+  border-radius: 6px;
+  color: #175d7b;
+  background: #edf6fa;
+}
+.scratchpadActions button:hover:not(:disabled) { background: #dceff7; }
+.questionWorkTools em[data-unsaved='true'] { color: #79501b; background: #fcf0d7; }
+.scratchpadSaveState { color: #486578; font-size: 0.75rem; }
+.scratchpadSaveNotice {
+  padding: 10px;
+  border: 1px solid #dcc59b;
+  border-radius: 6px;
+  color: #68491d;
+  background: #fff8e9;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+.scratchpadSaveNotice p { margin: 0 0 8px; }
+.scratchpadSaveNotice > div { display: flex; gap: 8px; flex-wrap: wrap; }
+.scratchpadSaveNotice button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 6px 9px;
+  border: 1px solid #c9b084;
+  border-radius: 5px;
+  color: inherit;
+  background: #fffdf6;
+  font: inherit;
+}
+.scratchpadSaveNotice details { margin-bottom: 10px; }
+.scratchpadSaveNotice summary { cursor: pointer; }
+.scratchpadSaveNotice pre { white-space: pre-wrap; font: inherit; }
+.questionScratchpad textarea { max-width: 100%; }

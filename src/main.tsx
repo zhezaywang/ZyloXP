@@ -4,6 +4,7 @@ import App from './App';
 import { AppErrorBoundary } from './AppErrorBoundary';
 import { APP_UPDATE_READY_EVENT } from './appEvents';
 import './styles.css';
+import './motion.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -1,0 +1,90 @@
+/* Short, interruptible feedback. Geometry and engineering simulation timing stay unchanged. */
+.appShell {
+  --motion-ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@keyframes interface-arrive {
+  from { opacity: 0; translate: 0 8px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes interface-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes answer-confirm {
+  0% { scale: 0.88; }
+  65% { scale: 1.08; }
+  100% { scale: 1; }
+}
+
+@keyframes zy-rest-breathe {
+  0%, 20%, 100% { translate: 0 0; }
+  50% { translate: 0 -2px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .appShell[data-motion='full'] :is(.overlayBackdrop, .labBenchBackdrop) {
+    animation: interface-fade 160ms ease-out;
+  }
+
+  .appShell[data-motion='full'] :is(.overlayPanel, .labBenchDialog, .toast, .feedbackBox) {
+    animation: interface-arrive 220ms var(--motion-ease-out) backwards;
+  }
+
+  .appShell[data-motion='full'] .answerButton.correct > span,
+  .appShell[data-motion='full'] .feedbackBox.success > svg {
+    animation: answer-confirm 320ms var(--motion-ease-out);
+  }
+
+  .appShell[data-motion='full'] :is(.primaryButton, .secondaryButton, .iconButton, .answerButton) {
+    transition: scale 140ms var(--motion-ease-out), background-color 140ms ease,
+      border-color 140ms ease, color 140ms ease;
+  }
+
+  .appShell[data-motion='full'] :is(.primaryButton, .secondaryButton, .iconButton, .answerButton):not(:disabled):active {
+    scale: 0.97;
+  }
+
+  .appShell[data-motion='full'] :is(.statCardButton, .labCard, .careerCard, .recentLearningItem) {
+    transition: transform 180ms var(--motion-ease-out), background-color 140ms ease,
+      border-color 140ms ease, box-shadow 140ms ease;
+  }
+
+  .appShell[data-motion='full'] :is(.miniProgress, .progressLine, .questMeter, .sprintProgressMeter, .levelMeter, .dailyMissionMeter, .masteryMeter) > span,
+  .appShell[data-motion='full'] .adaptiveFocusMeter > div > span,
+  .appShell[data-motion='full'] .studyRouteBannerProgress > i {
+    transition: width 360ms var(--motion-ease-out);
+  }
+
+  .appShell[data-motion='full'] .zyCharacter.reaction-idle .zyModel {
+    animation: zy-rest-breathe 5.6s ease-in-out infinite;
+  }
+
+  .appShell[data-motion='full'] .zyPose {
+    transition: transform 180ms var(--motion-ease-out);
+  }
+}
+
+.zyCharacter { animation: none; }
+.zyPose { will-change: auto; }
+
+.zyGuide[data-motion-active='false'] *,
+.zyGuide[data-motion-active='false'] *::before,
+.zyGuide[data-motion-active='false'] *::after,
+.appShell[data-visible='false'] *,
+.appShell[data-visible='false'] *::before,
+.appShell[data-visible='false'] *::after {
+  animation-play-state: paused !important;
+}
+
+.appShell[data-motion='reduced'] *,
+.appShell[data-motion='reduced'] *::before,
+.appShell[data-motion='reduced'] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* The app toggle must stop the same pointer tilt as the operating-system setting. */
+.appShell[data-motion='reduced'] .zyPose { transform: none !important; }

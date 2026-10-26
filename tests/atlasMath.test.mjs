@@ -2,8 +2,26 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { digitalTiming, mosfetOperatingPoint, pidResponse, qamConstellation, relayTrip, uncertaintyModel, waveMatchScore } from '../src/atlasMath.ts';
 import { secondOrderSettlingTime, secondOrderStep } from '../src/visualMath.ts';
+import { electricalConcepts } from '../src/electricalAtlasData.ts';
 
 const near = (actual, expected, tolerance = 1e-9) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected}`);
+
+test('topic teaching copy retains the conditions required by its equations', () => {
+  const concept = (id) => electricalConcepts.find((item) => item.id === id);
+  const principles = (id) => concept(id).principles.join(' ');
+  assert.match(concept('digital-timing').equation, /− TSKEW/);
+  assert.match(principles('digital-timing'), /capture-clock arrival minus launch-clock arrival/);
+  assert.match(principles('uncertainty-calibration'), /sensitivity-weighted/);
+  assert.match(principles('uncertainty-calibration'), /covariance/);
+  assert.match(principles('grounding-emi'), /divides among all available paths/);
+  assert.match(principles('electric-magnetic-fields'), /displacement current/);
+  assert.match(principles('rlc-resonance'), /series RLC/);
+  assert.match(principles('switching-converters'), /buck in continuous-conduction/);
+  assert.match(principles('power-protection'), /M > 1/);
+  assert.match(principles('three-phase-power'), /RMS line-to-line voltage/);
+  assert.match(principles('digital-modulation'), /linear ratios, not dB/);
+  assert.match(principles('pid-control'), /closed loop is stable/);
+});
 
 test('digital propagation delay uses one physical time axis without capping or clipping', () => {
   for (const frequency of [1, 4, 10]) for (const delay of [2, 50, 120]) {

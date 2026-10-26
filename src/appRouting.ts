@@ -20,6 +20,7 @@ export type AppPage =
   | 'skill-map'
   | 'study-route'
   | 'weekly-plan'
+  | 'session-history'
   | 'sprint-summary';
 
 export type AppRoute = {
@@ -52,6 +53,9 @@ export function parseAppHash(hash: string): AppRoute {
   const [section, detail, resource] = segments;
 
   if (section === 'practice') {
+    if (detail === 'history') {
+      return { page: 'session-history', resourceId: decodeSegment(resource), section: 'practice' };
+    }
     if (detail === 'question') {
       return {
         page: 'lesson',
@@ -219,7 +223,8 @@ export function buildAppHash(route: AppRoute) {
     case 'weekly-plan':
       return '#/learn/week';
     case 'sprint-summary':
-      return '#/practice';
+    case 'session-history':
+      return resource ? `#/practice/history/${resource}` : '#/practice/history';
     case 'overview':
       return `#/${route.section}`;
   }

@@ -2111,7 +2111,7 @@ function MosfetSwitchingLab({
           {metrics.mosfetDrainCurrent.toFixed(2)} A
         </text>
         <text className="labMosfetMetricLabel" x={160} y={15}>
-          DEVICE LOSS
+          STAGE + DRIVER
         </text>
         <text className="labMosfetMetricValue" x={284} y={27} textAnchor="end">
           {metrics.mosfetTotalLoss.toFixed(2)} W
@@ -2196,9 +2196,11 @@ function AdcSamplingLab({
     ? 'OVER RANGE'
     : metrics.adcAliased
       ? 'ALIAS DETECTED'
-      : metrics.adcSamplesPerCycle < 4
-        ? 'SPARSE DATA'
-        : 'VALID CAPTURE';
+      : metrics.adcSamplesPerCycle === 2
+        ? 'NYQUIST LIMIT'
+        : metrics.adcSamplesPerCycle < 4
+          ? 'SPARSE DATA'
+          : 'BELOW NYQUIST';
 
   return (
     <g className="labScene labAdcScene">
@@ -2437,10 +2439,12 @@ function AdcSamplingLab({
           {metrics.adcLsbMillivolts.toFixed(2)} mV
         </text>
         <text className="labAdcMetricLabel" x={456} y={15}>
-          EFFECTIVE SNR
+          IDEAL SNR
         </text>
         <text className="labAdcMetricValue" x={580} y={27} textAnchor="end">
-          {metrics.adcEffectiveSnr.toFixed(1)} dB
+          {metrics.adcClipped || metrics.adcFilteredAmplitude < metrics.adcLsbMillivolts / 1000
+            ? 'N/A'
+            : `${metrics.adcEffectiveSnr.toFixed(1)} dB`}
         </text>
       </g>
     </g>

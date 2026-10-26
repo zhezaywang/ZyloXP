@@ -1,0 +1,213 @@
+.checkpointReview {
+  min-width: 0;
+  color: #183448;
+}
+
+.checkpointReview > header,
+.checkpointReviewFilters,
+.checkpointReviewSignals {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkpointReview > header {
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.checkpointReview h2 {
+  margin: 3px 0 0;
+  font-size: 1.2rem;
+}
+
+.checkpointReview > header > p,
+.checkpointReviewHint {
+  margin: 0;
+  color: #516979;
+  font-size: 0.85rem;
+}
+
+.checkpointReviewFilters {
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.checkpointReviewFilters button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid #bed1dc;
+  border-radius: 6px;
+  background: #f5f9fc;
+  color: #36566b;
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.checkpointReviewFilters button[aria-pressed='true'] {
+  border-color: #087cab;
+  background: #e0f1f9;
+  color: #075e85;
+}
+
+.checkpointReviewFilters button span {
+  font-variant-numeric: tabular-nums;
+}
+
+.checkpointReviewHint { margin-bottom: 14px; }
+
+.checkpointReviewList {
+  display: grid;
+  gap: 12px;
+}
+
+.checkpointReviewItem {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #c6d8e2;
+  border-radius: 8px;
+  background: #f8fbfd;
+  overflow-wrap: anywhere;
+}
+
+.checkpointReviewItem > header {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+}
+
+.checkpointReviewNumber {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #c6d8e2;
+  border-radius: 5px;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.checkpointReviewItem header p {
+  margin: 0 0 4px;
+  color: #516979;
+  font-size: 0.78rem;
+}
+
+.checkpointReviewItem h3 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.checkpointReviewOutcome,
+.checkpointReviewSignals span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.checkpointReviewOutcome { font-weight: 750; }
+.checkpointReviewOutcome svg,
+.checkpointReviewSignals svg { flex-shrink: 0; }
+.checkpointReviewItem.correct .checkpointReviewOutcome { color: #08735e; }
+.checkpointReviewItem.incorrect .checkpointReviewOutcome { color: #a13f25; }
+.checkpointReviewItem.unanswered .checkpointReviewOutcome { color: #596773; }
+
+.checkpointReviewPrompt {
+  margin: 16px 0 12px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.checkpointReviewSignals {
+  gap: 6px 16px;
+  margin-bottom: 12px;
+  color: #516979;
+}
+
+.checkpointReviewItem details {
+  border-top: 1px solid #d4e1e8;
+}
+
+.checkpointReviewItem summary {
+  min-height: 44px;
+  padding: 12px 0;
+  color: #075e85;
+  font-size: 0.87rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.checkpointReviewItem summary:focus-visible,
+.checkpointReviewFilters button:focus-visible {
+  outline: 2px solid #087cab;
+  outline-offset: 3px;
+}
+
+.checkpointReviewSolution {
+  display: grid;
+  gap: 18px;
+  padding-top: 4px;
+}
+
+.checkpointAnswerComparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid #d4e1e8;
+}
+
+.checkpointReviewSolution h4,
+.checkpointAnswerComparison dt {
+  margin: 0 0 6px;
+  color: #516979;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.checkpointAnswerComparison dd {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.checkpointReviewSolution p {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.checkpointReviewRelation p { font-family: ui-monospace, monospace; }
+.checkpointWorkedSteps { margin: 0; padding-left: 24px; font-size: 0.9rem; line-height: 1.65; }
+.checkpointWorkedSteps li + li { margin-top: 8px; }
+.checkpointReviewSolution > button {
+  justify-self: start;
+  min-height: 44px;
+  gap: 8px;
+}
+
+.checkpointReviewEmpty {
+  padding: 24px 0;
+  border-block: 1px solid #c6d8e2;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 620px) {
+  .checkpointReviewItem { padding: 14px; }
+  .checkpointReviewItem > header { grid-template-columns: 32px minmax(0, 1fr); }
+  .checkpointReviewOutcome { grid-column: 2; }
+  .checkpointAnswerComparison { grid-template-columns: minmax(0, 1fr); }
+  .checkpointReviewSolution > button { justify-self: stretch; white-space: normal; }
+}

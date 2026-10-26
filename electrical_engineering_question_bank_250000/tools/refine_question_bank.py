@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import csv
 import hashlib
 import json
@@ -186,6 +187,7 @@ def refine_stem(template_id: str, question: str) -> str:
             "",
             stem,
         ).rstrip()
+        stem = stem.replace("for an in-range input and rounding-to-nearest quantization, ", "")
         stem = stem.replace(
             "What input voltage does this code represent approximately",
             (
@@ -220,6 +222,7 @@ def refine_stem(template_id: str, question: str) -> str:
             "A 6.8 V Zener diode regulating in reverse breakdown is fed ",
         )
     elif template_id == "AE-04":
+        stem = stem.replace("The capacitance is in parallel across the resistor. ", "")
         stem = stem.replace(
             " has parasitic capacitance ",
             " has a parasitic capacitance of ",
@@ -476,7 +479,13 @@ def refine_explanation(row: dict[str, str], refined_question: str, correct_answe
             f"Assumptions: {assumptions}"
         )
 
-    if template_id == "NT-04":
+    if template_id == "SS-01":
+        base = (
+            f"The theoretical Nyquist rate is 2*fmax = {correct_answer}. "
+            "For general reconstruction, sample above this boundary; a tone exactly "
+            "at fs/2 can lose amplitude and phase information."
+        )
+    elif template_id == "NT-04":
         base = (
             f"Source transformation gives Is = Vs/R = {correct_answer}. "
             "The same resistance remains in the equivalent circuit and moves from series to parallel."
@@ -533,6 +542,62 @@ def write_rows_atomic(path: Path, fieldnames: list[str], rows: list[dict[str, st
         writer.writeheader()
         writer.writerows(rows)
     temp.replace(path)
+
+
+def repair_fact_check_copy(path: Path) -> Counter[str]:
+    """Repair audited wording without changing answers, keys, IDs, or image mappings."""
+    changes: Counter[str] = Counter()
+    temp = path.with_suffix(path.suffix + ".tmp")
+    try:
+        with path.open(newline="", encoding="utf-8-sig") as source, temp.open(
+            "w", newline="", encoding="utf-8"
+        ) as output:
+            reader = csv.DictReader(source)
+            writer = csv.DictWriter(output, fieldnames=reader.fieldnames)
+            writer.writeheader()
+            for row in reader:
+                template_id = row["template_id"]
+                if template_id in {"AE-04", "MI-03"}:
+                    question = refine_stem(template_id, row["question"])
+                    if question != row["question"]:
+                        changes["questions_reworded"] += 1
+                        row["question"] = question
+                if template_id == "SS-01":
+                    explanation = refine_explanation(row, row["question"], row["correct_answer"])
+                    if explanation != row["explanation"]:
+                        changes["explanations_corrected"] += 1
+                        row["explanation"] = explanation
+                writer.writerow(row)
+        if changes:
+            temp.replace(path)
+        else:
+            temp.unlink()
+    except Exception:
+        temp.unlink(missing_ok=True)
+        raise
+    return changes
+
+
+def repair_fact_check_images(package_dir: Path) -> int:
+    from generate_latex_diagrams import render_asset
+
+    metadata = {
+        row["image_id"]: row
+        for row in json.loads((package_dir / "image_database.json").read_text(encoding="utf-8"))
+    }
+    changed = 0
+    with (package_dir / "question_database.csv").open(newline="", encoding="utf-8") as source:
+        for row in csv.DictReader(source):
+            if row["template_id"] not in {"AE-04", "MI-03"} or not row["image_id"]:
+                continue
+            image = metadata[row["image_id"]]
+            svg, tex = render_asset(image, row)
+            for relative_path, content in [(image["relative_path"], svg), (image["latex_source_path"], tex)]:
+                path = package_dir / relative_path
+                if path.read_text(encoding="utf-8") != content:
+                    path.write_text(content, encoding="utf-8")
+                    changed += 1
+    return changed
 
 
 def main() -> None:
@@ -692,4 +757,12 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--fact-check-copy-only", action="store_true")
+    args = parser.parse_args()
+    if args.fact_check_copy_only:
+        changes = repair_fact_check_copy(QUESTION_CSV)
+        changes["image_files_refreshed"] = repair_fact_check_images(PACKAGE_DIR)
+        print(json.dumps(changes, indent=2))
+    else:
+        main()

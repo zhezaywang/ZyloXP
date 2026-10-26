@@ -17,7 +17,7 @@ export const generatedBankSummary = {
   "reshuffledAnswerKeys": 250000,
   "contentVersion": "2.0",
   "validationStatus": "PASS",
-  "updatedAt": "2026-07-23T16:40:11.109577+00:00"
+  "updatedAt": "2026-10-08T16:16:04.212987+00:00"
 } as const;
 
 export const generatedBankSignals = [
@@ -42,6 +42,7 @@ export const generatedBankSignals = [
     "detail": "250,000 answer keys reshuffled"
   }
 ] as const;
+
 export const generatedTopicSignals = [
   {
     "id": "dc-circuit-analysis",
@@ -597,7 +598,7 @@ export const generatedLessonQuestions = [
       "4 kHz"
     ],
     "correctIndex": 5,
-    "explanation": "Nyquist sampling requires fs >= 2*fmax = 4 kHz. Governing relation: Nyquist rate = 2 fmax. Assumptions: Ideal baseband signal supported on |f| <= fmax; practical sampling must exceed the theoretical rate. Result is rounded to the precision shown in the choices.",
+    "explanation": "The theoretical Nyquist rate is 2*fmax = 4 kHz. For general reconstruction, sample above this boundary; a tone exactly at fs/2 can lose amplitude and phase information. Governing relation: Nyquist rate = 2 fmax. Assumptions: Ideal baseband signal supported on |f| <= fmax; practical sampling must exceed the theoretical rate. Result is rounded to the precision shown in the choices.",
     "careerContext": "Engineers use this concept when turning theory into practical design checks.",
     "imageId": "IMG-7501",
     "imageRole": "instructional_hint",

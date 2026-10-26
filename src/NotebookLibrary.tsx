@@ -16,6 +16,7 @@ import {
   RotateCcw,
   Search,
   Trash2,
+  X,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { LabRunSnapshot } from './LabBenchLog';
@@ -25,6 +26,10 @@ import {
   getStudyListItemKey,
 } from './studyList';
 import { getSearchResultScore } from './searchRanking';
+import { useSavedScratchpads } from './useSavedScratchpads';
+import { SAVED_PRACTICE_LENGTHS, selectSavedPractice } from './savedQuestionPractice';
+import type { SavedPracticeLength } from './savedQuestionPractice';
+import './SavedQuestionPractice.css';
 import type {
   StudyListItem,
   StudyListKind,
@@ -36,6 +41,7 @@ export type NotebookLibraryView =
   | 'notes'
   | 'formulas'
   | 'questions'
+  | 'scratchpads'
   | 'bench';
 
 export type SavedQuestionLibraryItem = {
@@ -82,6 +88,12 @@ const NOTEBOOK_LIBRARY_VIEWS = [
     id: 'bench',
     label: 'Bench Runs',
   },
+  {
+    description: 'Saved question working',
+    icon: NotebookPen,
+    id: 'scratchpads',
+    label: 'Scratchpads',
+  },
 ] satisfies Array<{
   description: string;
   icon: typeof NotebookPen;
@@ -106,15 +118,18 @@ export function NotebookLibraryTabs({
   questionCount: number;
   studyListCount: number;
 }) {
-  const counts: Record<NotebookLibraryView, number> = {
+  const { collection: scratchpads } = useSavedScratchpads();
+  const scratchpadCount = scratchpads.ok ? Object.keys(scratchpads.notes).length : null;
+  const counts: Record<NotebookLibraryView, number | null> = {
     bench: benchRunCount,
     formulas: formulaCount,
     notes: noteCount,
     questions: questionCount,
+    scratchpads: scratchpadCount,
     'study-list': studyListCount,
   };
   const savedItemCount =
-    noteCount + formulaCount + questionCount + benchRunCount + studyListCount;
+    noteCount + formulaCount + questionCount + benchRunCount + studyListCount + (scratchpadCount ?? 0);
 
   return (
     <section
@@ -127,7 +142,7 @@ export function NotebookLibraryTabs({
           <h2>Keep every useful artifact close</h2>
         </div>
         <span>
-          {savedItemCount} saved {savedItemCount === 1 ? 'item' : 'items'}
+          {scratchpads.ok ? `${savedItemCount} saved ${savedItemCount === 1 ? 'item' : 'items'}` : 'Saved work on this device'}
         </span>
       </header>
 
@@ -150,7 +165,7 @@ export function NotebookLibraryTabs({
                 <strong>{view.label}</strong>
                 <small>{view.description}</small>
               </span>
-              <em>{count}</em>
+              <em>{count ?? '?'}</em>
             </button>
           );
         })}
@@ -399,17 +414,66 @@ export function StudyListWorkspace({
   );
 }
 
+type QuestionOrder = 'saved' | 'unattempted' | 'weakest';
+
+function LibrarySearch({ label, value, onChange }: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="notebookLibrarySearch">
+      <span>{label}</span>
+      <span>
+        <Search size={17} aria-hidden="true" />
+        <input type="search" value={value} onChange={(event) => onChange(event.target.value)} />
+      </span>
+    </label>
+  );
+}
+
+export function filterSavedQuestions(items: SavedQuestionLibraryItem[], query: string, topic: string, order: QuestionOrder) {
+  return items.flatMap((item) => {
+    if (topic && item.topic !== topic) return [];
+    const score = query.trim() ? getSearchResultScore({ title: item.subtopic, subtitle: `${item.topic} ${item.prompt}`, kind: 'Question' }, query) : 0;
+    return score === null ? [] : [{ item, score }];
+  }).sort((a, b) => {
+    const priority = order === 'unattempted'
+      ? Number(a.item.attempts > 0) - Number(b.item.attempts > 0)
+      : order === 'weakest' ? (a.item.accuracy ?? 101) - (b.item.accuracy ?? 101) : 0;
+    return priority || a.score - b.score;
+  }).map(({ item }) => item);
+}
+
 export function SavedQuestionLibrary({
+  activeSession,
   items,
   onBrowse,
   onOpen,
   onRemove,
+  onResumeSession,
+  onStartSession,
 }: {
+  activeSession: { label: string; answered: number; total: number } | null;
   items: SavedQuestionLibraryItem[];
   onBrowse: () => void;
   onOpen: (questionIndex: number) => void;
   onRemove: (questionId: string) => void;
+  onResumeSession: () => void;
+  onStartSession: (questionIds: string[]) => void;
 }) {
+  const [query, setQuery] = useState('');
+  const [topic, setTopic] = useState('');
+  const [order, setOrder] = useState<QuestionOrder>('saved');
+  const [length, setLength] = useState<SavedPracticeLength>(5);
+  const visibleItems = filterSavedQuestions(items, query, topic, order);
+  const sessionItems = selectSavedPractice(visibleItems, length);
+  const topics = [...new Set(items.map((item) => item.topic))].sort();
+  function clearFilters() {
+    setQuery('');
+    setTopic('');
+    setOrder('saved');
+  }
   return (
     <section
       aria-labelledby="saved-question-library-title"
@@ -427,6 +491,81 @@ export function SavedQuestionLibrary({
         <strong>{items.length} saved</strong>
       </header>
 
+      {items.length > 0 && (
+        <div className="notebookLibraryFilters">
+          <LibrarySearch label="Search saved questions" value={query} onChange={setQuery} />
+          <label>
+            <span>Topic</span>
+            <select value={topic} onChange={(event) => setTopic(event.target.value)}>
+              <option value="">All topics</option>
+              {topics.map((value) => <option key={value}>{value}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Question order</span>
+            <select value={order} onChange={(event) => setOrder(event.target.value as QuestionOrder)}>
+              <option value="saved">Review priority</option>
+              <option value="unattempted">Unattempted first</option>
+              <option value="weakest">Lowest accuracy first</option>
+            </select>
+          </label>
+          <span role="status">{visibleItems.length} of {items.length} questions</span>
+          {(query || topic || order !== 'saved') && (
+            <button className="iconButton ghost" aria-label="Clear question filters" title="Clear question filters" onClick={clearFilters} type="button">
+              <X size={17} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+      )}
+
+      {(items.length > 0 || activeSession) && (
+        <section className="savedQuestionSession" aria-label="Saved question session">
+          {activeSession ? (
+            <>
+              <div>
+                <h3>{activeSession.label}</h3>
+                <p>{activeSession.answered} of {activeSession.total} answered</p>
+              </div>
+              <button className="primaryButton" onClick={onResumeSession} type="button">
+                Resume session<ArrowRight size={17} aria-hidden="true" />
+              </button>
+            </>
+          ) : (
+            <>
+              <div>
+                <h3>Practice this view</h3>
+                <p role="status">{sessionItems.length} {sessionItems.length === 1 ? 'question' : 'questions'} in this set</p>
+              </div>
+              <label>
+                <span>Session length</span>
+                <select value={length} onChange={(event) => setLength(Number(event.target.value) as SavedPracticeLength)}>
+                  {SAVED_PRACTICE_LENGTHS.map((value) => <option key={value} value={value}>Up to {value} questions</option>)}
+                </select>
+              </label>
+              <button
+                className="primaryButton"
+                disabled={sessionItems.length === 0}
+                onClick={() => onStartSession(sessionItems.map((item) => item.id))}
+                type="button"
+              >
+                {sessionItems.length === 0 ? 'No matching questions' : `Start ${sessionItems.length}-question session`}
+                <ArrowRight size={17} aria-hidden="true" />
+              </button>
+              {sessionItems.length > 0 && (
+                <details className="savedQuestionLineup">
+                  <summary>Session lineup</summary>
+                  <ol>
+                    {sessionItems.map((item) => <li key={item.id}>
+                      <strong>{item.subtopic}</strong><span>{item.topic}</span>
+                    </li>)}
+                  </ol>
+                </details>
+              )}
+            </>
+          )}
+        </section>
+      )}
+
       {items.length === 0 ? (
         <div className="notebookArtifactEmpty">
           <BookOpen aria-hidden="true" size={27} />
@@ -437,9 +576,14 @@ export function SavedQuestionLibrary({
             <ArrowRight aria-hidden="true" size={17} />
           </button>
         </div>
+      ) : visibleItems.length === 0 ? (
+        <div className="notebookArtifactEmpty">
+          <strong>No matching saved questions</strong>
+          <button className="secondaryButton" onClick={clearFilters} type="button">Clear filters</button>
+        </div>
       ) : (
         <div className="notebookArtifactList">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <article className="notebookQuestionRow" key={item.id}>
               <span className="notebookArtifactIcon question" aria-hidden="true">
                 <BookOpen size={19} />
@@ -464,7 +608,9 @@ export function SavedQuestionLibrary({
                 <button
                   aria-label={`Open saved question ${item.subtopic}`}
                   className="secondaryButton"
+                  disabled={activeSession !== null}
                   onClick={() => onOpen(item.questionIndex)}
+                  title={activeSession ? 'A practice session is in progress' : undefined}
                   type="button"
                 >
                   Open question
@@ -510,6 +656,17 @@ export function BenchRunLibrary({
   onOpenLabs: () => void;
   runs: LabRunSnapshot[];
 }) {
+  const [query, setQuery] = useState('');
+  const [labId, setLabId] = useState('');
+  const labs = [...new Set(runs.map((run) => run.labId))].sort((a, b) => getLabTitle(a).localeCompare(getLabTitle(b)));
+  const visibleRuns = runs.filter((run) => (
+    (!labId || run.labId === labId) &&
+    (!query.trim() || getSearchResultScore({ kind: 'Lab', title: getLabTitle(run.labId), subtitle: run.output }, query) !== null)
+  ));
+  function clearFilters() {
+    setQuery('');
+    setLabId('');
+  }
   return (
     <section
       aria-labelledby="bench-run-library-title"
@@ -527,6 +684,25 @@ export function BenchRunLibrary({
         <strong>{runs.length} saved</strong>
       </header>
 
+      {runs.length > 0 && (
+        <div className="notebookLibraryFilters">
+          <LibrarySearch label="Search bench runs" value={query} onChange={setQuery} />
+          <label>
+            <span>Lab</span>
+            <select value={labId} onChange={(event) => setLabId(event.target.value)}>
+              <option value="">All labs</option>
+              {labs.map((id) => <option value={id} key={id}>{getLabTitle(id)}</option>)}
+            </select>
+          </label>
+          <span role="status">{visibleRuns.length} of {runs.length} runs</span>
+          {(query || labId) && (
+            <button className="iconButton ghost" aria-label="Clear bench filters" title="Clear bench filters" onClick={clearFilters} type="button">
+              <X size={17} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+      )}
+
       {runs.length === 0 ? (
         <div className="notebookArtifactEmpty">
           <Gauge aria-hidden="true" size={27} />
@@ -537,9 +713,14 @@ export function BenchRunLibrary({
             <ArrowRight aria-hidden="true" size={17} />
           </button>
         </div>
+      ) : visibleRuns.length === 0 ? (
+        <div className="notebookArtifactEmpty">
+          <strong>No matching bench runs</strong>
+          <button className="secondaryButton" onClick={clearFilters} type="button">Clear filters</button>
+        </div>
       ) : (
         <div className="notebookArtifactList">
-          {runs.map((run) => (
+          {visibleRuns.map((run) => (
             <article className="notebookBenchRow" key={run.id}>
               <span className="notebookArtifactIcon bench" aria-hidden="true">
                 <FlaskConical size={19} />
@@ -560,6 +741,7 @@ export function BenchRunLibrary({
               </div>
               <div className="notebookArtifactActions">
                 <button
+                  aria-label={`Restore ${getLabTitle(run.labId)} from ${formatRunTime(run.savedAt)}`}
                   className="secondaryButton"
                   onClick={() => onOpen(run)}
                   type="button"

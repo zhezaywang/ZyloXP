@@ -184,17 +184,11 @@ export function calculateLabMetrics(values: LabSimulationValues): LabMetrics {
   const adcLsbVolts =
     values.adcReferenceVoltage / 2 ** values.adcBitDepth;
   const adcFullScalePeak = values.adcReferenceVoltage / 2;
-  const adcAmplitudeRatio = Math.max(
-    adcLsbVolts / adcFullScalePeak,
-    Math.min(1, adcFilteredAmplitude / adcFullScalePeak),
+  const adcEffectiveSnr = 20 * Math.log10(
+    (adcFilteredAmplitude / Math.SQRT2) / (adcLsbVolts / Math.sqrt(12)),
   );
-  const adcEffectiveSnr =
-    6.02 * values.adcBitDepth +
-    1.76 +
-    20 * Math.log10(adcAmplitudeRatio);
   const bjtTemperatureKelvin = values.bjtTemperature + 273.15;
-  const bjtThermalVoltage =
-    0.02585 * (bjtTemperatureKelvin / 298.15);
+  const bjtThermalVoltage = (1.380649e-23 / 1.602176634e-19) * bjtTemperatureKelvin;
   const bjtAdjustedBeta = Math.max(
     10,
     values.bjtCurrentGain *
@@ -307,7 +301,8 @@ export function calculateLabMetrics(values: LabSimulationValues): LabMetrics {
     0,
     values.mosfetGateVoltage - mosfetThresholdVoltage,
   );
-  const mosfetOn = mosfetOverdrive > 0;
+  const mosfetDutyRatio = Math.max(0, Math.min(1, values.mosfetDutyCycle / 100));
+  const mosfetOn = mosfetOverdrive > 0 && mosfetDutyRatio > 0;
   const mosfetOnResistance = mosfetOn
     ? 0.028 + 0.18 / Math.max(0.25, mosfetOverdrive ** 2)
     : 1_000_000;
@@ -317,10 +312,6 @@ export function calculateLabMetrics(values: LabSimulationValues): LabMetrics {
   const mosfetDrainVoltage = mosfetOn
     ? mosfetDrainCurrent * mosfetOnResistance
     : values.mosfetBusVoltage;
-  const mosfetDutyRatio = Math.max(
-    0,
-    Math.min(1, values.mosfetDutyCycle / 100),
-  );
   const mosfetGateDriveCurrent = Math.max(
     0.002,
     Math.max(0, values.mosfetGateVoltage - 4.5) /
@@ -331,19 +322,21 @@ export function calculateLabMetrics(values: LabSimulationValues): LabMetrics {
     : 5000;
   const mosfetConductionLoss =
     mosfetDrainCurrent ** 2 * mosfetOnResistance * mosfetDutyRatio;
-  const mosfetSwitchingLoss = mosfetOn
+  const mosfetSwitching = mosfetDutyRatio > 0 && mosfetDutyRatio < 1;
+  // Resistive load, simultaneous linear V/I ramps: each edge has about VI*t/6 energy.
+  const mosfetSwitchingLoss = mosfetOn && mosfetSwitching
     ? values.mosfetBusVoltage *
       mosfetDrainCurrent *
       mosfetTransitionTime *
       1e-9 *
       values.mosfetSwitchingFrequency *
-      1000
+      1000 / 3
     : 0;
-  const mosfetGateDriveLoss =
+  const mosfetGateDriveLoss = mosfetSwitching ?
     35e-9 *
     values.mosfetGateVoltage *
     values.mosfetSwitchingFrequency *
-    1000;
+    1000 : 0;
   const mosfetTotalLoss =
     mosfetConductionLoss + mosfetSwitchingLoss + mosfetGateDriveLoss;
   const mosfetLoadPower =
@@ -522,7 +515,8 @@ export function calculateLabMetrics(values: LabSimulationValues): LabMetrics {
         ? (mosfetLoadPower / (mosfetLoadPower + mosfetTotalLoss)) * 100
         : 0,
     mosfetGateDriveLoss,
-    mosfetJunctionTemperature: 25 + mosfetTotalLoss * 22,
+    // Assume gate-drive dissipation is external; internal gate resistance is omitted.
+    mosfetJunctionTemperature: 25 + (mosfetConductionLoss + mosfetSwitchingLoss) * 22,
     mosfetLoadPower,
     mosfetOn,
     mosfetOnResistance,
@@ -582,8 +576,8 @@ export function calculateLabMetrics(values: LabSimulationValues): LabMetrics {
     transmissionReflectionMagnitude,
     transmissionReflectionPhase,
     transmissionReturnLoss:
-      transmissionReflectionMagnitude < 0.000001
-        ? 80
+      transmissionReflectionMagnitude === 0
+        ? Number.POSITIVE_INFINITY
         : -20 * Math.log10(transmissionReflectionMagnitude),
     transmissionVswr:
       (1 + transmissionReflectionMagnitude) /

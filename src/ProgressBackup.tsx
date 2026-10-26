@@ -15,6 +15,7 @@ import {
   type ChangeEvent,
 } from 'react';
 import { restoreProgressEntries } from './progressRestore';
+import { isScratchpadMap, MAX_QUESTION_SCRATCHPADS, QUESTION_SCRATCHPAD_KEY } from './questionScratchpads';
 
 const BACKUP_SCHEMA_VERSION = 1;
 const MAX_BACKUP_FILE_BYTES = 2 * 1024 * 1024;
@@ -42,6 +43,11 @@ const BACKUP_GROUPS = [
     expected: 'array',
     key: 'zyloxp-field-journal-v1',
     label: 'Field Journal',
+  },
+  {
+    expected: 'object',
+    key: 'zyloxp-question-scratchpads-v1',
+    label: 'Question scratchpads',
   },
   {
     expected: 'array',
@@ -98,6 +104,13 @@ function isExpectedValue(
   expected: (typeof BACKUP_GROUPS)[number]['expected'],
 ) {
   return expected === 'array' ? Array.isArray(value) : isRecord(value);
+}
+
+function assertScratchpadBackup(key: string, value: unknown) {
+  if (key === QUESTION_SCRATCHPAD_KEY
+    && (!isScratchpadMap(value) || Object.keys(value).length > MAX_QUESTION_SCRATCHPADS)) {
+    throw new Error('Question scratchpads has an invalid format.');
+  }
 }
 
 function assertSafeBackupValue(rootValue: unknown) {
@@ -180,6 +193,7 @@ function createBackupFromStorage(): ZyloBackup {
         const parsedValue = JSON.parse(storedValue) as unknown;
         if (isExpectedValue(parsedValue, group.expected)) {
           assertSafeBackupValue(parsedValue);
+          assertScratchpadBackup(group.key, parsedValue);
           data[group.key] = parsedValue;
         }
       } catch {
@@ -242,6 +256,7 @@ export function parseZyloBackup(serializedBackup: string): ZyloBackup {
     if (!isExpectedValue(value, group.expected)) {
       throw new Error(`${group.label} has an invalid format.`);
     }
+    assertScratchpadBackup(group.key, value);
     data[group.key] = value;
   });
 

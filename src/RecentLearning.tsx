@@ -1,12 +1,15 @@
 import {
   ArrowRight,
   Atom,
+  ChevronDown,
+  ChevronUp,
   FlaskConical,
   Gamepad2,
   GraduationCap,
   History,
   Target,
 } from 'lucide-react';
+import { useState } from 'react';
 import type { AppPage } from './appRouting';
 import { buildAppHash, parseAppHash } from './appRouting';
 
@@ -69,8 +72,8 @@ function isRecentLearningItem(value: unknown): value is RecentLearningItem {
   const item = value as Partial<RecentLearningItem>;
   return (
     typeof item.id === 'string' &&
-    item.id.length > 0 &&
-    item.id.length <= 220 &&
+    item.id.trim().length > 0 &&
+    item.id.length <= 320 &&
     typeof item.kind === 'string' &&
     Object.prototype.hasOwnProperty.call(RECENT_LEARNING_ICONS, item.kind) &&
     typeof item.routeHash === 'string' &&
@@ -79,12 +82,36 @@ function isRecentLearningItem(value: unknown): value is RecentLearningItem {
     typeof item.subtitle === 'string' &&
     item.subtitle.length <= 240 &&
     typeof item.title === 'string' &&
-    item.title.length > 0 &&
+    item.title.trim().length > 0 &&
     item.title.length <= 180 &&
     typeof item.viewedAt === 'number' &&
     Number.isFinite(item.viewedAt) &&
     item.viewedAt > 0
   );
+}
+
+export function normalizeRecentLearningItems(value: unknown, now = Date.now()): RecentLearningItem[] {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  return value.filter(isRecentLearningItem)
+    .filter((item) => {
+      const page = parseAppHash(item.routeHash).page;
+      const kind = page === 'concept' ? 'Concept' : page === 'game' ? 'Game'
+        : page === 'lesson' ? 'Question' : ['lab', 'workbench', 'pcb-designer'].includes(page) ? 'Lab' : 'Career';
+      return item.kind === kind && item.viewedAt <= now + 60_000;
+    })
+    .sort((a, b) => b.viewedAt - a.viewedAt)
+    .filter((item) => {
+      if (seen.has(item.routeHash)) return false;
+      seen.add(item.routeHash);
+      return true;
+    })
+    .slice(0, RECENT_LEARNING_LIMIT)
+    .map((item) => ({ ...item, id: `${item.kind}:${item.routeHash}`, viewedAt: Math.min(now, item.viewedAt) }));
+}
+
+export function mergeRecentLearningItems(current: RecentLearningItem[], restored: RecentLearningItem[]) {
+  return normalizeRecentLearningItems([...current, ...restored]);
 }
 
 export function readRecentLearningItems() {
@@ -97,12 +124,7 @@ export function readRecentLearningItems() {
       window.localStorage.getItem(RECENT_LEARNING_STORAGE_KEY) ?? '[]',
     ) as unknown;
 
-    return Array.isArray(storedItems)
-      ? storedItems
-          .filter(isRecentLearningItem)
-          .sort((left, right) => right.viewedAt - left.viewedAt)
-          .slice(0, RECENT_LEARNING_LIMIT)
-      : [];
+    return normalizeRecentLearningItems(storedItems);
   } catch {
     return [];
   }
@@ -115,7 +137,7 @@ export function saveRecentLearningItems(items: RecentLearningItem[]) {
 
   window.localStorage.setItem(
     RECENT_LEARNING_STORAGE_KEY,
-    JSON.stringify(items.slice(0, RECENT_LEARNING_LIMIT)),
+    JSON.stringify(normalizeRecentLearningItems(items)),
   );
 }
 
@@ -123,10 +145,10 @@ export function upsertRecentLearningItem(
   items: RecentLearningItem[],
   nextItem: RecentLearningItem,
 ) {
-  return [
+  return normalizeRecentLearningItems([
     nextItem,
     ...items.filter((item) => item.routeHash !== nextItem.routeHash),
-  ].slice(0, RECENT_LEARNING_LIMIT);
+  ]);
 }
 
 function formatViewedAt(viewedAt: number) {
@@ -161,6 +183,7 @@ export function RecentLearning({
   onClear: () => void;
   onOpen: (item: RecentLearningItem) => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
   if (items.length === 0) {
     return null;
   }
@@ -183,8 +206,8 @@ export function RecentLearning({
         </button>
       </header>
 
-      <div className="recentLearningList">
-        {items.slice(0, 3).map((item) => {
+      <div className="recentLearningList" id="recent-learning-items">
+        {items.slice(0, expanded ? RECENT_LEARNING_LIMIT : 3).map((item) => {
           const Icon = RECENT_LEARNING_ICONS[item.kind];
 
           return (
@@ -213,6 +236,12 @@ export function RecentLearning({
           );
         })}
       </div>
+      {items.length > 3 && (
+        <button className="recentLearningClear" aria-expanded={expanded} aria-controls="recent-learning-items" onClick={() => setExpanded(!expanded)} type="button">
+          {expanded ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
+          {expanded ? 'Show fewer' : `Show all ${items.length}`}
+        </button>
+      )}
     </section>
   );
 }

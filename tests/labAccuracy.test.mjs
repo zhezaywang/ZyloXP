@@ -28,7 +28,10 @@ test('every live lab renders at every slider endpoint and combined extremes', ()
   for (const fixture of labExtremeCases) {
     const html = render(fixture.labId, fixture.values);
     assert.doesNotMatch(html, /(?:NaN|Infinity|undefined)/, fixture.id);
-    assert.ok(Object.values(metricsFor(fixture.values)).every((value) => typeof value !== 'number' || Number.isFinite(value)), fixture.id);
+    assert.ok(Object.entries(metricsFor(fixture.values)).every(([key, value]) =>
+      typeof value !== 'number' || Number.isFinite(value) ||
+      (key === 'transmissionReturnLoss' && value === Number.POSITIVE_INFINITY)
+    ), fixture.id);
   }
 });
 
@@ -61,6 +64,66 @@ test('resistive MOSFET circuit obeys KVL at the former 20 A clamp', () => {
   const metrics = metricsFor(values);
   assert.ok(metrics.mosfetDrainCurrent > 20);
   close(metrics.mosfetDrainCurrent * values.mosfetLoadResistance + metrics.mosfetDrainVoltage, values.mosfetBusVoltage);
+});
+
+test('BJT forward-active transconductance uses kT/q at the actual absolute temperature', () => {
+  for (const bjtTemperature of [-20, 25, 26.85, 100]) {
+    const metrics = metricsFor({ ...labValues, bjtTemperature, bjtBaseCurrent: 10 });
+    assert.equal(metrics.bjtSaturated, false);
+    const thermalVolts = 8.617333262145179e-5 * (bjtTemperature + 273.15);
+    close(metrics.bjtTransconductance, metrics.bjtCollectorCurrent / thermalVolts);
+  }
+});
+
+test('MOSFET resistive switching overlap and thermal loss exclude external gate power', () => {
+  const values = { ...labValues, mosfetGateVoltage: 10, mosfetDutyCycle: 50 };
+  const m = metricsFor(values);
+  // Numerical integral of normalized simultaneous linear V/I ramps on both edges.
+  let overlap = 0;
+  const steps = 10_000;
+  for (let i = 0; i < steps; i++) {
+    const u = (i + 0.5) / steps;
+    overlap += 2 * u * (1 - u) / steps;
+  }
+  const loss = values.mosfetBusVoltage * m.mosfetDrainCurrent *
+    m.mosfetTransitionTime * 1e-9 * values.mosfetSwitchingFrequency * 1000 * overlap;
+  close(m.mosfetSwitchingLoss, loss, 1e-7);
+  close(m.mosfetTotalLoss, m.mosfetConductionLoss + m.mosfetSwitchingLoss + m.mosfetGateDriveLoss);
+  close(m.mosfetJunctionTemperature, 25 + 22 * (m.mosfetConductionLoss + m.mosfetSwitchingLoss));
+  assert.ok(m.mosfetGateDriveLoss > 0);
+  for (const duty of [0, 100]) {
+    const constant = metricsFor({ ...values, mosfetDutyCycle: duty });
+    assert.equal(constant.mosfetGateDriveLoss, 0);
+    assert.equal(constant.mosfetSwitchingLoss, 0);
+    if (duty === 0) {
+      assert.equal(constant.mosfetDrainCurrent, 0);
+      assert.equal(constant.mosfetJunctionTemperature, 25);
+    } else assert.ok(constant.mosfetConductionLoss > 0);
+  }
+});
+
+test('an exactly matched line has infinite return loss without displaying a fictitious 80 dB limit', () => {
+  const matched = metricsFor({ ...labValues, transmissionLoadImpedance: 50, transmissionCharacteristicImpedance: 50 });
+  assert.equal(matched.transmissionReturnLoss, Number.POSITIVE_INFINITY);
+  assert.equal(matched.transmissionVswr, 1);
+  const near = metricsFor({ ...labValues, transmissionLoadImpedance: 50.00001, transmissionCharacteristicImpedance: 50 });
+  assert.ok(near.transmissionReturnLoss > 130);
+});
+
+test('ADC explicitly flags the Nyquist boundary and does not report ideal SNR for clipping', () => {
+  const boundary = render('lab-adc', { adcSampleRate: 8, adcInputFrequency: 4 });
+  assert.match(boundary, /NYQUIST LIMIT/);
+  const clipped = render('lab-adc', { adcInputAmplitude: 5, adcReferenceVoltage: 1, adcInputFrequency: 0.1, adcFilterCutoff: 20 });
+  assert.match(clipped, /OVER RANGE/);
+  assert.match(clipped, /IDEAL SNR/);
+  assert.match(clipped, />N\/A</);
+  const tiny = { ...labValues, adcBitDepth: 4, adcInputAmplitude: 0.1, adcInputFrequency: 40, adcFilterCutoff: 0.1 };
+  const m = metricsFor(tiny);
+  const signalRms = m.adcFilteredAmplitude / Math.sqrt(2);
+  const noiseRms = (tiny.adcReferenceVoltage / 16) / Math.sqrt(12);
+  close(m.adcEffectiveSnr, 20 * Math.log10(signalRms / noiseRms));
+  assert.ok(m.adcEffectiveSnr < 0);
+  assert.match(render('lab-adc', tiny), />N\/A</);
 });
 
 test('digital capture uses a rising clock edge and shows unknown Q on setup violation', () => {

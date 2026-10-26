@@ -20,7 +20,7 @@
 </style>
 </defs>
 <title id="title">Op-amp feedback pole estimate problem diagram</title>
-<desc id="desc">A feedback resistor of 20 kohm has a parasitic capacitance of 200 pF. The capacitance is in parallel across the resistor. The capacitance is in parallel across the resistor. The capacitance is in parallel across the resistor. The capacitance is in parallel across the resistor. The capacitance is in parallel across the resistor. What is the pole frequency?</desc>
+<desc id="desc">A feedback resistor of 20 kohm has a parasitic capacitance of 200 pF. The capacitance is in parallel across the resistor. What is the pole frequency?</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
 <text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Op-amp feedback pole estimate problem diagram</text>
@@ -43,6 +43,5 @@
 <text class="small" x="480" y="430" text-anchor="middle">Single parasitic capacitance across the feedback resistor.</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
 <text x="48" y="522" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">A feedback resistor of 20 kohm has a parasitic capacitance of 200 pF. The capacitance is in parallel across the</text>
-<text x="48" y="541" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">resistor. The capacitance is in parallel across the resistor. The capacitance is in parallel across the</text>
-<text x="48" y="560" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">resistor. The capacitance is in parallel across the resistor. The capacitance is in parallel across the...</text>
+<text x="48" y="541" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">resistor. What is the pole frequency?</text>
 </svg>

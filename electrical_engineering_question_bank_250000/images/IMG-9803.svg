@@ -20,7 +20,7 @@
 </style>
 </defs>
 <title id="title">Quantization uncertainty problem diagram</title>
-<desc id="desc">For an ideal 10-bit ADC with 3.3 V reference, for an in-range input and rounding-to-nearest quantization, for an in-range input and rounding-to-nearest quantization, for an in-range input and rounding-to-nearest quantization, what is the maximum quantization error magnitude? Use the ideal unipolar convention LSB = Vref/2^N.</desc>
+<desc id="desc">For an ideal 10-bit ADC with 3.3 V reference, for an in-range input and rounding-to-nearest quantization, what is the maximum quantization error magnitude? Use the ideal unipolar convention LSB = Vref/2^N.</desc>
 <rect x="0" y="0" width="960" height="600" fill="#F8FAFB"/>
 <rect x="24" y="22" width="912" height="72" rx="10" fill="#174A5B"/>
 <text x="48" y="56" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Quantization uncertainty problem diagram</text>
@@ -41,7 +41,6 @@
 <text class="math" x="565" y="282" text-anchor="middle">|eq,max| = 0.5 Vref/2^N</text>
 <text class="small" x="480" y="430" text-anchor="middle">Ideal rounding quantizer.</text>
 <rect class="panel" x="24" y="500" width="912" height="74" rx="10"/>
-<text x="48" y="522" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">For an ideal 10-bit ADC with 3.3 V reference, for an in-range input and rounding-to-nearest quantization, for an</text>
-<text x="48" y="541" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">in-range input and rounding-to-nearest quantization, for an in-range input and rounding-to-nearest quantization,</text>
-<text x="48" y="560" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">what is the maximum quantization error magnitude? Use the ideal unipolar convention LSB = Vref/2^N.</text>
+<text x="48" y="522" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">For an ideal 10-bit ADC with 3.3 V reference, for an in-range input and rounding-to-nearest quantization, what</text>
+<text x="48" y="541" font-family="Inter,Arial,sans-serif" font-size="14" fill="#1F2933">is the maximum quantization error magnitude? Use the ideal unipolar convention LSB = Vref/2^N.</text>
 </svg>

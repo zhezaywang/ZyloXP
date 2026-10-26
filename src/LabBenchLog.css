@@ -1,0 +1,155 @@
+.labBenchDialog {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.labBenchBody {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.labBenchBody .labBenchRuns {
+  overflow: visible;
+}
+
+.labBenchBody :is(.labBenchValueList, .labBenchRunValues) dt {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.labRunComparison {
+  min-width: 0;
+  padding: 16px;
+  border-bottom: 1px solid var(--zylo-border);
+  background: #f7fbfd;
+}
+
+.labRunComparison > header,
+.labComparisonSummary,
+.labComparisonActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.labRunComparison h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.labComparisonActions .iconButton {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  box-shadow: none;
+}
+
+.labComparisonSelectors,
+.labComparisonOutputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.labComparisonSelectors label {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  color: #355968;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.labComparisonSelectors select {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 8px;
+  border: 1px solid #b7d6e2;
+  border-radius: 6px;
+  color: #163647;
+  background: #f0f7fa;
+  font: inherit;
+}
+
+.labComparisonSummary {
+  margin-bottom: 12px;
+  color: #426573;
+  font-size: 0.8rem;
+}
+
+.labComparisonSummary label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  cursor: pointer;
+}
+
+.labComparisonSummary input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #08709d;
+}
+
+.labComparisonTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.labComparisonTable th,
+.labComparisonTable td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #d3e2e9;
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+
+.labComparisonTable th { font-weight: 650; }
+.labComparisonTable thead th { color: #486877; font-size: 0.72rem; }
+.labComparisonTable tr[data-changed='true'] { background: #e8f4f9; }
+.labComparisonTable td { font-variant-numeric: tabular-nums; }
+
+.labComparisonOutputs > div { min-width: 0; }
+.labComparisonOutputs dt { color: #486877; font-size: 0.75rem; }
+.labComparisonOutputs dd {
+  margin: 5px 0 0;
+  color: #075f88;
+  font-size: 1rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.labComparisonEmpty,
+.labComparisonError { margin: 12px 0; font-size: 0.85rem; }
+.labComparisonError { color: #9e342d; }
+
+@media (max-width: 520px) {
+  .labRunComparison { padding: 12px; }
+  .labComparisonSelectors { grid-template-columns: minmax(0, 1fr); }
+  .labComparisonTable tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .labComparisonTable tbody th { grid-column: 1 / -1; padding-bottom: 0; border: 0; }
+  .labComparisonTable thead th:first-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .labComparisonTable th,
+  .labComparisonTable td { padding-inline: 6px; }
+}

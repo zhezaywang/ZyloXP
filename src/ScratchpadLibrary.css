@@ -1,0 +1,27 @@
+.scratchpadLibrary { margin-top: 20px; min-width: 0; }
+.scratchpadLibraryHeader { display: flex; align-items: center; gap: 12px; padding: 16px 0; flex-wrap: wrap; border-bottom: 1px solid var(--zylo-border); }
+.scratchpadLibraryHeader > svg { color: #0b739e; flex: 0 0 auto; }
+.scratchpadLibraryHeader > div { flex: 1 1 180px; min-width: 0; }
+.scratchpadLibraryHeader h2 { margin: 0; font-size: 22px; color: var(--zylo-ink); }
+.scratchpadLibraryHeader p { margin: 4px 0 0; font-size: 13px; color: var(--zylo-muted); }
+.scratchpadLibraryHeader button { margin-left: auto; }
+.scratchpadLibraryNotice, .scratchpadLibraryUndo { margin: 12px 0; padding: 12px; border: 1px solid #b8d9e7; border-radius: 6px; background: #edf7fc; color: #24546b; overflow-wrap: anywhere; }
+.scratchpadLibraryNotice[role='alert'] { border-color: #d6bf96; background: #fff8e9; color: #68491d; }
+.scratchpadLibraryNotice p { margin: 0 0 10px; }
+.scratchpadLibraryUndo { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.scratchpadLibraryUndo span { flex: 1 1 180px; }
+.scratchpadLibraryRows > article { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--zylo-border); }
+.scratchpadLibraryCopy { min-width: 0; overflow-wrap: anywhere; }
+.scratchpadLibraryCopy small { color: #527186; font-size: 12px; }
+.scratchpadLibraryCopy h3 { margin: 5px 0; font-size: 17px; }
+.scratchpadLibraryCopy p { margin: 0 0 10px; color: var(--zylo-muted); font-size: 14px; line-height: 1.5; }
+.scratchpadLibraryCopy summary { width: fit-content; cursor: pointer; color: #08698d; font-size: 13px; padding-block: 6px; }
+.scratchpadLibraryCopy pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 8px 0 0; padding: 12px; background: #eaf4f8; border-radius: 4px; color: #24485b; font: 13px/1.6 "SFMono-Regular", Consolas, monospace; }
+.scratchpadLibraryActions { display: flex; align-items: start; gap: 8px; flex-wrap: wrap; }
+.scratchpadLibraryActions button { min-height: 40px; }
+.scratchpadLibraryActions .iconButton { width: 40px; flex: 0 0 40px; }
+@media (max-width: 700px) {
+  .scratchpadLibraryRows > article { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .scratchpadLibraryActions .secondaryButton { flex: 1 1 140px; justify-content: center; }
+  .scratchpadLibrary .notebookLibraryFilters { padding-inline: 0; }
+}

@@ -1,23 +1,7 @@
-import { readFileSync } from 'node:fs';
-import ts from 'typescript';
+import { LAB_VALUE_LIMITS as labRanges } from '../../src/labValueLimits.ts';
 import { labValues } from './labValues.mjs';
 
-// Read the app's actual slider bounds so this audit cannot drift from the UI.
-const source = ts.createSourceFile('App.tsx', readFileSync(new URL('../../src/App.tsx', import.meta.url), 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
-let ranges;
-function visit(node) {
-  if (ts.isVariableDeclaration(node) && node.name.getText(source) === 'LAB_VALUE_LIMITS') {
-    ranges = Object.fromEntries(node.initializer.properties.map((property) => [
-      property.name.getText(source), property.initializer.elements.map((element) => Number(element.getText(source))),
-    ]));
-  }
-  ts.forEachChild(node, visit);
-}
-visit(source);
-if (!ranges || Object.values(ranges).some((range) => range.some((value) => !Number.isFinite(value)))) {
-  throw new Error('Cannot read the lab slider bounds');
-}
-export const labRanges = ranges;
+export { labRanges };
 export const labControls = {
   'lab-ohms': ['voltage', 'resistance'],
   'lab-rc': ['rcResistance', 'capacitance'],

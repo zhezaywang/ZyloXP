@@ -16,6 +16,17 @@ async function expectContained(page: Page) {
   expect(await page.locator('svg').evaluateAll((elements) => elements.some((element) => /(?:NaN|Infinity)/.test(element.outerHTML)))).toBe(false);
 }
 
+test('qualified topic equations and principles fit desktop and mobile screens', async ({ page }, testInfo) => {
+  for (const id of ['digital-timing', 'uncertainty-calibration', 'power-protection']) {
+    await openConcept(page, id);
+    const equation = page.locator('.atlasEquationBand');
+    await expect(equation).toBeVisible();
+    expect(await equation.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+    await expectContained(page);
+    await equation.screenshot({ path: testInfo.outputPath(`${id}-equation.png`) });
+  }
+});
+
 test('phasor angles and amplitudes agree with their SVG origin at slider extremes', async ({ page }, testInfo) => {
   await openConcept(page, 'ac-phasors');
   await setSlider(page, 'Amplitude', 10);

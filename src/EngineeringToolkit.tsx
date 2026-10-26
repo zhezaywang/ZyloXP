@@ -14,9 +14,10 @@ import {
   Timer,
   Zap,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FieldJournalDraftSeed } from './fieldJournalDraft';
 import { rcChargePlot } from './visualMath';
+import { arePositiveFinite, calculateDivider, convertUnits, parseFiniteValue, parsePositiveValue } from './engineeringToolkitMath';
 
 const rcPreview = rcChargePlot(0, 100, 100, 100);
 
@@ -276,15 +277,6 @@ const E24_NORMALIZED_VALUES = [
 
 const COMMON_RESISTOR_POWER_RATINGS = [0.125, 0.25, 0.5, 1, 2, 3, 5, 10];
 
-function parsePositiveValue(value: string) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-}
-
-function parseFiniteValue(value: string) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-}
 
 function formatNumber(value: number) {
   if (!Number.isFinite(value)) {
@@ -293,6 +285,7 @@ function formatNumber(value: number) {
 
   return new Intl.NumberFormat('en-US', {
     maximumSignificantDigits: 5,
+    notation: Math.abs(value) >= 1e9 || (value !== 0 && Math.abs(value) < 0.0001) ? 'scientific' : 'standard',
   }).format(value);
 }
 
@@ -454,6 +447,9 @@ export function EngineeringToolkit({
     useState('0.1');
   const [copiedDesignTool, setCopiedDesignTool] =
     useState<DesignTool | null>(null);
+  const [copyError, setCopyError] = useState('');
+  const copyRequest = useRef(0);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const knownVariables = (
     ['voltage', 'current', 'resistance'] as ElectricalVariable[]
@@ -465,6 +461,7 @@ export function EngineeringToolkit({
     const resistance = parsePositiveValue(ohmValues.resistance);
 
     if (solveFor === 'voltage' && current !== null && resistance !== null) {
+      if (!arePositiveFinite(current * resistance)) return null;
       return {
         formula: 'V = I x R',
         substituted: `${formatNumber(current)} A x ${formatNumber(resistance)} Ohm`,
@@ -473,6 +470,7 @@ export function EngineeringToolkit({
     }
 
     if (solveFor === 'current' && voltage !== null && resistance !== null) {
+      if (!arePositiveFinite(voltage / resistance)) return null;
       return {
         formula: 'I = V / R',
         substituted: `${formatNumber(voltage)} V / ${formatNumber(resistance)} Ohm`,
@@ -481,6 +479,7 @@ export function EngineeringToolkit({
     }
 
     if (solveFor === 'resistance' && voltage !== null && current !== null) {
+      if (!arePositiveFinite(voltage / current)) return null;
       return {
         formula: 'R = V / I',
         substituted: `${formatNumber(voltage)} V / ${formatNumber(current)} A`,
@@ -510,16 +509,19 @@ export function EngineeringToolkit({
   const powerResult = useMemo(() => {
     const voltage = parsePositiveValue(powerVoltage);
     const current = parsePositiveValue(powerCurrent);
-    const minutes = parsePositiveValue(powerMinutes);
+    const minutes = parseFiniteValue(powerMinutes);
 
-    if (voltage === null || current === null || minutes === null) {
+    if (voltage === null || current === null || minutes === null || minutes < 0) {
       return null;
     }
 
     const watts = voltage * current;
+    const energyWh = watts * (minutes / 60);
+    const loadResistance = voltage / current;
+    if (!arePositiveFinite(watts, loadResistance) || !Number.isFinite(energyWh) || (minutes > 0 && energyWh === 0)) return null;
     return {
-      energyWh: watts * (minutes / 60),
-      loadResistance: voltage / current,
+      energyWh,
+      loadResistance,
       watts,
     };
   }, [powerCurrent, powerMinutes, powerVoltage]);
@@ -548,6 +550,7 @@ export function EngineeringToolkit({
       reactiveComponent === 'capacitor'
         ? 1 / (2 * Math.PI * frequency * baseValue)
         : 2 * Math.PI * frequency * baseValue;
+    if (!arePositiveFinite(baseValue, reactance, sourceVoltage / reactance)) return null;
 
     return {
       current: sourceVoltage / reactance,
@@ -578,7 +581,7 @@ export function EngineeringToolkit({
       return null;
     }
 
-    return (value * from.factor) / to.factor;
+    return convertUnits(value, from.factor, to.factor);
   }, [fromUnit, toUnit, unitDefinition, unitValue]);
   const resistorBandOrder: ResistorBandKey[] =
     resistorBandCount === 4
@@ -623,27 +626,7 @@ export function EngineeringToolkit({
       return null;
     }
 
-    const effectiveLowerResistance = loadResistance
-      ? (lowerResistance * loadResistance) /
-        (lowerResistance + loadResistance)
-      : lowerResistance;
-    const ratio =
-      effectiveLowerResistance /
-      (upperResistance + effectiveLowerResistance);
-    const outputVoltage = inputVoltage * ratio;
-    const sourceCurrent =
-      inputVoltage / ((upperResistance + effectiveLowerResistance) * 1000);
-
-    return {
-      effectiveLowerResistance,
-      hasLoad,
-      loadCurrent: loadResistance
-        ? outputVoltage / (loadResistance * 1000)
-        : null,
-      outputVoltage,
-      ratio,
-      sourceCurrent,
-    };
+    return calculateDivider(inputVoltage, upperResistance, lowerResistance, loadResistance);
   }, [dividerLoad, dividerR1, dividerR2, dividerVoltage]);
   const ledResult = useMemo(() => {
     const supplyVoltage = parsePositiveValue(ledSupplyVoltage);
@@ -670,12 +653,14 @@ export function EngineeringToolkit({
 
     const actualCurrent = voltageDrop / recommendedResistance;
     const resistorPower = voltageDrop * actualCurrent;
+    const recommendedPowerRating = getRecommendedPowerRating(resistorPower);
+    if (!arePositiveFinite(actualCurrent, resistorPower, recommendedResistance, recommendedPowerRating)) return null;
 
     return {
       actualCurrent,
       forwardVoltage,
       idealResistance,
-      recommendedPowerRating: getRecommendedPowerRating(resistorPower),
+      recommendedPowerRating,
       recommendedResistance,
       resistorPower,
       supplyVoltage,
@@ -696,6 +681,7 @@ export function EngineeringToolkit({
     const resistance = resistanceKohms * 1000;
     const capacitance = capacitanceMicrofarads * 0.000001;
     const timeConstant = resistance * capacitance;
+    if (!arePositiveFinite(timeConstant, 1 / (2 * Math.PI * timeConstant), timeConstant * 5)) return null;
 
     return {
       capacitanceMicrofarads,
@@ -738,6 +724,16 @@ export function EngineeringToolkit({
         rcResult.settlingTime,
       )}.`
     : '';
+
+  useEffect(() => {
+    copyRequest.current += 1;
+    setCopiedDesignTool(null);
+    setCopyError('');
+    return () => {
+      copyRequest.current += 1;
+      if (copyTimer.current !== null) clearTimeout(copyTimer.current);
+    };
+  }, [designTool, ledSupplyVoltage, ledForwardVoltage, ledCurrentMilliamps, rcResistanceKohms, rcCapacitanceMicrofarads, mode]);
 
   function handleQuantityChange(quantity: UnitQuantity) {
     const definition = UNIT_DEFINITIONS[quantity];
@@ -807,20 +803,22 @@ export function EngineeringToolkit({
 
   async function handleCopyDesignResult() {
     const summary = designTool === 'led' ? ledResultSummary : rcResultSummary;
-    if (!summary || !navigator.clipboard) {
-      return;
-    }
+    if (!summary) return;
+    const request = ++copyRequest.current;
+    if (copyTimer.current !== null) clearTimeout(copyTimer.current);
+    setCopiedDesignTool(null);
+    setCopyError('');
 
     try {
+      if (!navigator.clipboard) throw new Error('Clipboard unavailable');
       await navigator.clipboard.writeText(summary);
+      if (request !== copyRequest.current) return;
       setCopiedDesignTool(designTool);
-      window.setTimeout(() => {
-        setCopiedDesignTool((copiedTool) =>
-          copiedTool === designTool ? null : copiedTool,
-        );
+      copyTimer.current = setTimeout(() => {
+        if (request === copyRequest.current) setCopiedDesignTool(null);
       }, 1800);
     } catch {
-      setCopiedDesignTool(null);
+      if (request === copyRequest.current) setCopyError('Could not copy the result. Check clipboard access, then try again.');
     }
   }
 
@@ -1047,7 +1045,7 @@ export function EngineeringToolkit({
                     powerResult.loadResistance,
                     'resistance',
                   )} equivalent load`
-                : 'Enter positive voltage, current, and duration values.'}
+                : 'Voltage and current must be positive; duration may be zero. Use values within the numeric range.'}
             </small>
           </output>
         </div>
@@ -1740,6 +1738,7 @@ export function EngineeringToolkit({
               </button>
             )}
           </div>
+          {copyError && <p role="alert" className="workspaceNotice">{copyError}</p>}
         </div>
       )}
 
@@ -1917,7 +1916,10 @@ export function EngineeringToolkit({
             <button
               aria-label="Swap conversion units"
               className="toolkitSwapButton"
+              disabled={convertedValue === null}
               onClick={() => {
+                if (convertedValue === null) return;
+                setUnitValue(String(convertedValue));
                 setFromUnit(toUnit);
                 setToUnit(fromUnit);
               }}

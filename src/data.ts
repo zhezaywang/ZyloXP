@@ -436,7 +436,7 @@ export const labScenarios: LabScenario[] = [
     result: 'tmargin = TCLK - tPD - tSU',
     status: 'Ready',
     assumptions:
-      'Single-clock synchronous path with negligible clock skew and a stable receiver hold requirement.',
+      'Single-clock setup budget with negligible skew and jitter. tPD includes launch clock-to-Q and combinational delay. Hold timing is a separate check, not simulated here.',
     formula: 'tmargin = TCLK - tPD - tSU',
     visualLabel: 'Flip-flop timing path and four-channel logic analyzer',
   },
@@ -449,7 +449,7 @@ export const labScenarios: LabScenario[] = [
     result: 'fDISPLAY = |fIN - kfS|',
     status: 'Ready',
     assumptions:
-      'Ideal sinusoidal source, first-order anti-alias filter, uniform sampling, an unipolar ADC centered at midscale, and ideal digital reconstruction.',
+      'Ideal sinusoid, first-order anti-alias filter, uniform sampling, and a unipolar ADC centered at midscale. Quantization SNR is an ideal unclipped-sine estimate with uncorrelated uniform error, not measured SINAD. At fIN = fS/2, phase and amplitude cannot in general be recovered.',
     formula: 'fN = fS / 2 · ΔV = VREF / 2ᴺ',
     visualLabel:
       'Signal source, anti-alias filter, ADC, and mixed-domain analyzer',
@@ -476,7 +476,7 @@ export const labScenarios: LabScenario[] = [
     result: 'IC ≈ βIB, limited by the collector load line',
     status: 'Ready',
     assumptions:
-      'Silicon NPN common-emitter stage with a 0.18 V saturation voltage, resistive collector load, temperature-dependent current gain, and a 150 °C/W junction-to-ambient thermal path.',
+      'Illustrative NPN with a fixed 0.18 V saturation voltage, resistive collector load, heuristic temperature-dependent gain, and 150 °C/W thermal path. VT = kT/q; gm = IC/VT applies only in forward-active operation. These are not device-specific ratings.',
     formula: 'IC ≈ βIB · VCE = VCC - ICRC · IC ≤ (VCC - VCE(sat))/RC',
     visualLabel:
       'NPN bias fixture, collector load, and semiconductor curve tracer',
@@ -486,12 +486,12 @@ export const labScenarios: LabScenario[] = [
     title: 'MOSFET Switching Bench',
     topic: 'Power Electronics',
     diagram: '/lab-mosfet-reference.svg',
-    metric: 'Device loss',
+    metric: 'Stage + driver loss',
     result: 'PLOSS = PCOND + PSW + PGATE',
     status: 'Ready',
     assumptions:
-      'Low-side N-channel MOSFET with a resistive-equivalent load, 35 nC total gate charge, 15 nC transition charge, and 22 °C/W thermal path.',
-    formula: 'PLOSS ≈ ID²RDS(on)D + VDS ID tsw fs + QG VGS fs',
+      'Illustrative resistive-load switch: equal linear voltage/current transition times tsw, 35 nC gate charge, 15 nC transition charge, and 22 °C/W thermal path. Gate-drive loss is assigned externally, not to the junction. Parasitic capacitance, recovery, self-heating feedback, and incomplete switching during short pulses are omitted; this is not a device rating.',
+    formula: 'PLOSS ≈ ID²RDS(on)D + VBUS ID tsw fs/3 + QG VGS fs',
     visualLabel: 'Low-side MOSFET, gate driver, load, and switching oscilloscope',
   },
   {
@@ -529,7 +529,7 @@ export const labScenarios: LabScenario[] = [
     result: 'V₂ ≈ V₁(N₂/N₁) - I₂Req',
     status: 'Ready',
     assumptions:
-      'Single-phase sinusoidal excitation, an ideal turns ratio with secondary-referred winding resistance, a resistive load, and a laminated core with a 1.45 T saturation threshold.',
+      'Sinusoidal RMS excitation, ideal turns ratio, secondary-referred winding resistance, and resistive load. Core-loss, magnetizing-current, temperature, and load-limit indicators are illustrative heuristics with a chosen 1.45 T threshold, not material data or hardware ratings. The ideal voltage model is not valid in deep saturation.',
     formula: 'V₂/V₁ = N₂/N₁ · BMAX = V₁/(4.44 f N₁ Ae)',
     visualLabel:
       'AC source, laminated-core transformer, load bank, and power analyzer',

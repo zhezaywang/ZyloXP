@@ -14,7 +14,7 @@
     "test:pcb": "node --experimental-strip-types --test tests/pcbStorage.test.mjs",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "test:e2e": "playwright test",
-    "test:references": "python3 -B tests/test_reference_sync.py",
+    "test:references": "python3 -B tests/test_reference_sync.py && python3 -B tests/test_question_content.py",
     "audit:visuals": "node tools/audit-visuals.mjs",
     "sync:lab-references": "node tools/render-lab-references.mjs",
     "verify": "pnpm run test && pnpm run test:references && pnpm run build && pnpm run test:e2e",

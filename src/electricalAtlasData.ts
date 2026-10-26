@@ -127,8 +127,8 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'Live source-load network',
     diagramKind: 'network',
     principles: [
-      'Current is conserved at an ideal node.',
-      'Voltage rises and drops sum to zero around a closed loop.',
+      'V = IR describes an ideal linear resistor; current is conserved at a lumped-circuit node.',
+      'Lumped-circuit voltage rises and drops sum to zero when all induced emfs are included.',
       'Sign convention is part of the model, not decoration.',
     ],
     applications: ['Bias networks', 'Sensor interfaces', 'Power distribution'],
@@ -142,13 +142,13 @@ export const electricalConcepts: ElectricalConcept[] = [
     level: 'Applied',
     equation: 'VTH = INRN · RN = RTH',
     summary:
-      'Replace a complex linear network with one source and one resistance at the terminals that matter.',
+      'Replace a linear DC network with one source and one resistance at a terminal pair; sinusoidal AC equivalents use impedance.',
     interactiveLabel: 'Thevenin source and load',
     diagramKind: 'network',
     principles: [
       'The open-circuit voltage becomes the Thevenin voltage.',
       'The short-circuit current becomes the Norton current.',
-      'Both forms produce the same terminal behavior for any load.',
+      'With a finite, nonzero equivalent resistance, both forms have the same terminal behavior. Retain dependent sources when finding that resistance.',
     ],
     applications: ['Load matching', 'Battery models', 'Analog front ends'],
     keywords: 'thevenin norton equivalent source load resistance terminals',
@@ -165,7 +165,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'Resonance curve explorer',
     diagramKind: 'resonance',
     principles: [
-      'Inductive and capacitive reactance cancel at resonance.',
+      'In this ideal series RLC model, reactances cancel at resonance and Q = sqrt(L/C)/R. Parallel networks use a different Q relation.',
       'Higher Q narrows the response and increases ringing.',
       'Component tolerance shifts both center frequency and bandwidth.',
     ],
@@ -184,7 +184,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'RC transient scope',
     diagramKind: 'transient',
     principles: [
-      'Capacitor voltage and inductor current cannot change instantaneously.',
+      'Capacitor voltage is continuous for finite current; inductor current is continuous for finite voltage. Ideal impulses are exceptions.',
       'One time constant completes about 63.2% of a first-order transition.',
       'Natural response is set by stored energy while forced response follows the source.',
     ],
@@ -203,8 +203,8 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'Diode operating-point tracer',
     diagramKind: 'diode',
     principles: [
-      'A diode current changes exponentially with junction voltage.',
-      'Bias establishes the region in which a transistor can amplify.',
+      'The Shockley diode approximation excludes breakdown and high-current series-resistance effects.',
+      'IC ≈ βIB applies in the BJT forward-active region, not in saturation.',
       'Temperature and process variation move the operating point.',
     ],
     applications: ['Rectifiers', 'LED drivers', 'Amplifier biasing'],
@@ -224,7 +224,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     principles: [
       'A MOSFET gate is voltage controlled but must still move charge.',
       'Low on-resistance reduces conduction loss only after sufficient gate drive.',
-      'Faster edges reduce switching loss while increasing ringing and EMI.',
+      'The displayed switching-loss estimate assumes hard switching at nearly constant load current; resistive loads have a different overlap loss. Faster edges can increase ringing and EMI.',
     ],
     applications: ['Motor drivers', 'Synchronous converters', 'Solenoid and LED control'],
     keywords: 'mosfet gate drive rds on switching loss body diode transistor power',
@@ -241,8 +241,8 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'Closed-loop amplifier bench',
     diagramKind: 'opamp',
     principles: [
-      'Negative feedback drives the input difference toward zero.',
-      'The resistor network sets closed-loop gain.',
+      'Stable negative feedback with high loop gain and no saturation drives the input difference toward zero.',
+      'ACL ≈ 1/β is the non-inverting gain approximation when |Aβ| is large; an inverting stage has signal gain −Rf/Rin.',
       'Supply rails, slew rate, and bandwidth limit ideal behavior.',
     ],
     applications: ['Signal conditioning', 'Active filters', 'Control loops'],
@@ -260,7 +260,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'Pole-and-cutoff response',
     diagramKind: 'filter',
     principles: [
-      'Every first-order pole contributes about −20 dB/decade.',
+      'Well above its corner frequency, a first-order pole contributes an asymptotic −20 dB/decade slope.',
       'Cutoff frequency marks a transition, not an ideal wall.',
       'Phase shift matters whenever stages or feedback loops interact.',
     ],
@@ -280,7 +280,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     diagramKind: 'digital',
     principles: [
       'Combinational outputs depend only on current inputs.',
-      'Sequential logic adds memory through clocked state.',
+      'Sequential logic adds memory; synchronous state machines update it on clock edges, while latches and asynchronous circuits differ.',
       'Setup, hold, and propagation delay bound reliable timing.',
     ],
     applications: ['FPGA logic', 'Protocol controllers', 'Digital safety interlocks'],
@@ -298,7 +298,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'Sampling before quantization',
     diagramKind: 'sampling',
     principles: [
-      'Bit depth sets the ideal code width.',
+      'For an ideal unipolar range from 0 to VREF, the code width is VREF/2ᴺ. In general, use the full input span.',
       'Reference accuracy limits every converted value.',
       'Quantization, offset, and nonlinearity are different errors.',
     ],
@@ -311,14 +311,14 @@ export const electricalConcepts: ElectricalConcept[] = [
     domain: 'digital',
     unit: 'Synchronous systems',
     level: 'Advanced',
-    equation: 'TCLK ≥ TCQ + TLOGIC + TSETUP + TSKEW',
+    equation: 'TCLK ≥ TCQ,max + TLOGIC,max + TSETUP + TUNCERTAINTY − TSKEW',
     summary:
       'Budget the path between registers so logic settles before the next clock edge under every operating corner.',
     interactiveLabel: 'Propagation-delay race',
     diagramKind: 'digital',
     principles: [
       'The slowest register-to-register path limits clock frequency.',
-      'Clock skew and jitter consume timing margin.',
+      'Define skew as capture-clock arrival minus launch-clock arrival. Positive skew helps setup but can hurt hold; uncertainty reduces margin.',
       'Metastability requires probability management, not wishful thinking.',
     ],
     applications: ['FPGA timing', 'ASIC signoff', 'Clock-domain crossings'],
@@ -336,7 +336,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'Interrupt-load timeline',
     diagramKind: 'embedded',
     principles: [
-      'Interrupt rate times service cost determines processor utilization.',
+      'On one core, interrupt rate times service cycles divided by CPU frequency estimates utilization; include entry, exit, and preemption overhead.',
       'Priority controls latency but cannot create missing CPU time.',
       'Peripherals and DMA move repetitive work out of the instruction stream.',
     ],
@@ -374,7 +374,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'Live sampling scope',
     diagramKind: 'sampling',
     principles: [
-      'Nyquist is a minimum theoretical boundary.',
+      'A baseband signal with content through fMAX needs fS > 2fMAX for general reconstruction. A tone exactly at fS/2 can lose amplitude and phase information.',
       'Real systems need transition band for an anti-alias filter.',
       'Aliased samples can look internally consistent while being wrong.',
     ],
@@ -393,7 +393,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'Synchronized phasor scope',
     diagramKind: 'phasor',
     principles: [
-      'A phasor stores sinusoidal magnitude and phase.',
+      'A phasor stores magnitude and phase at one sinusoidal steady-state frequency; use peak or RMS consistently.',
       'Complex impedance unifies resistance and reactance.',
       'RMS values connect AC calculations to average power.',
     ],
@@ -412,7 +412,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'Live QAM constellation',
     diagramKind: 'modulation',
     principles: [
-      'More bits per symbol raise data rate but shrink noise margin.',
+      'At fixed symbol rate and average energy, larger constellations carry more uncoded bits but reduce spacing. SNR and Eb/N0 in this equation are linear ratios, not dB.',
       'Symbol rate and pulse shaping set occupied bandwidth.',
       'Error probability depends on constellation distance and received SNR.',
     ],
@@ -431,7 +431,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'Three-phase power console',
     diagramKind: 'three-phase',
     principles: [
-      'Balanced phases are separated by 120 electrical degrees.',
+      'The power equation assumes balanced sinusoidal phases 120 degrees apart, RMS line-to-line voltage, and RMS line current.',
       'Line and phase values depend on wye or delta connection.',
       'Reactive current raises conductor loading without raising real power.',
     ],
@@ -450,7 +450,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'Turns-ratio and load bench',
     diagramKind: 'transformer',
     principles: [
-      'Turns ratio transforms voltage, current, and reflected impedance.',
+      'The voltage ratio is ideal; current scales inversely and impedance by the square of turns ratio. Pmech = Tω uses torque in N·m and angular speed in rad/s.',
       'Air-gap flux links electrical excitation to torque.',
       'Copper, core, mechanical, and switching losses shape efficiency.',
     ],
@@ -469,7 +469,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'Buck converter dashboard',
     diagramKind: 'buck',
     principles: [
-      'Duty cycle sets the ideal conversion ratio.',
+      'VOUT = DVIN applies to an ideal buck in continuous-conduction steady state. A boost instead gives VIN/(1−D); discontinuous conduction changes these relations.',
       'Inductor ripple links switching frequency, inductance, and load.',
       'Efficiency and transient response compete with size and cost.',
     ],
@@ -488,9 +488,9 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'Inverse-time relay coordinator',
     diagramKind: 'protection',
     principles: [
-      'Pickup must sit above credible load and below the minimum fault current.',
-      'Time-current curves coordinate upstream and downstream devices.',
-      'Interrupting rating must exceed the available fault current.',
+      'The displayed IEC standard-inverse curve applies only above pickup (M > 1); below pickup this element does not trip.',
+      'Coordination must consider load, inrush, minimum and maximum faults, and breaker clearing time in addition to relay delay.',
+      'Interrupting capacity must be at least the available fault current under the applicable ratings. This simulation does not establish safe protection settings.',
     ],
     applications: ['Industrial feeders', 'Substation protection', 'Arc-flash studies'],
     keywords: 'fault current relay breaker coordination pickup inverse time protection',
@@ -501,14 +501,14 @@ export const electricalConcepts: ElectricalConcept[] = [
     domain: 'electromagnetics',
     unit: 'Field foundations',
     level: 'Applied',
-    equation: 'F = qE · ∮H·dl = I',
+    equation: 'F = q(E + v × B)',
     summary:
       'See how charges and currents create fields, store energy, and exert force across space and materials.',
     interactiveLabel: 'Charge and field-force map',
     diagramKind: 'field',
     principles: [
-      'Electric field points in the force direction for positive charge.',
-      'Magnetic field circulates around current.',
+      'The electric force on a positive charge points along E; a moving charge also experiences the magnetic term q(v × B).',
+      'Ampere-Maxwell law includes conduction and displacement current: time-varying electric flux also contributes to magnetic circulation.',
       'Material permittivity and permeability reshape field energy.',
     ],
     applications: ['Capacitors', 'Inductors', 'Sensors and actuators'],
@@ -545,7 +545,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     interactiveLabel: 'RF path-loss planner',
     diagramKind: 'antenna',
     principles: [
-      'Free-space path loss grows with both distance and frequency.',
+      'In the far field with fixed isotropic antenna gains, free-space path loss increases with distance and frequency. Use dBm for power, dBi for gain, and dB for losses in this budget.',
       'Antenna gain redirects energy rather than creating power.',
       'A robust link budget reserves margin for fading, mismatch, and implementation loss.',
     ],
@@ -566,7 +566,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     principles: [
       'Feedback changes sensitivity, bandwidth, and disturbance rejection.',
       'Pole location controls speed, overshoot, and settling.',
-      'Gain and phase margin describe distance from oscillation.',
+      'Gain and phase margins characterize loop robustness, but do not alone prove stability for every loop. Check closed-loop poles or the full Nyquist criterion.',
     ],
     applications: ['Motor control', 'Power supplies', 'Autonomous systems'],
     keywords: 'control feedback stability pole zero phase margin step response',
@@ -584,8 +584,8 @@ export const electricalConcepts: ElectricalConcept[] = [
     diagramKind: 'pid',
     principles: [
       'Proportional gain increases response strength but can reduce stability margin.',
-      'Integral action removes steady-state error and can create windup.',
-      'Derivative action adds damping while amplifying high-frequency noise.',
+      'Integral action can remove constant steady-state error when the closed loop is stable and the actuator can reach the target; saturation can cause windup.',
+      'Derivative action can add damping but is noise-sensitive; practical implementations filter it.',
     ],
     applications: ['Temperature control', 'Servo drives', 'Converter regulation'],
     keywords: 'pid proportional integral derivative tuning overshoot settling windup',
@@ -603,7 +603,7 @@ export const electricalConcepts: ElectricalConcept[] = [
     diagramKind: 'ground',
     principles: [
       'Ground is a network with impedance, not a magical zero.',
-      'Current returns along the path of lowest impedance.',
+      'Return current divides among all available paths according to impedance; high-frequency return often concentrates near the signal path.',
       'Shield termination and loop area determine coupling effectiveness.',
     ],
     applications: ['PCB layout', 'EMC compliance', 'Precision sensors'],
@@ -615,13 +615,13 @@ export const electricalConcepts: ElectricalConcept[] = [
     domain: 'measurement',
     unit: 'Engineering instruments',
     level: 'Foundation',
-    equation: 'ZMEASURED = ZDUT ∥ ZINSTRUMENT',
+    equation: 'ZLOADED = ZDUT ∥ ZPROBE',
     summary:
       'Predict when a meter, probe, or scope changes the circuit it is supposed to observe.',
     interactiveLabel: 'Probe-loading comparator',
     diagramKind: 'meter',
     principles: [
-      'Every instrument adds impedance and bandwidth limits.',
+      'A voltage probe loads the node in parallel; a series ammeter instead adds burden impedance. The displayed parallel relation is not universal to all meters.',
       'Reference placement can dominate a small measured signal.',
       'Accuracy, precision, resolution, and bandwidth are separate properties.',
     ],
@@ -634,14 +634,14 @@ export const electricalConcepts: ElectricalConcept[] = [
     domain: 'measurement',
     unit: 'Metrology',
     level: 'Applied',
-    equation: 'uC = √(u1² + u2² + …) · umean = σ/√N',
+    equation: 'uC² = Σ(ciui)² · umean = σ/√N',
     summary:
       'Separate bias, random noise, repeatability, calibration correction, and confidence when reporting a measured result.',
     interactiveLabel: 'Uncertainty budget analyzer',
     diagramKind: 'uncertainty',
     principles: [
-      'Averaging reduces random uncertainty but does not remove systematic bias.',
-      'Independent standard uncertainties combine by root sum of squares.',
+      'For independent samples with the same finite variance, averaging reduces standard uncertainty by √N; it does not remove systematic bias.',
+      'For uncorrelated inputs, combine sensitivity-weighted standard uncertainties ciui by root sum of squares. Correlated inputs also require covariance terms.',
       'Calibration establishes traceability and a correction with its own uncertainty.',
     ],
     applications: ['Production test', 'Sensor calibration', 'Standards laboratories'],

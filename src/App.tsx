@@ -72,8 +72,8 @@ import type {
   ComponentType,
   FormEvent,
   KeyboardEvent as ReactKeyboardEvent,
-  PointerEvent as ReactPointerEvent,
 } from 'react';
+import { MotionEnabledContext, useCharacterMotion, useInterfaceMotion, usePageArrival } from './useInterfaceMotion';
 import type { CircuitDesign } from './CircuitWorkbench';
 import type {
   DailyMissionId,
@@ -96,6 +96,10 @@ import type {
   CheckpointExamState,
 } from './CheckpointExam';
 import { canAnswerCheckpoint, getCheckpointDurationMinutes } from './checkpointExamTiming';
+import { getSprintReview, normalizeSprintAnswer } from './sprintReviewModel';
+import type { SprintAnswer } from './sprintReviewModel';
+import { addSessionToHistory, createSessionHistoryRecord, getSessionReplayIndices, normalizeSessionHistory } from './sessionHistoryModel';
+import type { SessionHistoryRecord } from './sessionHistoryModel';
 import type { PortfolioEvidence } from './EvidencePortfolio';
 import { stageFieldJournalDraft } from './fieldJournalDraft';
 import { isProgressRestoreInProgress } from './progressRestore';
@@ -120,7 +124,12 @@ import type {
   FocusSessionRecord,
 } from './focusSession';
 import type { LabRunSnapshot } from './LabBenchLog';
+import { getLabRunCapacityMessage, insertLabRun, restoreLabValues } from './labRunHistory';
 import { calculateLabMetrics } from './labMetrics';
+import { LAB_VALUE_LIMITS } from './labValueLimits';
+import { QuestionScratchpad } from './QuestionScratchpad';
+import { MistakeExplanation } from './MistakeExplanation';
+import { readQuestionDraft } from './questionScratchpads';
 import type {
   FormulaConfidence,
   FormulaEntry,
@@ -177,6 +186,7 @@ import type {
 import {
   RecentLearning,
   readRecentLearningItems,
+  mergeRecentLearningItems,
   saveRecentLearningItems,
   RECENT_LEARNING_STORAGE_KEY,
   upsertRecentLearningItem,
@@ -297,6 +307,10 @@ const { Component: BenchRunLibrary } = createPreloadableLazy(
   () => import('./NotebookLibrary'),
   (module) => module.BenchRunLibrary,
 );
+const { Component: ScratchpadLibrary } = createPreloadableLazy(
+  () => import('./ScratchpadLibrary'),
+  (module) => module.ScratchpadLibrary,
+);
 const { Component: StudyListWorkspace } = createPreloadableLazy(
   () => import('./NotebookLibrary'),
   (module) => module.StudyListWorkspace,
@@ -339,6 +353,12 @@ const CheckpointExam = lazy(() =>
   import('./CheckpointExam').then((module) => ({
     default: module.CheckpointExam,
   })),
+);
+const SprintReview = lazy(() =>
+  import('./SprintReview').then((module) => ({ default: module.SprintReview })),
+);
+const SessionHistory = lazy(() =>
+  import('./SessionHistory').then((module) => ({ default: module.SessionHistory })),
 );
 const {
   Component: EvidencePortfolio,
@@ -587,7 +607,8 @@ type SprintSource =
   | 'diagnostic'
   | 'power'
   | 'recovery'
-  | 'review';
+  | 'review'
+  | 'saved';
 
 type SearchResult = {
   id: string;
@@ -914,11 +935,6 @@ type Achievement = {
   unlocked: boolean;
 };
 
-type SprintAnswer = {
-  questionId: string;
-  result: QuestionResult | 'skipped';
-};
-
 type SprintState = {
   answerConfidence: AnswerConfidence | null;
   completedAt: number | null;
@@ -1094,6 +1110,7 @@ type StoredLearnerState = {
   labSaveCount: number;
   lastSprintSummary: SprintSummary | null;
   learnerProfile: LearnerProfile;
+  sessionHistory: SessionHistoryRecord[];
   mistakeRecoveryCompletions: number;
   mistakeReflections: Record<string, MistakeReflection>;
   portfolioFeaturedIds: string[];
@@ -1126,8 +1143,6 @@ const LEARNER_STORAGE_KEY = 'zyloxp-learner-state-v1';
 const SAVED_LAB_STORAGE_KEY = 'zyloxp-saved-lab-v1';
 const SAVE_META_STORAGE_KEY = 'zyloxp-save-meta-v1';
 const NOTEBOOK_LIBRARY_VIEW_STORAGE_KEY = 'zyloxp-notebook-library-view-v1';
-const QUESTION_SCRATCHPAD_STORAGE_KEY = 'zyloxp-question-scratchpads-v1';
-const QUESTION_SCRATCHPAD_LIMIT = 600;
 const XP_PER_LEVEL = 400;
 const SPRINT_LENGTH = 5;
 const MAX_SESSION_LENGTH = 10;
@@ -1148,60 +1163,6 @@ const REVIEW_INTERVALS_MS = [
   14 * 24 * 60 * 60 * 1000,
 ] as const;
 
-function readQuestionScratchpad(questionId: string) {
-  if (typeof window === 'undefined') {
-    return '';
-  }
-
-  try {
-    const storedScratchpads = JSON.parse(
-      window.localStorage.getItem(QUESTION_SCRATCHPAD_STORAGE_KEY) ?? '{}',
-    ) as unknown;
-
-    if (!storedScratchpads || typeof storedScratchpads !== 'object') {
-      return '';
-    }
-
-    const scratchpad = (storedScratchpads as Record<string, unknown>)[questionId];
-    return typeof scratchpad === 'string'
-      ? scratchpad.slice(0, QUESTION_SCRATCHPAD_LIMIT)
-      : '';
-  } catch {
-    return '';
-  }
-}
-
-function saveQuestionScratchpad(questionId: string, scratchpad: string) {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  try {
-    const parsedScratchpads = JSON.parse(
-      window.localStorage.getItem(QUESTION_SCRATCHPAD_STORAGE_KEY) ?? '{}',
-    ) as unknown;
-    const storedScratchpads =
-      parsedScratchpads && typeof parsedScratchpads === 'object'
-        ? (parsedScratchpads as Record<string, unknown>)
-        : {};
-    const nextScratchpads = Object.fromEntries(
-      Object.entries({
-        ...storedScratchpads,
-        [questionId]: scratchpad.slice(0, QUESTION_SCRATCHPAD_LIMIT),
-      })
-        .filter(([, value]) => typeof value === 'string' && value.trim())
-        .slice(-80),
-    );
-
-    window.localStorage.setItem(
-      QUESTION_SCRATCHPAD_STORAGE_KEY,
-      JSON.stringify(nextScratchpads),
-    );
-  } catch {
-    // Scratchpad persistence is optional; the in-memory note remains available.
-  }
-}
-
 function readStoredNotebookLibraryView(): NotebookLibraryView | null {
   if (typeof window === 'undefined') {
     return null;
@@ -1216,6 +1177,7 @@ function readStoredNotebookLibraryView(): NotebookLibraryView | null {
       storedView === 'notes' ||
       storedView === 'formulas' ||
       storedView === 'questions' ||
+      storedView === 'scratchpads' ||
       storedView === 'bench'
       ? storedView
       : null;
@@ -1492,60 +1454,6 @@ const DEFAULT_LAB_VALUES: LabSimulationValues = {
   transformerSecondaryTurns: 105,
   transformerWindingResistance: 0.5,
   voltage: 5,
-};
-const LAB_VALUE_LIMITS: Record<LabValueKey, [number, number]> = {
-  adcBitDepth: [4, 16],
-  adcFilterCutoff: [0.2, 12],
-  adcInputAmplitude: [0.1, 2.5],
-  adcInputFrequency: [0.1, 12],
-  adcReferenceVoltage: [1, 5],
-  adcSampleRate: [1, 24],
-  bjtBaseCurrent: [0, 120],
-  bjtCollectorResistance: [0.5, 10],
-  bjtCurrentGain: [40, 200],
-  bjtSupplyVoltage: [3, 24],
-  bjtTemperature: [-20, 100],
-  capacitance: [1, 220],
-  digitalClockFrequency: [5, 100],
-  digitalPropagationDelay: [1, 30],
-  digitalSetupTime: [1, 20],
-  filterFrequency: [1, 5000],
-  lineCurrent: [1, 50],
-  lineVoltage: [120, 600],
-  mosfetBusVoltage: [6, 60],
-  mosfetDutyCycle: [10, 95],
-  mosfetGateResistance: [2, 50],
-  mosfetGateVoltage: [0, 12],
-  mosfetLoadResistance: [2, 30],
-  mosfetSwitchingFrequency: [5, 250],
-  opAmpFeedbackResistance: [1, 100],
-  opAmpInputResistance: [1, 20],
-  opAmpInputVoltage: [0.05, 2],
-  opAmpSupplyVoltage: [5, 15],
-  pidDerivativeGain: [0, 1.2],
-  pidIntegralGain: [0, 2],
-  pidPlantTimeConstant: [0.5, 3],
-  pidProportionalGain: [0.2, 4],
-  pidSetpoint: [20, 90],
-  powerFactor: [0.5, 1],
-  rcResistance: [1, 100],
-  resistance: [1, 48],
-  resonanceCapacitance: [0.2, 20],
-  resonanceFrequency: [100, 5000],
-  resonanceInductance: [1, 100],
-  resonanceResistance: [2, 100],
-  resonanceSourceVoltage: [1, 12],
-  transmissionCharacteristicImpedance: [25, 100],
-  transmissionElectricalLength: [0, 360],
-  transmissionLoadImpedance: [1, 200],
-  transformerCoreArea: [4, 30],
-  transformerFrequency: [20, 400],
-  transformerLoadResistance: [2, 100],
-  transformerPrimaryTurns: [100, 1200],
-  transformerPrimaryVoltage: [24, 480],
-  transformerSecondaryTurns: [20, 1000],
-  transformerWindingResistance: [0.05, 5],
-  voltage: [1, 24],
 };
 
 function normalizeLabValues(values: unknown): LabSimulationValues {
@@ -5785,17 +5693,6 @@ function getLearnerInitials(displayName: string) {
   return `${firstInitial}${secondInitial || ''}`.toUpperCase();
 }
 
-function readPreferredReducedMotion() {
-  if (
-    typeof window === 'undefined' ||
-    typeof window.matchMedia !== 'function'
-  ) {
-    return false;
-  }
-
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
 function readOnlineStatus() {
   return typeof navigator === 'undefined' ? true : navigator.onLine;
 }
@@ -6213,6 +6110,7 @@ function normalizeStoredSprintState(value: unknown): SprintState | null {
     'power',
     'recovery',
     'review',
+    'saved',
   ]);
   const source = validSources.has(storedSprint.source as SprintSource)
     ? (storedSprint.source as SprintSource)
@@ -6260,12 +6158,9 @@ function normalizeStoredSprintState(value: unknown): SprintState | null {
         }
 
         seenResultIds.add(storedResult.questionId);
-        return [
-          {
-            questionId: storedResult.questionId,
-            result: storedResult.result,
-          } satisfies SprintAnswer,
-        ];
+        const question = lessonQuestions.find((item) => item.id === storedResult.questionId)!;
+        const answer = normalizeSprintAnswer(storedResult, question);
+        return answer ? [answer] : [];
       })
     : [];
   const position =
@@ -6328,6 +6223,8 @@ function normalizeStoredSprintState(value: unknown): SprintState | null {
                 ? 'Smart Review'
                 : source === 'custom'
                   ? 'Practice Session'
+                  : source === 'saved'
+                    ? 'Saved Questions Session'
                   : 'Power Sprint',
     paused: storedSprint.paused === true,
     position,
@@ -6345,7 +6242,8 @@ function normalizeStoredSprintState(value: unknown): SprintState | null {
 
 function readStoredLearnerState(): StoredLearnerState {
   const activityDate = getActivityDateKey();
-  const defaultReducedMotion = readPreferredReducedMotion();
+  // Device preferences are applied live, separately from an explicit app choice.
+  const defaultReducedMotion = false;
   const defaultSkillProgress = Object.fromEntries(
     skillNodes.map((skill) => [skill.id, skill.progress]),
   );
@@ -6378,6 +6276,7 @@ function readStoredLearnerState(): StoredLearnerState {
     labRunHistory: [],
     labSaveCount: 0,
     lastSprintSummary: null,
+    sessionHistory: [],
     learnerProfile: normalizeLearnerProfile(null),
     mistakeRecoveryCompletions: 0,
     mistakeReflections: {},
@@ -6822,7 +6721,8 @@ function readStoredLearnerState(): StoredLearnerState {
               storedSprintSummary.source === 'diagnostic' ||
               storedSprintSummary.source === 'power' ||
               storedSprintSummary.source === 'recovery' ||
-              storedSprintSummary.source === 'review'
+              storedSprintSummary.source === 'review' ||
+              storedSprintSummary.source === 'saved'
                 ? storedSprintSummary.source
                 : sprintTotal > SPRINT_LENGTH
                   ? 'custom'
@@ -6985,6 +6885,7 @@ function readStoredLearnerState(): StoredLearnerState {
           : 0,
       lastSprintSummary,
       learnerProfile: normalizeLearnerProfile(parsedState.learnerProfile),
+      sessionHistory: normalizeSessionHistory(parsedState.sessionHistory),
       mistakeRecoveryCompletions:
         typeof parsedState.mistakeRecoveryCompletions === 'number' &&
         Number.isFinite(parsedState.mistakeRecoveryCompletions)
@@ -7222,6 +7123,8 @@ function getActiveViewLabel({
       return 'Weekly Planner';
     case 'sprint-summary':
       return 'Sprint Summary';
+    case 'session-history':
+      return 'Session history';
     case 'overview':
       return SECTION_VIEW_LABELS[activeSection];
   }
@@ -7233,7 +7136,7 @@ function App() {
   const [initialRoute] = useState<AppRoute>(readInitialAppRoute);
   const initialSprintState = initialLearnerState.activeSprint;
   const shouldRestoreActiveSprint =
-    initialSprintState !== null && !initialSprintState.paused;
+    initialSprintState !== null && !initialSprintState.paused && initialRoute.page !== 'session-history';
   const initialSprintQuestionIndex =
     initialSprintState?.questionIndices[initialSprintState.position] ?? -1;
   const initialRouteQuestionIndex =
@@ -7537,6 +7440,8 @@ function App() {
   const [labRunHistory, setLabRunHistory] = useState<LabRunSnapshot[]>(
     initialLearnerState.labRunHistory,
   );
+  const labRunHistoryRef = useRef(labRunHistory);
+  labRunHistoryRef.current = labRunHistory;
   const [labSaveCount, setLabSaveCount] = useState(initialLearnerState.labSaveCount);
   const [workbenchSaveCount, setWorkbenchSaveCount] = useState(
     initialLearnerState.workbenchSaveCount,
@@ -7555,7 +7460,11 @@ function App() {
     initialLearnerState.lastSprintSummary,
   );
   const [sprintState, setSprintState] = useState<SprintState | null>(
-    initialSprintState,
+    initialRoute.page === 'session-history' && initialSprintState ? { ...initialSprintState, paused: true } : initialSprintState,
+  );
+  const [sessionHistory, setSessionHistory] = useState(initialLearnerState.sessionHistory);
+  const [sessionHistoryId, setSessionHistoryId] = useState<string | null>(
+    initialRoute.page === 'session-history' ? initialRoute.resourceId : null,
   );
   const [soundEnabled, setSoundEnabled] = useState(initialLearnerState.soundEnabled);
   const [practiceWithHearts, setPracticeWithHearts] = useState(
@@ -7564,6 +7473,7 @@ function App() {
   const [reducedMotionEnabled, setReducedMotionEnabled] = useState(
     initialLearnerState.reducedMotionEnabled,
   );
+  const interfaceMotion = useInterfaceMotion(reducedMotionEnabled);
   const [highContrastEnabled, setHighContrastEnabled] = useState(
     initialLearnerState.highContrastEnabled,
   );
@@ -8814,6 +8724,8 @@ function App() {
         activeSection,
         activePage === 'concept' || activePage === 'game'
           ? activeAtlasId
+          : activePage === 'session-history' || activePage === 'sprint-summary'
+            ? sessionHistoryId
           : activePage === 'lesson'
           ? currentQuestion.id
           : activePage === 'lab' || activePage === 'workbench'
@@ -8827,6 +8739,7 @@ function App() {
                 : '',
       ].join(':')
     : `entry:${entryView}:${authMode}`;
+  usePageArrival(mainContentRef, routeFocusKey, isAuthenticated && !interfaceMotion.reduced && interfaceMotion.visible);
   const focusObjectives: FocusObjective[] = [
     {
       detail:
@@ -9819,6 +9732,7 @@ function App() {
     setActiveBankDiagnosticId(null);
     setActiveSection(resolvedRoute.section);
     setActivePage(resolvedRoute.page);
+    setSessionHistoryId(resolvedRoute.page === 'session-history' ? resolvedRoute.resourceId : null);
 
     if (
       (resolvedRoute.page === 'concept' || resolvedRoute.page === 'game') &&
@@ -10191,14 +10105,15 @@ function App() {
       !isAuthenticated ||
       (isSprintActive &&
         sprintState?.paused === false &&
-        activePage === 'lesson') ||
-      activePage === 'sprint-summary'
+        activePage === 'lesson')
     ) {
       return;
     }
 
     const resourceId =
-      activePage === 'concept' || activePage === 'game'
+      activePage === 'session-history' || activePage === 'sprint-summary'
+        ? sessionHistoryId
+        : activePage === 'concept' || activePage === 'game'
         ? activeAtlasId
         : activePage === 'lesson'
         ? currentQuestion.id
@@ -10248,6 +10163,7 @@ function App() {
     isSprintActive,
     selectedCareer.role,
     sprintState?.paused,
+    sessionHistoryId,
   ]);
 
   useEffect(() => {
@@ -10800,6 +10716,7 @@ function App() {
       labRunHistory,
       labSaveCount,
       lastSprintSummary,
+      sessionHistory,
       learnerProfile,
       mistakeRecoveryCompletions,
       mistakeReflections,
@@ -10892,6 +10809,7 @@ function App() {
     labRunHistory,
     labSaveCount,
     lastSprintSummary,
+    sessionHistory,
     learnerProfile,
     mistakeRecoveryCompletions,
     mistakeReflections,
@@ -11371,6 +11289,17 @@ function App() {
     showToast('Saved for focused practice.');
   }
 
+  function handleToggleSprintBookmark(questionId: string) {
+    if (!sprintState || sprintState.completedAt === null
+      || !sprintState.results.some((result) => result.questionId === questionId)) return;
+    if (bookmarkedQuestionIds.includes(questionId)) {
+      handleRemoveSavedQuestion(questionId);
+      return;
+    }
+    setBookmarkedQuestionIds((ids) => ids.includes(questionId) ? ids : [...ids, questionId]);
+    showToast('Saved for focused practice.');
+  }
+
   function handleToggleFormula(formulaId: string) {
     const formulaEntry = FORMULA_LIBRARY.find((entry) => entry.id === formulaId);
 
@@ -11574,7 +11503,7 @@ function App() {
     if (section === activeSection && activePage === 'overview') {
       setOverlay(null);
       window.scrollTo({
-        behavior: reducedMotionEnabled ? 'auto' : 'smooth',
+        behavior: interfaceMotion.reduced ? 'auto' : 'smooth',
         left: 0,
         top: 0,
       });
@@ -11620,6 +11549,10 @@ function App() {
         return;
       case 'sprint-summary':
         handleBackFromSprintSummary();
+        return;
+      case 'session-history':
+        if (sessionHistoryId) handleOpenSessionHistory();
+        else handleSectionChange('practice');
         return;
       case 'focus-room':
         handleBackFromFocusRoom();
@@ -11708,6 +11641,9 @@ function App() {
   }
 
   function resumeSprintSession(session: SprintState) {
+    if (parseAppHash(window.location.hash).page === 'session-history') {
+      window.history.pushState(null, '', '#/practice');
+    }
     const sprintQuestionIndex =
       session.questionIndices[session.position] ?? session.questionIndices[0];
     const sprintQuestion = lessonQuestions[sprintQuestionIndex];
@@ -11889,6 +11825,9 @@ function App() {
     questionIndices: number[],
     options: SprintLaunchOptions,
   ) {
+    if (parseAppHash(window.location.hash).page === 'session-history') {
+      window.history.pushState(null, '', '#/practice');
+    }
     const questionLimit = Math.min(
       MAX_SESSION_LENGTH,
       Math.max(1, Math.round(options.length ?? SPRINT_LENGTH)),
@@ -12396,12 +12335,54 @@ function App() {
     });
   }
 
+  function openSavedQuestionLibrary() {
+    setNotebookLibraryView('questions');
+    setActiveSection('notebook');
+    setActivePage('overview');
+    setOverlay(null);
+  }
+
+  function launchSavedQuestionSession(questionIndices: number[], label = 'Saved Questions Session') {
+    const indices = [...new Set(questionIndices)]
+      .filter((index) => Number.isInteger(index) && Boolean(lessonQuestions[index]))
+      .slice(0, MAX_SESSION_LENGTH);
+    const firstQuestion = lessonQuestions[indices[0]];
+    if (!firstQuestion) {
+      showToast('No saved questions match this set.');
+      return;
+    }
+    const skill = skillNodes.find((item) => item.id === BANK_TOPIC_SKILL_IDS[firstQuestion.topic]) ?? adaptiveSkill;
+    launchSprint(skill, indices, {
+      label,
+      length: indices.length,
+      message: `${label} started with ${indices.length} ${indices.length === 1 ? 'question' : 'questions'}.`,
+      source: 'saved',
+    });
+  }
+
+  function handleStartSavedQuestionSession(questionIds: string[]) {
+    if (isSprintActive && sprintState) {
+      resumeSprintSession(sprintState);
+      return;
+    }
+    const savedIds = new Set(bookmarkedQuestionIds);
+    const indices = questionIds.filter((id) => savedIds.has(id))
+      .map((id) => lessonQuestions.findIndex((question) => question.id === id));
+    launchSavedQuestionSession(indices);
+  }
+
   function handleCancelSprint() {
     const sprintSource = sprintState?.source;
     setSprintState(null);
     setActiveBankDiagnosticId(null);
     setPracticeMode('path');
     setSelectedOption(null);
+
+    if (sprintSource === 'saved') {
+      openSavedQuestionLibrary();
+      showToast('Session ended. Your saved questions are unchanged.');
+      return;
+    }
 
     if (sprintSource === 'recovery') {
       setActiveSection('practice');
@@ -12686,6 +12667,12 @@ function App() {
           }
         : session,
     );
+
+    if (sprintState?.source === 'saved') {
+      openSavedQuestionLibrary();
+      showToast('Session paused. Your place is saved.');
+      return;
+    }
 
     if (
       sprintState?.source === 'recovery' &&
@@ -12994,6 +12981,11 @@ function App() {
     setSprintState(null);
     setActiveBankDiagnosticId(null);
 
+    if (sprintSource === 'saved') {
+      openSavedQuestionLibrary();
+      return;
+    }
+
     if (sprintSource === 'review') {
       setActiveSection('practice');
       setActivePage('review-plan');
@@ -13019,6 +13011,11 @@ function App() {
   }
 
   function handleRestartSprint() {
+    if (sprintState?.source === 'saved') {
+      launchSavedQuestionSession(sprintState.questionIndices, sprintState.label);
+      return;
+    }
+
     if (sprintState?.diagnosticId) {
       handleStartBankDiagnostic(sprintState.diagnosticId);
       return;
@@ -13045,7 +13042,48 @@ function App() {
     handleStartSprint();
   }
 
+  function handleOpenSessionHistory(id: string | null = null) {
+    setSprintState((session) => session && session.completedAt === null ? { ...session, paused: true } : session);
+    setSessionHistoryId(id);
+    setSelectedOption(null);
+    setActiveSection('practice');
+    setActivePage('session-history');
+    setOverlay(null);
+  }
+
+  function handlePracticeArchivedSession(record: SessionHistoryRecord, onlyMisses: boolean) {
+    if (isSprintActive) {
+      showToast('Resume or finish your current session before starting another.');
+      return;
+    }
+    const stored = sessionHistory.find((item) => item.id === record.id);
+    if (!stored) return;
+    const indices = getSessionReplayIndices(stored, lessonQuestions, onlyMisses);
+    if (!indices.length) return;
+    const skill = skillNodes.find((item) => item.id === BANK_TOPIC_SKILL_IDS[lessonQuestions[indices[0]].topic]) ?? adaptiveSkill;
+    launchSprint(skill, indices, {
+      source: 'review', label: onlyMisses ? 'Session Misses' : 'Session Replay', length: indices.length,
+      message: `${indices.length} ${indices.length === 1 ? 'question' : 'questions'} ready from your session history.`,
+    });
+  }
+
+  function handleToggleHistoryBookmark(questionId: string) {
+    const record = sessionHistory.find((item) => item.id === sessionHistoryId);
+    if (!record || !getSessionReplayIndices(record, lessonQuestions, false).some((index) => lessonQuestions[index].id === questionId)) return;
+    if (bookmarkedQuestionIds.includes(questionId)) {
+      handleRemoveSavedQuestion(questionId);
+      return;
+    }
+    setBookmarkedQuestionIds((ids) => ids.includes(questionId) ? ids : [...ids, questionId]);
+    showToast('Saved for focused practice.');
+  }
+
   function handleStrengthenSprintSkill() {
+    if (sprintState?.source === 'saved') {
+      handleBackFromSprintSummary();
+      return;
+    }
+
     if (sprintState?.source === 'recovery') {
       handleOpenMistakeLab();
       return;
@@ -13076,6 +13114,21 @@ function App() {
   }
 
   function handleReviewSprintMistakes() {
+    if (!sprintState || sprintState.completedAt === null) return;
+    const missedIds = new Set(sprintState.results
+      .filter((result) => result.result !== 'correct')
+      .map((result) => result.questionId));
+    const missedIndices = sprintState.questionIndices.filter((index) => missedIds.has(lessonQuestions[index].id));
+    if (missedIndices.length === 0) return;
+
+    if (sprintState?.source === 'saved') {
+      launchSavedQuestionSession(
+        missedIndices,
+        'Saved Questions Review',
+      );
+      return;
+    }
+
     if (sprintState?.source === 'recovery') {
       setSprintState(null);
       setActiveBankDiagnosticId(null);
@@ -13085,9 +13138,13 @@ function App() {
       return;
     }
 
-    setSprintState(null);
-    setActiveBankDiagnosticId(null);
-    handlePracticeModeChange('review');
+    const skill = skillNodes.find((item) => item.id === BANK_TOPIC_SKILL_IDS[lessonQuestions[missedIndices[0]].topic]) ?? activeSkill;
+    launchSprint(skill, missedIndices, {
+      source: 'review',
+      label: 'Session Misses',
+      length: missedIndices.length,
+      message: `${missedIndices.length} ${missedIndices.length === 1 ? 'question' : 'questions'} from your last session ready to revisit.`,
+    });
   }
 
   function handleBackToLabs() {
@@ -13630,6 +13687,11 @@ function App() {
   }
 
   function handleSaveLab() {
+    const capacityMessage = getLabRunCapacityMessage(labRunHistory, activeLabId);
+    if (capacityMessage) {
+      showToast(capacityMessage);
+      return;
+    }
     const savedLabState: SavedLabState = {
       activeLabId,
       values: labValues,
@@ -13645,18 +13707,7 @@ function App() {
 
     try {
       window.localStorage.setItem(SAVED_LAB_STORAGE_KEY, JSON.stringify(savedLabState));
-      setLabRunHistory((runs) => {
-        const activeLabRuns = runs
-          .filter((savedRun) => savedRun.labId === activeLabId)
-          .slice(0, 7);
-        const otherLabRuns = runs.filter(
-          (savedRun) => savedRun.labId !== activeLabId,
-        );
-
-        return [run, ...activeLabRuns, ...otherLabRuns]
-          .sort((first, second) => second.savedAt - first.savedAt)
-          .slice(0, 24);
-      });
+      setLabRunHistory((runs) => insertLabRun(runs, run) ?? runs);
       setLabSaveCount((count) => count + 1);
       showToast(`${activeLab.title} saved to your Bench Log.`);
     } catch {
@@ -13667,7 +13718,7 @@ function App() {
   function handleRestoreLabRun(run: LabRunSnapshot) {
     const restoredLab =
       labScenarios.find((lab) => lab.id === run.labId) ?? activeLab;
-    const values = normalizeLabValues(run.values);
+    const values = restoreLabValues(restoredLab.id, labValues, normalizeLabValues(run.values));
 
     setActiveLabId(restoredLab.id);
     setLabValues(values);
@@ -13709,15 +13760,12 @@ function App() {
     showToast('Saved lab run deleted.', {
       label: 'Undo',
       run: () => {
-        setLabRunHistory((runs) => {
-          if (runs.some((run) => run.id === deletedRun.id)) {
-            return runs;
-          }
-
-          return [deletedRun, ...runs]
-            .sort((first, second) => second.savedAt - first.savedAt)
-            .slice(0, 24);
-        });
+        const restored = insertLabRun(labRunHistoryRef.current, deletedRun);
+        if (!restored) {
+          showToast('There is no room to undo this deletion. Delete another run first.');
+          return;
+        }
+        setLabRunHistory(restored);
         showToast('Saved lab run restored.');
       },
     });
@@ -13734,7 +13782,7 @@ function App() {
     showToast('Recent learning history cleared.', {
       label: 'Undo',
       run: () => {
-        setRecentLearningItems(clearedItems);
+        setRecentLearningItems((items) => mergeRecentLearningItems(items, clearedItems));
         showToast('Recent learning history restored.');
       },
     });
@@ -14097,6 +14145,8 @@ function App() {
             {
               questionId: currentQuestion.id,
               result: answerResult,
+              optionIndex,
+              confidence: submittedConfidence,
             },
           ],
           selectedOption: optionIndex,
@@ -14109,21 +14159,23 @@ function App() {
     }
 
     if (optionIndex === currentQuestion.correctIndex) {
+      const answeredSkillId = BANK_TOPIC_SKILL_IDS[currentQuestion.topic] ?? activeSkill.id;
+      const answeredSkill = skillNodes.find((skill) => skill.id === answeredSkillId) ?? activeSkill;
       const nextSkillProgress = Math.min(
         100,
-        (skillProgress[activeSkill.id] ?? activeSkill.progress) + 4,
+        (skillProgress[answeredSkillId] ?? answeredSkill.progress) + 4,
       );
       setEarnedXp((xp) => xp + currentQuestion.xp);
       setSkillProgress((progress) => ({
         ...progress,
-        [activeSkill.id]: Math.min(
+        [answeredSkillId]: Math.min(
           100,
-          (progress[activeSkill.id] ?? activeSkill.progress) + 4,
+          (progress[answeredSkillId] ?? answeredSkill.progress) + 4,
         ),
       }));
       markStudyListResourceComplete('Question', currentQuestion.id);
       if (nextSkillProgress >= 100) {
-        markStudyListResourceComplete('Skill', activeSkill.id);
+        markStudyListResourceComplete('Skill', answeredSkillId);
       }
       return;
     }
@@ -14172,6 +14224,8 @@ function App() {
               {
                 questionId: currentQuestion.id,
                 result: 'skipped' as const,
+                optionIndex: null,
+                confidence: null,
               },
             ],
           };
@@ -14238,6 +14292,11 @@ function App() {
           setMistakeRecoveryCompletions((count) => count + 1);
         }
         setSprintState(completedSession);
+        const historyRecord = createSessionHistoryRecord(completedSession, lessonQuestions);
+        if (historyRecord) {
+          setSessionHistory((records) => addSessionToHistory(records, historyRecord));
+          setSessionHistoryId(historyRecord.id);
+        }
         setLastSprintSummary({
           completedAt,
           correct,
@@ -14262,6 +14321,9 @@ function App() {
         selectedOption: null,
       });
       setCurrentQuestionIndex(nextSession.questionIndices[nextPosition]);
+      setActiveSkillId(
+        BANK_TOPIC_SKILL_IDS[lessonQuestions[nextSession.questionIndices[nextPosition]].topic] ?? skillNodes[0].id,
+      );
       setSelectedOption(null);
       return;
     }
@@ -14813,6 +14875,8 @@ function App() {
           label: 'Try Again',
           run: handleRestartSprint,
         };
+      case 'session-history':
+        return null;
       case 'concept':
       case 'game':
       case 'overview':
@@ -14836,11 +14900,13 @@ function App() {
 
   return (
     <ZyTutorLaunchContext.Provider value={handleOpenTutor}>
+    <MotionEnabledContext.Provider value={!interfaceMotion.reduced && interfaceMotion.visible}>
       <div
         className="appShell"
         data-contrast={highContrastEnabled ? 'strong' : 'soft'}
         data-focus-view={focusViewActive ? 'active' : 'inactive'}
-        data-motion={reducedMotionEnabled ? 'reduced' : 'full'}
+        data-motion={interfaceMotion.reduced ? 'reduced' : 'full'}
+        data-visible={interfaceMotion.visible}
         data-section={activeSection}
       >
       <a
@@ -15509,7 +15575,7 @@ function App() {
               className="backToTopButton"
               onClick={() =>
                 window.scrollTo({
-                  behavior: reducedMotionEnabled ? 'auto' : 'smooth',
+                  behavior: interfaceMotion.reduced ? 'auto' : 'smooth',
                   left: 0,
                   top: 0,
                 })
@@ -15550,13 +15616,21 @@ function App() {
             />
           ) : activePage === 'sprint-summary' && sprintState ? (
             <SprintSummaryPage
-              adaptiveSkill={activeSkill}
+              adaptiveSkill={adaptiveSkill}
+              bookmarkedIds={bookmarkedQuestionIds}
               onBack={handleBackFromSprintSummary}
               onNewSprint={handleRestartSprint}
               onReviewMisses={handleReviewSprintMistakes}
               onStrengthenSkill={handleStrengthenSprintSkill}
+              onOpenHistory={() => handleOpenSessionHistory()}
+              onToggleBookmark={handleToggleSprintBookmark}
               sprint={sprintState}
             />
+          ) : activePage === 'session-history' ? (
+            <SessionHistory records={sessionHistory} selectedId={sessionHistoryId} questions={lessonQuestions}
+              bookmarkedIds={bookmarkedQuestionIds} activeSessionLabel={isSprintActive && sprintState ? sprintState.label : null}
+              onSelect={handleOpenSessionHistory} onBack={() => handleSectionChange('practice')}
+              onPractice={handlePracticeArchivedSession} onResume={handleStartLesson} onToggleBookmark={handleToggleHistoryBookmark} />
           ) : activePage === 'focus-room' ? (
             <FocusRoom
             clock={focusClock}
@@ -15780,6 +15854,13 @@ function App() {
             onCreate={handleCreateCheckpointExam}
             onNavigate={handleCheckpointNavigate}
             onOpenMistakeLab={handleOpenCheckpointMistakes}
+            onPracticeQuestion={(questionId) => {
+              if (checkpointExam?.completedAt == null || !checkpointExam.questionIds.includes(questionId)) return;
+              handleOpenReviewQuestion(
+                lessonQuestions.findIndex((question) => question.id === questionId),
+                'your checkpoint',
+              );
+            }}
             onReset={handleResetCheckpointExam}
             onSubmit={handleSubmitCheckpoint}
             questions={checkpointQuestions}
@@ -15921,6 +16002,8 @@ function App() {
             backLabel={
               activeBankDiagnosticId
                 ? 'Back to bank'
+                : sprintState?.source === 'saved'
+                  ? 'Back to saved questions'
                 : sprintState?.source === 'custom'
                   ? 'Back to builder'
                   : sprintState?.source === 'recovery'
@@ -15962,6 +16045,10 @@ function App() {
               })
             }
             onOpenHearts={() => setOverlay('hearts')}
+            onOpenScratchpads={() => {
+              setNotebookLibraryView('scratchpads');
+              handleSectionChange('notebook');
+            }}
             onPracticeModeChange={handlePracticeModeChange}
             onToggleBookmark={handleToggleQuestionBookmark}
             onToggleFormula={() =>
@@ -16050,6 +16137,7 @@ function App() {
             filterOutput={filterOutput}
             filterPhase={filterPhase}
             labRunHistory={activeLabRunHistory}
+            labSaveBlockedReason={getLabRunCapacityMessage(labRunHistory, activeLabId)}
             labValues={labValues}
             missionFeedback={labMissionFeedback}
             missionValue={activeLabMetric}
@@ -16761,6 +16849,14 @@ function App() {
         {activeSection !== 'learn' && (
           <div className="contentGrid overviewGrid">
           <section className="mainColumn" aria-label="Primary content">
+            {activeSection === 'practice' && (
+              <div className="sessionHistoryEntry">
+                <button className="secondaryButton" type="button" onClick={() => handleOpenSessionHistory()}>
+                  <History size={17} aria-hidden="true" />Session history
+                  <span>{sessionHistory.length}</span>
+                </button>
+              </div>
+            )}
             {activeSection === 'practice' && (
               <section
                 className="reviewPlannerBand"
@@ -17688,6 +17784,11 @@ function App() {
                 )}
                 {notebookLibraryView === 'questions' && (
                   <SavedQuestionLibrary
+                    activeSession={isSprintActive && sprintState ? {
+                      label: sprintState.label,
+                      answered: sprintState.results.length,
+                      total: sprintState.questionIndices.length,
+                    } : null}
                     items={savedQuestionLibraryItems}
                     onBrowse={() => handleSectionChange('bank')}
                     onOpen={(questionIndex) =>
@@ -17697,6 +17798,8 @@ function App() {
                       )
                     }
                     onRemove={handleRemoveSavedQuestion}
+                    onResumeSession={handleStartLesson}
+                    onStartSession={handleStartSavedQuestionSession}
                   />
                 )}
                 {notebookLibraryView === 'bench' && (
@@ -17709,6 +17812,13 @@ function App() {
                     onOpen={handleOpenNotebookLabRun}
                     onOpenLabs={() => handleSectionChange('labs')}
                     runs={labRunHistory}
+                  />
+                )}
+                {notebookLibraryView === 'scratchpads' && (
+                  <ScratchpadLibrary
+                    questions={lessonQuestions}
+                    onOpen={(questionIndex) => handleOpenReviewQuestion(questionIndex, 'Scratchpads')}
+                    onBrowse={() => handleSectionChange('practice')}
                   />
                 )}
               </>
@@ -18169,6 +18279,7 @@ function App() {
           practiceWithHearts={practiceWithHearts}
           readingSize={readingSize}
           reducedMotionEnabled={reducedMotionEnabled}
+          systemReducedMotionEnabled={interfaceMotion.systemReduced}
           reviewDueCount={reviewQuestionIds.length}
           saveStatus={saveStatus}
           soundEnabled={soundEnabled}
@@ -18203,6 +18314,7 @@ function App() {
         />
       </Suspense>
       </div>
+    </MotionEnabledContext.Provider>
     </ZyTutorLaunchContext.Provider>
   );
 }
@@ -18477,6 +18589,7 @@ type LessonFocusPageProps = {
   onOpenAtlasConcept: (conceptId: string) => void;
   onOpenAtlasGame: (gameId: string) => void;
   onOpenJournal: (scratchpad?: string) => void;
+  onOpenScratchpads: () => void;
   onOpenHearts: () => void;
   onPracticeModeChange: (mode: PracticeMode) => void;
   onToggleBookmark: () => void;
@@ -18517,6 +18630,7 @@ function LessonFocusPage({
   onOpenAtlasConcept,
   onOpenAtlasGame,
   onOpenJournal,
+  onOpenScratchpads,
   onOpenHearts,
   onPracticeModeChange,
   onToggleBookmark,
@@ -18534,10 +18648,6 @@ function LessonFocusPage({
 }: LessonFocusPageProps) {
   const [hintStep, setHintStep] = useState(0);
   const [eliminatedOptions, setEliminatedOptions] = useState<number[]>([]);
-  const [scratchpad, setScratchpad] = useState(() =>
-    readQuestionScratchpad(currentQuestion.id),
-  );
-  const [scratchpadOpen, setScratchpadOpen] = useState(false);
   const nextPromptButtonRef = useRef<HTMLButtonElement>(null);
   const isOutOfHearts = heartsEnabled && heartsRemaining === 0;
   const heartCountdown = formatHeartCountdown(nextHeartInMs);
@@ -18564,7 +18674,7 @@ function LessonFocusPage({
             'Keep the relationship in mind as the next prompt changes the numbers.',
           ]
         : [
-            'Use the verified explanation below to find the step that changed the result.',
+            'Compare your answer with the worked steps to find where the result changed.',
             'Rebuild the relationship from the known values before moving on.',
           ];
   const currentAccuracy =
@@ -18602,15 +18712,7 @@ function LessonFocusPage({
   useEffect(() => {
     setHintStep(0);
     setEliminatedOptions([]);
-    setScratchpad(readQuestionScratchpad(currentQuestion.id));
-    setScratchpadOpen(false);
   }, [currentQuestion.id]);
-
-  function handleScratchpadChange(value: string) {
-    const nextScratchpad = value.slice(0, QUESTION_SCRATCHPAD_LIMIT);
-    setScratchpad(nextScratchpad);
-    saveQuestionScratchpad(currentQuestion.id, nextScratchpad);
-  }
 
   function handleToggleEliminatedOption(optionIndex: number) {
     setEliminatedOptions((currentOptions) =>
@@ -18854,17 +18956,13 @@ function LessonFocusPage({
             )}
           </div>
 
-          <div className="questionWorkTools">
-            <button
-              aria-expanded={scratchpadOpen}
-              className={scratchpadOpen ? 'active' : ''}
-              onClick={() => setScratchpadOpen((isOpen) => !isOpen)}
-              type="button"
-            >
-              <NotebookPen size={17} />
-              <span>Scratchpad</span>
-              {scratchpad.trim() && <em>Saved</em>}
-            </button>
+          <QuestionScratchpad
+            key={currentQuestion.id}
+            questionId={currentQuestion.id}
+            givenValues={currentQuestion.visualValues}
+            onOpenJournal={onOpenJournal}
+            onOpenLibrary={onOpenScratchpads}
+          >
             {selectedOption === null && eliminatedOptions.length > 0 && (
               <button
                 onClick={() => setEliminatedOptions([])}
@@ -18874,50 +18972,7 @@ function LessonFocusPage({
                 <span>Restore {eliminatedOptions.length}</span>
               </button>
             )}
-          </div>
-
-          {scratchpadOpen && (
-            <section className="questionScratchpad" aria-label="Question scratchpad">
-              <header>
-                <span>
-                  <NotebookPen size={17} />
-                  <strong>Scratchpad</strong>
-                </span>
-                <button
-                  aria-label="Clear scratchpad"
-                  disabled={!scratchpad}
-                  onClick={() => handleScratchpadChange('')}
-                  title="Clear scratchpad"
-                  type="button"
-                >
-                  <XCircle size={16} />
-                </button>
-              </header>
-              <textarea
-                aria-label="Scratchpad notes"
-                maxLength={QUESTION_SCRATCHPAD_LIMIT}
-                onChange={(event) =>
-                  handleScratchpadChange(event.currentTarget.value)
-                }
-                placeholder="Equations and reasoning"
-                rows={4}
-                value={scratchpad}
-              />
-              <footer>
-                <span>
-                  {scratchpad.length}/{QUESTION_SCRATCHPAD_LIMIT}
-                </span>
-                <button
-                  disabled={!scratchpad.trim()}
-                  onClick={() => onOpenJournal(scratchpad)}
-                  type="button"
-                >
-                  <NotebookTabs size={16} />
-                  Save as field note
-                </button>
-              </footer>
-            </section>
-          )}
+          </QuestionScratchpad>
 
           {selectedOption === null && (
             <div className={`hintRail ${hintStep > 0 ? 'open' : ''}`}>
@@ -19084,20 +19139,26 @@ function LessonFocusPage({
                     ? `Next review: ${currentReviewTiming.toLowerCase()}`
                     : 'Added to your review queue'}
                 </em>
-                <p className="solutionLead">{currentQuestion.solution}</p>
-                <div className="solutionDetails">
-                  <div>
-                    <span>Relation</span>
-                    <strong>{currentQuestion.formula}</strong>
+                {isCorrect && <>
+                  <p className="solutionLead">{currentQuestion.solution}</p>
+                  <div className="solutionDetails">
+                    <div>
+                      <span>Relation</span>
+                      <strong>{currentQuestion.formula}</strong>
+                    </div>
+                    <div>
+                      <span>Assumptions</span>
+                      <strong>{currentQuestion.assumptions}</strong>
+                    </div>
                   </div>
-                  <div>
-                    <span>Assumptions</span>
-                    <strong>{currentQuestion.assumptions}</strong>
-                  </div>
-                </div>
-                <small>{currentQuestion.careerContext}</small>
+                  <small>{currentQuestion.careerContext}</small>
+                </>}
               </div>
             </div>
+          )}
+
+          {selectedOption !== null && !isCorrect && (
+            <MistakeExplanation key={`${currentQuestion.id}:${selectedOption}`} question={currentQuestion} optionIndex={selectedOption} />
           )}
 
           {selectedOption !== null && atlasConcept && (
@@ -19217,7 +19278,7 @@ function LessonFocusPage({
 
           <button
             className="secondaryButton fullWidth journalCaptureButton"
-            onClick={() => onOpenJournal(scratchpad)}
+            onClick={() => onOpenJournal(readQuestionDraft(currentQuestion.id).text)}
             type="button"
           >
             <NotebookPen size={18} />
@@ -19231,19 +19292,25 @@ function LessonFocusPage({
 
 type SprintSummaryPageProps = {
   adaptiveSkill: SkillNode;
+  bookmarkedIds: string[];
   onBack: () => void;
   onNewSprint: () => void;
+  onOpenHistory: () => void;
   onReviewMisses: () => void;
   onStrengthenSkill: () => void;
+  onToggleBookmark: (questionId: string) => void;
   sprint: SprintState;
 };
 
 function SprintSummaryPage({
   adaptiveSkill,
+  bookmarkedIds,
   onBack,
   onNewSprint,
+  onOpenHistory,
   onReviewMisses,
   onStrengthenSkill,
+  onToggleBookmark,
   sprint,
 }: SprintSummaryPageProps) {
   const total = sprint.questionIndices.length;
@@ -19267,6 +19334,15 @@ function SprintSummaryPage({
         : accuracy >= 60
           ? 'Good momentum'
           : 'Useful diagnostic';
+  const diagnosticFocus = sprint.diagnosticId
+    ? sprint.results.find((result) => result.result !== 'correct') ?? sprint.results[0]
+    : undefined;
+  const diagnosticQuestion = diagnosticFocus
+    ? lessonQuestions.find((question) => question.id === diagnosticFocus.questionId)
+    : undefined;
+  const recommendedSkill = diagnosticQuestion
+    ? skillNodes.find((skill) => skill.id === BANK_TOPIC_SKILL_IDS[diagnosticQuestion.topic]) ?? adaptiveSkill
+    : adaptiveSkill;
 
   return (
     <section className="sprintSummaryPage" aria-label={`${sprint.label} results`}>
@@ -19279,6 +19355,8 @@ function SprintSummaryPage({
           <ArrowLeft size={17} />
           {sprint.source === 'diagnostic'
             ? 'Back to bank'
+            : sprint.source === 'saved'
+              ? 'Back to saved questions'
             : sprint.source === 'custom'
               ? 'Back to builder'
               : sprint.source === 'recovery'
@@ -19295,6 +19373,8 @@ function SprintSummaryPage({
         <button className="primaryButton" onClick={onNewSprint} type="button">
           {sprint.source === 'diagnostic'
             ? 'Run again'
+            : sprint.source === 'saved'
+              ? 'Practice this set again'
             : sprint.source === 'custom'
               ? 'New session'
               : sprint.source === 'recovery'
@@ -19332,61 +19412,23 @@ function SprintSummaryPage({
       </section>
 
       <div className="sprintSummaryGrid">
-        <section className="sprintBreakdown" aria-label="Sprint answer breakdown">
-          <header>
-            <div>
-              <p className="eyebrow">Answer breakdown</p>
-              <h2>
-                {total} focused {total === 1 ? 'check' : 'checks'}
-              </h2>
-            </div>
-            <span>{missed} to review</span>
-          </header>
-
-          <div>
-            {sprint.results.map((result, index) => {
-              const question = lessonQuestions.find(
-                (item) => item.id === result.questionId,
-              );
-              const isCorrectResult = result.result === 'correct';
-
-              return (
-                <article
-                  className={isCorrectResult ? 'correct' : 'missed'}
-                  key={`${result.questionId}-${index}`}
-                >
-                  <span>{index + 1}</span>
-                  <div>
-                    <strong>{question?.topic ?? 'Practice prompt'}</strong>
-                    <small>{question?.subtopic ?? result.questionId}</small>
-                  </div>
-                  <em>
-                    {isCorrectResult
-                      ? 'Correct'
-                      : result.result === 'skipped'
-                        ? 'Skipped'
-                        : 'Review'}
-                  </em>
-                  {isCorrectResult ? (
-                    <CheckCircle2 size={18} />
-                  ) : (
-                    <RotateCcw size={18} />
-                  )}
-                </article>
-              );
-            })}
-          </div>
-        </section>
+        <SprintReview
+          items={getSprintReview(sprint, lessonQuestions)}
+          bookmarkedIds={bookmarkedIds}
+          onToggleBookmark={onToggleBookmark}
+        />
 
         <aside className="sprintNextStep" aria-label="Recommended next step">
           <span className="sprintNextIcon">
             <BrainCircuit size={25} />
           </span>
           <p className="eyebrow">Recommended next</p>
-          <h2>{adaptiveSkill.title}</h2>
+          <h2>{sprint.source === 'saved' ? 'Your saved collection' : recommendedSkill.title}</h2>
           <p>
             {sprint.diagnosticId
               ? 'Revisit the first missed domain check and turn the diagnostic into practice.'
+              : sprint.source === 'saved'
+                ? 'Your question history now includes this session. Revisit the misses or choose another set from your saved collection.'
               : sprint.source === 'recovery'
                 ? 'Return to the Mistake Lab, reflect on the result, and update the repair pattern before another check.'
               : sprint.source === 'review'
@@ -19396,6 +19438,8 @@ function SprintSummaryPage({
           <button className="secondaryButton" onClick={onStrengthenSkill} type="button">
             {sprint.diagnosticId
               ? 'Practice domain skill'
+              : sprint.source === 'saved'
+                ? 'Open saved questions'
               : sprint.source === 'recovery'
                 ? 'Open Mistake Lab'
               : sprint.source === 'review'
@@ -19407,6 +19451,9 @@ function SprintSummaryPage({
       </div>
 
       <footer className="sprintSummaryActions">
+        <button className="secondaryButton" type="button" onClick={onOpenHistory}>
+          <History size={17} aria-hidden="true" />Session history
+        </button>
         <button
           className="secondaryButton"
           disabled={missed === 0}
@@ -19418,11 +19465,13 @@ function SprintSummaryPage({
             ? 'No misses to review'
             : sprint.source === 'recovery'
               ? `Reflect on ${missed} ${missed === 1 ? 'miss' : 'misses'}`
-              : `Review ${missed} misses`}
+              : `Review ${missed} ${missed === 1 ? 'miss' : 'misses'}`}
         </button>
         <button className="primaryButton" onClick={onNewSprint} type="button">
           {sprint.source === 'diagnostic'
             ? 'Run diagnostic again'
+            : sprint.source === 'saved'
+              ? 'Repeat this set'
             : sprint.source === 'custom'
               ? 'Build another session'
               : sprint.source === 'recovery'
@@ -19734,6 +19783,7 @@ type LabFocusPageProps = {
   filterPhase: number;
   isFormulaSaved: boolean;
   labRunHistory: LabRunSnapshot[];
+  labSaveBlockedReason: string | null;
   labValues: LabSimulationValues;
   missionFeedback: LabMissionFeedback;
   missions: LabMission[];
@@ -19860,6 +19910,7 @@ function LabFocusPage({
   filterPhase,
   isFormulaSaved,
   labRunHistory,
+  labSaveBlockedReason,
   labValues,
   missionFeedback,
   missions,
@@ -19944,6 +19995,8 @@ function LabFocusPage({
 }: LabFocusPageProps) {
   const [labMode, setLabMode] = useState<LabMode>('calibration');
   const [benchLogOpen, setBenchLogOpen] = useState(false);
+  const benchLogTriggerRef = useRef<HTMLButtonElement>(null);
+  const previousLabIdRef = useRef(activeLab.id);
   const [activeFaultCaseId, setActiveFaultCaseId] = useState(
     faultCases.find(
       (faultCase) => !completedFaultCaseIds.includes(faultCase.id),
@@ -20088,6 +20141,8 @@ function LabFocusPage({
             ];
 
   useEffect(() => {
+    if (previousLabIdRef.current === activeLab.id) return;
+    previousLabIdRef.current = activeLab.id;
     setLabMode('calibration');
     setBenchLogOpen(false);
     setActiveFaultCaseId(
@@ -20891,7 +20946,7 @@ function LabFocusPage({
                   {bjtLoadLineCurrent.toFixed(2)} mA
                 </small>
                 <small>
-                  gm {bjtTransconductance.toFixed(1)} mS · PD{' '}
+                  gm {bjtSaturated || bjtCutoff ? 'N/A outside forward-active' : `${bjtTransconductance.toFixed(1)} mS`} · PD{' '}
                   {bjtCollectorPower.toFixed(1)} mW · PRC{' '}
                   {bjtCollectorResistorPower.toFixed(1)} mW · TJ{' '}
                   {bjtJunctionTemperature.toFixed(0)} °C
@@ -21020,10 +21075,10 @@ function LabFocusPage({
                     : labValues.mosfetGateVoltage < 6
                       ? 'Under-driven channel'
                       : mosfetJunctionTemperature > 125
-                        ? 'Thermal limit'
+                        ? 'High modeled temperature'
                         : 'Switching loss'}
                 </span>
-                <strong>{mosfetTotalLoss.toFixed(2)} W total</strong>
+                <strong>{mosfetTotalLoss.toFixed(2)} W stage + driver</strong>
                 <small>
                   PCOND {mosfetConductionLoss.toFixed(2)} W · PSW{' '}
                   {mosfetSwitchingLoss.toFixed(2)} W · PGATE{' '}
@@ -21287,9 +21342,11 @@ function LabFocusPage({
                     ? 'Input over-range'
                     : adcAliased
                       ? 'Aliased spectrum'
-                      : adcSamplesPerCycle < 4
-                        ? 'Low sample density'
-                        : 'Nyquist-safe capture'}
+                      : adcSamplesPerCycle === 2
+                        ? 'Nyquist boundary: phase ambiguous'
+                        : adcSamplesPerCycle < 4
+                          ? 'Low sample density'
+                          : 'Below Nyquist frequency'}
                 </span>
                 <strong>{adcDisplayedFrequency.toFixed(2)} kHz displayed</strong>
                 <small>
@@ -21299,7 +21356,12 @@ function LabFocusPage({
                 </small>
                 <small>
                   ΔV {adcLsbMillivolts.toFixed(2)} mV · peak code{' '}
-                  {adcPeakCode.toFixed(0)} · SNR {adcEffectiveSnr.toFixed(1)} dB
+                  {adcPeakCode.toFixed(0)} · ideal quantization SNR{' '}
+                  {adcClipped
+                    ? 'N/A (clipped)'
+                    : adcFilteredAmplitude < adcLsbMillivolts / 1000
+                      ? 'N/A (below one LSB)'
+                      : `${adcEffectiveSnr.toFixed(1)} dB`}
                 </small>
                 <small>
                   Conditioned amplitude {adcFilteredAmplitude.toFixed(2)} Vpk
@@ -21548,7 +21610,7 @@ function LabFocusPage({
                 <strong>{transmissionVswr.toFixed(2)}:1 VSWR</strong>
                 <small>
                   Γ {transmissionReflectionCoefficient.toFixed(3)} · RL{' '}
-                  {transmissionReturnLoss.toFixed(1)} dB · phase{' '}
+                  {transmissionReflectionMagnitude === 0 ? '∞' : transmissionReturnLoss.toFixed(1)} dB · phase{' '}
                   {transmissionReflectionMagnitude < 0.001
                     ? '—'
                     : `${transmissionReflectionPhase.toFixed(0)}°`}
@@ -21774,12 +21836,15 @@ function LabFocusPage({
           )}
 
           <div className="focusActionStack">
-            <button className="primaryButton fullWidth" onClick={onSave} type="button">
+            {labSaveBlockedReason && <p className="workspaceNotice" role="status">{labSaveBlockedReason}</p>}
+            <button className="primaryButton fullWidth" disabled={Boolean(labSaveBlockedReason)} onClick={onSave} type="button">
               Save Lab
               <CheckCircle2 size={18} />
             </button>
             <button
               className="secondaryButton fullWidth labBenchLogButton"
+              aria-haspopup="dialog"
+              ref={benchLogTriggerRef}
               onClick={() => setBenchLogOpen(true)}
               type="button"
             >
@@ -21815,16 +21880,19 @@ function LabFocusPage({
       </div>
 
       {benchLogOpen && (
-        <LabBenchLog
-          currentOutput={output}
-          currentValues={labValues}
-          labId={activeLab.id}
-          labTitle={activeLab.title}
-          onClose={() => setBenchLogOpen(false)}
-          onDelete={onDeleteRun}
-          onRestore={onRestoreRun}
-          runs={labRunHistory}
-        />
+        <Suspense fallback={<span className="srOnly" role="status">Loading bench log</span>}>
+          <LabBenchLog
+            currentOutput={output}
+            currentValues={labValues}
+            labId={activeLab.id}
+            labTitle={activeLab.title}
+            onClose={() => setBenchLogOpen(false)}
+            onDelete={onDeleteRun}
+            onRestore={onRestoreRun}
+            runs={labRunHistory}
+            returnFocusRef={benchLogTriggerRef}
+          />
+        </Suspense>
       )}
     </section>
   );
@@ -22648,6 +22716,7 @@ function ZyGuide({
   showTutorShortcut = true,
 }: ZyGuideProps) {
   const openTutor = useContext(ZyTutorLaunchContext);
+  const characterMotion = useCharacterMotion();
   const [tipIndex, setTipIndex] = useState(0);
   const [reactionCount, setReactionCount] = useState(0);
   const [reaction, setReaction] = useState<ZyReaction>('idle');
@@ -22674,32 +22743,6 @@ function ZyGuide({
 
     return () => window.clearTimeout(timeout);
   }, [reaction, reactionCount]);
-
-  function handlePointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const normalizedX = Math.max(
-      -1,
-      Math.min(1, ((event.clientX - bounds.left) / bounds.width - 0.5) * 2),
-    );
-    const normalizedY = Math.max(
-      -1,
-      Math.min(1, ((event.clientY - bounds.top) / bounds.height - 0.5) * 2),
-    );
-
-    event.currentTarget.style.setProperty('--zy-look-x', `${normalizedX * 4}px`);
-    event.currentTarget.style.setProperty('--zy-look-y', `${normalizedY * 3}px`);
-    event.currentTarget.style.setProperty('--zy-tilt-x', `${normalizedY * -4}deg`);
-    event.currentTarget.style.setProperty('--zy-tilt-y', `${normalizedX * 7}deg`);
-    event.currentTarget.style.setProperty('--zy-shift-x', `${normalizedX * 2}px`);
-  }
-
-  function handlePointerLeave(event: ReactPointerEvent<HTMLButtonElement>) {
-    event.currentTarget.style.setProperty('--zy-look-x', '0px');
-    event.currentTarget.style.setProperty('--zy-look-y', '0px');
-    event.currentTarget.style.setProperty('--zy-tilt-x', '0deg');
-    event.currentTarget.style.setProperty('--zy-tilt-y', '0deg');
-    event.currentTarget.style.setProperty('--zy-shift-x', '0px');
-  }
 
   function handleNextTip() {
     setTipIndex((index) => (index + 1) % Math.max(1, messages.length));
@@ -22730,14 +22773,18 @@ function ZyGuide({
         compact ? 'compact' : ''
       } ${className}`.trim()}
       aria-label="Zy learning guide"
+      data-motion-active={characterMotion.active}
+      ref={characterMotion.guideRef}
     >
       <div className={`zyCharacterStage ${canLaunchTutor ? 'hasTutor' : ''}`}>
         <button
           aria-label="Interact with Zy the penguin coach"
           className={`zyCharacter ${reactionClass} reaction-${reaction}`}
           onClick={handleCharacterInteract}
-          onPointerLeave={handlePointerLeave}
-          onPointerMove={handlePointerMove}
+          onPointerLeave={characterMotion.resetPointer}
+          onPointerCancel={characterMotion.resetPointer}
+          onPointerMove={characterMotion.handlePointerMove}
+          ref={characterMotion.characterRef}
           title="Tap Zy the penguin coach"
           type="button"
         >
@@ -23106,6 +23153,7 @@ type OverlayPanelProps = {
   saveStatus: SaveStatus;
   soundEnabled: boolean;
   supportsAppInstall: boolean;
+  systemReducedMotionEnabled: boolean;
 };
 
 function OverlayPanel({
@@ -23162,6 +23210,7 @@ function OverlayPanel({
   saveStatus,
   soundEnabled,
   supportsAppInstall,
+  systemReducedMotionEnabled,
 }: OverlayPanelProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLElement>(null);
@@ -23718,7 +23767,11 @@ function OverlayPanel({
             <label className="settingRow toggleSetting">
               <span>
                 <strong>Reduce motion</strong>
-                <small>Pause character, circuit, and interface animation</small>
+                <small>
+                  {systemReducedMotionEnabled
+                    ? 'Reduced motion is also enabled on your device'
+                    : 'Pause character, circuit, and interface animation'}
+                </small>
               </span>
               <input
                 checked={reducedMotionEnabled}
